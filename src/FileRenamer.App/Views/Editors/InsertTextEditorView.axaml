@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ed="using:FileRenamer.App.ViewModels.Editors"
+             x:Class="FileRenamer.App.Views.Editors.InsertTextEditorView"
+             x:DataType="ed:InsertTextEditorViewModel">
+  <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="9" MaxWidth="640" HorizontalAlignment="Left">
+    <TextBlock Text="Text" VerticalAlignment="Center" />
+    <TextBox Grid.Column="1" Text="{Binding Text}" />
+
+    <TextBlock Grid.Row="1" Text="Position" VerticalAlignment="Center" />
+    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12">
+      <NumericUpDown Value="{Binding Position}" Minimum="0" Maximum="{Binding MaxPosition}" Increment="1" FormatString="0" Width="140" />
+      <CheckBox Content="Vom Ende zählen" IsChecked="{Binding FromEnd}" />
+    </StackPanel>
+
+    <TextBlock Grid.Row="2" Grid.Column="1" Classes="hint" Text="Position zählt ab 0 und wird auf Anfang/Ende des Namens begrenzt." />
+  </Grid>
+</UserControl>

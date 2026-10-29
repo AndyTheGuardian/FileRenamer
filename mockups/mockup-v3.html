@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FileRenamer Mockup v3</title>
+<style>
+  /* Helles Theme ohne reines Weiß */
+  :root {
+    --bg: #dde1e7;
+    --window: #f3f4f6;
+    --panel: #e8ebef;
+    --border: #cdd2da;
+    --text: #1d2330;
+    --muted: #646c7c;
+    --accent: #2f6fdf;
+    --accent-text: #f4f7fc;
+    --input: #f9fafb;
+    --hover: #e1e7f2;
+    --selected: #d3def3;
+    --danger: #c93434;
+    --danger-bg: #f6e1e1;
+    --warn: #b7791f;
+    --c-replace: #2f6fdf;
+    --c-date: #1f9d55;
+    --c-counter: #e8740c;
+    --c-digits: #8b4fd6;
+    --c-insert: #d63c86;
+    --hl-alpha: 22%;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101318;
+    --window: #1b1f27;
+    --panel: #222731;
+    --border: #353c4a;
+    --text: #e4e8ef;
+    --muted: #97a0b0;
+    --accent: #5b8ff0;
+    --input: #171a21;
+    --hover: #2a3140;
+    --selected: #2d3b57;
+    --danger: #f06a6a;
+    --danger-bg: #3a2124;
+    --warn: #e0a94a;
+    --c-replace: #5b8ff0;
+    --c-date: #3cc47a;
+    --c-counter: #f39a4a;
+    --c-digits: #a982ec;
+    --c-insert: #ec6aa8;
+    --hl-alpha: 32%;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px 48px;
+    background: var(--bg); color: var(--text);
+    font: 13px/1.4 "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .intro { max-width: 1240px; margin: 0 auto 16px; color: var(--muted); }
+  .intro strong { color: var(--text); }
+
+  /* ---------- Fenster ---------- */
+  .window {
+    max-width: 1240px; margin: 0 auto;
+    background: var(--window); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.12); overflow: hidden;
+    display: flex; flex-direction: column; min-height: 760px;
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    border-bottom: 1px solid var(--border); background: var(--panel); font-weight: 600;
+  }
+  .titlebar .dots { margin-left: auto; color: var(--muted); letter-spacing: 6px; }
+  .menubar { display: flex; gap: 2px; padding: 2px 6px; border-bottom: 1px solid var(--border); position: relative; }
+  .menu { position: relative; }
+  .menu > button { background: none; border: 0; color: var(--text); padding: 5px 10px; border-radius: 4px; font: inherit; cursor: pointer; }
+  .menu > button:hover, .menu.open > button { background: var(--hover); }
+  .menu .dropdown {
+    display: none; position: absolute; top: 100%; left: 0; z-index: 10; min-width: 220px;
+    background: var(--window); border: 1px solid var(--border); border-radius: 6px; padding: 4px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.18);
+  }
+  .menu.open .dropdown { display: block; }
+  .dropdown div { padding: 6px 10px; border-radius: 4px; display: flex; justify-content: space-between; gap: 16px; }
+  .dropdown div:hover { background: var(--hover); }
+  .dropdown .sep { height: 1px; padding: 0; margin: 4px 0; background: var(--border); }
+  .dropdown kbd { color: var(--muted); font: inherit; }
+
+  .toolbar { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .toolbar .spacer { flex: 1; }
+  label.inline { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* ---------- Steuerelemente ---------- */
+  input[type=text], input[type=number], select {
+    background: var(--input); color: var(--text); border: 1px solid var(--border);
+    border-radius: 4px; padding: 5px 8px; font: inherit;
+  }
+  input[type=number] { width: 80px; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  input.invalid { border-color: var(--danger); }
+  input:disabled { opacity: .5; cursor: not-allowed; }
+  .btn {
+    background: var(--panel); color: var(--text); border: 1px solid var(--border);
+    border-radius: 4px; padding: 6px 14px; font: inherit; cursor: pointer;
+  }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .seg button { background: var(--input); color: var(--text); border: 0; padding: 5px 12px; font: inherit; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--border); }
+  .seg button.on { background: var(--accent); color: var(--accent-text); }
+  .seg.icons button { padding: 5px 9px; display: inline-flex; align-items: center; }
+  .seg.icons svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Layout ---------- */
+  .half { display: grid; grid-template-columns: 260px 1fr; min-height: 0; }
+  .top { border-bottom: 4px double var(--border); flex: 0 0 auto; }
+  .bottom { flex: 1; }
+  .pane { padding: 10px 12px; min-width: 0; }
+  .pane + .pane { border-left: 1px solid var(--border); }
+  .pane-title { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .pane-title .right { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 400; }
+
+  /* Verfahrensliste */
+  .proc-list { list-style: none; margin: 0; padding: 0; }
+  .proc-list li {
+    display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 4px; cursor: pointer;
+  }
+  .proc-list li:hover { background: var(--hover); }
+  .proc-list li.active { background: var(--selected); font-weight: 600; }
+  .bar { width: 4px; align-self: stretch; min-height: 16px; border-radius: 2px; flex: 0 0 4px; }
+
+  /* Optionen */
+  .options h2 { font-size: 15px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .options h2 .bar { min-height: 18px; }
+  .form { display: grid; grid-template-columns: 170px 1fr; gap: 9px 14px; align-items: center; max-width: 620px; }
+  .form .full { grid-column: 1 / -1; }
+  .form > .seg, .form > .example { justify-self: start; }
+  .hint { color: var(--muted); font-size: 12px; }
+  .err { color: var(--danger); font-size: 12px; }
+  .example { background: var(--panel); border: 1px dashed var(--border); border-radius: 4px; padding: 6px 10px; font-family: Consolas, monospace; }
+  .opt-actions { margin-top: 14px; display: flex; gap: 8px; }
+  .opt-panel { display: none; }
+  .opt-panel.show { display: block; }
+  .row-inline { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  /* Kette (Treeview) */
+  .chain { list-style: none; margin: 0; padding: 0; }
+  .chain li {
+    display: flex; align-items: center; gap: 8px; padding: 6px 6px; border-radius: 4px; border: 1px solid transparent;
+    background: var(--window);
+  }
+  .chain li:hover { background: var(--hover); }
+  .chain li.active { background: var(--selected); }
+  .chain li.dragging { opacity: .4; }
+  .chain li.drop-target { border-top: 2px solid var(--accent); }
+  .chain .grip { cursor: grab; color: var(--muted); user-select: none; }
+  .chain .name { flex: 1; }
+  .chain .name small { display: block; color: var(--muted); font-size: 11px; }
+  .chain li.off .name { color: var(--muted); text-decoration: line-through; }
+  .chain .del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+  .chain .del:hover { color: var(--danger); background: var(--danger-bg); }
+  .tree-root { color: var(--muted); padding: 2px 6px 6px; }
+
+  /* Dateiliste */
+  .files { width: 100%; border-collapse: collapse; font-family: Consolas, "Cascadia Mono", monospace; font-size: 13px; }
+  .files th {
+    text-align: left; font: 600 11px "Segoe UI", system-ui, sans-serif; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--panel); position: sticky; top: 0;
+  }
+  .files td { padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .files td.state { width: 28px; text-align: center; font-family: "Segoe UI", sans-serif; }
+  .files tr.conflict td { background: var(--danger-bg); }
+  .files tr.conflict td.new { color: var(--danger); }
+  .files tr:hover td { background: var(--hover); }
+  .files .ext { color: var(--muted); }
+  .hl { border-radius: 3px; padding: 0 1px; }
+  .hl.replace { background: color-mix(in srgb, var(--c-replace) var(--hl-alpha), transparent); box-shadow: inset 0 -2px 0 var(--c-replace); }
+  .hl.date    { background: color-mix(in srgb, var(--c-date) var(--hl-alpha), transparent);    box-shadow: inset 0 -2px 0 var(--c-date); }
+  .hl.counter { background: color-mix(in srgb, var(--c-counter) var(--hl-alpha), transparent); box-shadow: inset 0 -2px 0 var(--c-counter); }
+  .hl.digits  { background: color-mix(in srgb, var(--c-digits) var(--hl-alpha), transparent);  box-shadow: inset 0 -2px 0 var(--c-digits); }
+  .hl.insert  { background: color-mix(in srgb, var(--c-insert) var(--hl-alpha), transparent);  box-shadow: inset 0 -2px 0 var(--c-insert); }
+  .icon-warn { color: var(--warn); cursor: help; }
+  .icon-err { color: var(--danger); cursor: help; }
+  .list-wrap { border: 1px solid var(--border); border-radius: 4px; overflow: auto; max-height: 300px; }
+  .drop-hint { margin-top: 8px; border: 1px dashed var(--border); border-radius: 4px; padding: 8px; text-align: center; color: var(--muted); }
+
+  .footer { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-top: 1px solid var(--border); background: var(--panel); flex-wrap: wrap; }
+  .footer .status { color: var(--muted); }
+  .footer .status b { color: var(--danger); }
+  .footer .spacer { flex: 1; }
+
+  /* Dialog */
+  .dialog-demo { max-width: 1240px; margin: 28px auto 0; }
+  .dialog-demo h2 { font-size: 14px; color: var(--muted); font-weight: 600; margin: 0 0 10px; }
+  .dialog {
+    width: 440px; max-width: 100%; background: var(--window); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  }
+  .dialog .titlebar { border-radius: 8px 8px 0 0; }
+  .dialog .body { padding: 16px; }
+  .dialog .actions { display: flex; justify-content: flex-end; gap: 8px; padding: 0 16px 16px; }
+  .dialogs { display: flex; gap: 24px; flex-wrap: wrap; }
+
+  @media (max-width: 900px) {
+    .half { grid-template-columns: 1fr; }
+    .pane + .pane { border-left: 0; border-top: 1px solid var(--border); }
+    .form { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>FileRenamer – Mockup v3</h1>
+  Statische HTML-Skizze zur Abnahme. <strong>Klickbar:</strong> Verfahrensliste (wechselt die Optionen), Menüs,
+  Theme-Auswahl, Checkboxen und Drag &amp; Drop in der Kette. Die Vorschau zeigt Beispieldaten und rechnet nicht mit.
+</div>
+
+<div class="window">
+  <div class="titlebar">FileRenamer <span class="dots">— ▢ ✕</span></div>
+
+  <!-- Menü -->
+  <nav class="menubar">
+    <div class="menu"><button>Datei</button>
+      <div class="dropdown">
+        <div>Dateien hinzufügen… <kbd>Strg+O</kbd></div>
+        <div>Ordner hinzufügen… <kbd>Strg+Umschalt+O</kbd></div>
+        <div class="sep"></div>
+        <div>Liste leeren</div>
+        <div class="sep"></div>
+        <div>Beenden</div>
+      </div>
+    </div>
+    <div class="menu"><button>Profile</button>
+      <div class="dropdown">
+        <div>Profil laden…</div>
+        <div>Profil speichern <kbd>Strg+S</kbd></div>
+        <div>Profil speichern unter…</div>
+        <div class="sep"></div>
+        <div>Profile verwalten…</div>
+      </div>
+    </div>
+    <div class="menu"><button>Ansicht</button>
+      <div class="dropdown">
+        <div>Theme: System</div>
+        <div>Theme: Hell</div>
+        <div>Theme: Dunkel</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <label class="inline">Profil
+      <select><option>Urlaubsfotos</option><option>Scans nummerieren</option><option>(kein Profil)</option></select>
+    </label>
+    <button class="btn">Speichern</button>
+    <span class="spacer"></span>
+    <span class="seg icons" id="theme" role="group" aria-label="Theme">
+      <button data-t="system" class="on" title="Theme: System" aria-label="Theme: System">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+      </button><button data-t="light" title="Theme: Hell" aria-label="Theme: Hell">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button><button data-t="dark" title="Theme: Dunkel" aria-label="Theme: Dunkel">
+        <svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      </button>
+    </span>
+  </div>
+
+  <!-- Obere Hälfte: Einstellungen -->
+  <section class="half top">
+    <div class="pane">
+      <p class="pane-title">Verfahren</p>
+      <ul class="proc-list" id="procs">
+        <li data-p="replace" class="active"><span class="bar" style="background:var(--c-replace)"></span>Text ersetzen</li>
+        <li data-p="date"><span class="bar" style="background:var(--c-date)"></span>Datum / Zeit anfügen</li>
+        <li data-p="counter"><span class="bar" style="background:var(--c-counter)"></span>Zähler anhängen</li>
+        <li data-p="digits"><span class="bar" style="background:var(--c-digits)"></span>Ziffernkette Wertebereich verschieben</li>
+        <li data-p="insert"><span class="bar" style="background:var(--c-insert)"></span>Text einfügen</li>
+      </ul>
+    </div>
+
+    <div class="pane options">
+      <!-- Text ersetzen -->
+      <div class="opt-panel show" data-p="replace">
+        <h2><span class="bar" style="background:var(--c-replace)"></span>Text ersetzen</h2>
+        <div class="form">
+          <label>Suchen nach</label><input type="text" value="IMG">
+          <label>Ersetzen durch</label><input type="text" value="Urlaub">
+          <label>Treffer</label>
+          <span class="seg"><button>Erster</button><button>Letzter</button><button class="on">Alle</button></span>
+          <span></span><label class="inline"><input type="checkbox"> Regulärer Ausdruck</label>
+          <span></span><span class="hint">Groß-/Kleinschreibung wird immer berücksichtigt.</span>
+        </div>
+      </div>
+
+      <!-- Datum -->
+      <div class="opt-panel" data-p="date">
+        <h2><span class="bar" style="background:var(--c-date)"></span>Datum / Zeit anfügen</h2>
+        <div class="form">
+          <label>Datumsquelle</label>
+          <span class="seg"><button class="on">Erstellungsdatum</button><button>Änderungsdatum</button></span>
+          <label>Position</label>
+          <span class="seg"><button class="on">Vor dem Namen</button><button>Nach dem Namen</button></span>
+          <label>Datumsformat</label>
+          <div class="row-inline">
+            <select id="dateList">
+              <option>yyyy-MM-dd</option><option>yyyyMMdd</option><option>yyyy_MM_dd</option>
+              <option>dd.MM.yyyy</option><option>dd-MM-yyyy</option><option>MM-dd-yyyy</option>
+            </select>
+            <input type="text" id="dateFmt" value="yyyy-MM-dd" style="width:160px" title="Eigenes Format">
+          </div>
+          <span></span><span class="hint" id="dateMsg">Liste wählt eine Vorlage, das Textfeld erlaubt ein eigenes Format.</span>
+          <span></span><label class="inline"><input type="checkbox" checked> Uhrzeit anfügen</label>
+          <label>Uhrzeitformat</label>
+          <div class="row-inline">
+            <select><option>HH-mm-ss</option><option>HHmmss</option><option>HH.mm.ss</option><option>HH-mm</option></select>
+            <input type="text" value="HH-mm" style="width:160px">
+          </div>
+          <label>Trennzeichen Name ↔ Datum</label><input type="text" value="_" style="width:60px">
+          <label>Trennzeichen Datum ↔ Zeit</label><input type="text" value="_" style="width:60px">
+          <label>Beispiel</label><span class="example">2026-10-12_14-30_Urlaub_0011</span>
+        </div>
+      </div>
+
+      <!-- Zähler -->
+      <div class="opt-panel" data-p="counter">
+        <h2><span class="bar" style="background:var(--c-counter)"></span>Zähler anhängen</h2>
+        <div class="form">
+          <label>Position</label>
+          <span class="seg"><button>Vor dem Namen</button><button class="on">Nach dem Namen</button></span>
+          <label>Startwert</label><input type="number" value="1">
+          <label>Schrittweite</label><input type="number" value="1">
+          <label>Stellen (führende Nullen)</label><input type="number" value="3" min="1">
+          <label>Trennzeichen</label><input type="text" value="-" style="width:60px">
+          <label>Sortieren nach</label>
+          <div class="row-inline">
+            <select><option>Name</option><option>Erstellungsdatum</option><option>Änderungsdatum</option><option>Größe</option></select>
+            <span class="seg"><button class="on">Aufsteigend</button><button>Absteigend</button></span>
+          </div>
+          <label>Beispiel</label><span class="example">bericht-001, bericht-002, …</span>
+        </div>
+      </div>
+
+      <!-- Ziffernkette -->
+      <div class="opt-panel" data-p="digits">
+        <h2><span class="bar" style="background:var(--c-digits)"></span>Ziffernkette Wertebereich verschieben</h2>
+        <div class="form">
+          <label>Wert (auch negativ)</label><input type="number" value="10">
+          <label>Ziffernkette Nr.</label>
+          <div class="row-inline">
+            <input type="number" id="digitNo" value="1" min="1" max="1" disabled>
+            <label class="inline"><input type="checkbox" checked> Letzte gefundene</label>
+          </div>
+          <span></span><span class="hint" id="digitMsg">Erlaubt: 1 (kleinste Anzahl Ziffernketten unter den Dateien mit Ziffernketten).</span>
+          <label>Mindeststellen</label>
+          <div class="row-inline">
+            <input type="number" value="4" min="1" disabled>
+            <label class="inline"><input type="checkbox" checked> Originalbreite beibehalten</label>
+          </div>
+          <span></span><span class="hint">Position zählt ab 1 von links. Negative Ergebnisse werden als Konflikt markiert. Namen ohne Ziffernkette bleiben unverändert und erhalten einen Hinweis.</span>
+          <label>Beispiel</label><span class="example">name-301-001 → name-301-011</span>
+        </div>
+      </div>
+
+      <!-- Text einfügen -->
+      <div class="opt-panel" data-p="insert">
+        <h2><span class="bar" style="background:var(--c-insert)"></span>Text einfügen</h2>
+        <div class="form">
+          <label>Text</label><input type="text" value="_final">
+          <label>Position</label>
+          <div class="row-inline">
+            <input type="number" value="0" min="0">
+            <label class="inline"><input type="checkbox"> Vom Ende zählen</label>
+          </div>
+          <span></span><span class="hint">Position zählt ab 0 und wird auf Anfang/Ende des Namens begrenzt.</span>
+          <label>Beispiel</label><span class="example">bericht → bericht_final</span>
+        </div>
+      </div>
+
+      <div class="opt-actions">
+        <button class="btn primary">Zur Kette hinzufügen</button>
+        <button class="btn">Auf Standardwerte zurücksetzen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Untere Hälfte: Kette + Vorschau -->
+  <section class="half bottom">
+    <div class="pane">
+      <p class="pane-title">Angewandte Verfahren</p>
+      <div class="tree-root">▾ Kette (Reihenfolge per Drag &amp; Drop)</div>
+      <ul class="chain" id="chain">
+        <li draggable="true" class="active"><span class="grip">⋮⋮</span><input type="checkbox" checked><span class="bar" style="background:var(--c-replace)"></span><span class="name">Text ersetzen</span><button class="del" title="Entfernen">✕</button></li>
+        <li draggable="true"><span class="grip">⋮⋮</span><input type="checkbox" checked><span class="bar" style="background:var(--c-digits)"></span><span class="name">Ziffernkette Wertebereich verschieben</span><button class="del" title="Entfernen">✕</button></li>
+        <li draggable="true"><span class="grip">⋮⋮</span><input type="checkbox" checked><span class="bar" style="background:var(--c-date)"></span><span class="name">Datum / Zeit anfügen</span><button class="del" title="Entfernen">✕</button></li>
+        <li draggable="true" class="off"><span class="grip">⋮⋮</span><input type="checkbox"><span class="bar" style="background:var(--c-counter)"></span><span class="name">Zähler anhängen</span><button class="del" title="Entfernen">✕</button></li>
+      </ul>
+    </div>
+
+    <div class="pane">
+      <p class="pane-title">Vorschau
+        <span class="right"><label class="inline"><input type="checkbox" id="extToggle" checked> Dateierweiterung ignorieren</label></span>
+      </p>
+      <div class="list-wrap">
+        <table class="files">
+          <thead><tr><th></th><th>Aktueller Name</th><th>Neuer Name</th></tr></thead>
+          <tbody>
+            <tr><td class="state"></td><td>IMG_0001<span class="ext">.jpg</span></td><td><span class="hl date">2026-10-12_14-30_</span><span class="hl replace">Urlaub</span>_<span class="hl digits">0011</span><span class="ext">.jpg</span></td></tr>
+            <tr><td class="state"></td><td>IMG_0002<span class="ext">.jpg</span></td><td><span class="hl date">2026-10-12_15-02_</span><span class="hl replace">Urlaub</span>_<span class="hl digits">0012</span><span class="ext">.jpg</span></td></tr>
+            <tr><td class="state"></td><td>IMG_0003<span class="ext">.jpg</span></td><td><span class="hl date">2026-10-14_09-41_</span><span class="hl replace">Urlaub</span>_<span class="hl digits">0013</span><span class="ext">.jpg</span></td></tr>
+            <tr><td class="state"><span class="icon-warn" title="Erstellungsdatum nicht verfügbar – Änderungsdatum wurde verwendet">⚠</span></td><td>scan-301-001<span class="ext">.pdf</span></td><td><span class="hl date">2026-09-02_11-15_</span>scan-301-<span class="hl digits">011</span><span class="ext">.pdf</span></td></tr>
+            <tr class="conflict"><td class="state"><span class="icon-err" title="Konflikt: Zielname existiert bereits im Ordner">⛔</span></td><td>IMG_0004<span class="ext">.jpg</span></td><td><span class="hl date">2026-10-14_09-41_</span><span class="hl replace">Urlaub</span>_<span class="hl digits">0014</span><span class="ext">.jpg</span></td></tr>
+            <tr><td class="state"><span class="icon-warn" title="Keine Ziffernkette gefunden – „Ziffernkette Wertebereich verschieben“ hat den Namen nicht verändert">⚠</span></td><td>bericht<span class="ext">.docx</span></td><td><span class="hl date">2026-08-30_16-20_</span>bericht<span class="ext">.docx</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="drop-hint">Dateien oder Ordner hierher ziehen</div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <span class="status">6 Dateien · 2 Hinweise · <b>1 Konflikt – Umbenennen gesperrt</b></span>
+    <span class="spacer"></span>
+    <button class="btn">Änderungen verwerfen</button>
+    <button class="btn primary" disabled title="Erst alle Konflikte beheben">Umbenennen</button>
+  </div>
+</div>
+
+<div class="dialog-demo">
+  <h2>Dialoge</h2>
+  <div class="dialogs">
+    <div class="dialog">
+      <div class="titlebar">Umbenennen bestätigen</div>
+      <div class="body">
+        <p style="margin-top:0"><strong>5 Dateien</strong> werden umbenannt.</p>
+        <p class="hint">Tritt ein Fehler auf, werden alle bereits umbenannten Dateien zurückbenannt.</p>
+      </div>
+      <div class="actions"><button class="btn">Abbrechen</button><button class="btn primary">Umbenennen</button></div>
+    </div>
+    <div class="dialog">
+      <div class="titlebar">Profil speichern unter</div>
+      <div class="body">
+        <div class="form" style="grid-template-columns:110px 1fr">
+          <label>Name</label><input type="text" value="Urlaubsfotos">
+          <span></span><span class="hint">Gespeichert werden die Verfahren, ihre Parameter und die Reihenfolge.</span>
+        </div>
+      </div>
+      <div class="actions"><button class="btn">Abbrechen</button><button class="btn primary">Speichern</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Verfahrensliste -> Optionen umschalten
+  document.querySelectorAll('#procs li').forEach(li => li.addEventListener('click', () => {
+    document.querySelectorAll('#procs li').forEach(x => x.classList.toggle('active', x === li));
+    document.querySelectorAll('.opt-panel').forEach(p => p.classList.toggle('show', p.dataset.p === li.dataset.p));
+  }));
+
+  // Segment-Buttons
+  document.querySelectorAll('.seg').forEach(seg => seg.addEventListener('click', e => {
+    if (e.target.tagName !== 'BUTTON') return;
+    seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === e.target));
+  }));
+
+  // Theme
+  const root = document.documentElement;
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+  let themeMode = 'system';
+  function applyTheme() {
+    const dark = themeMode === 'dark' || (themeMode === 'system' && media.matches);
+    root.dataset.theme = dark ? 'dark' : 'light';
+  }
+  document.querySelectorAll('#theme button').forEach(b => b.addEventListener('click', () => { themeMode = b.dataset.t; applyTheme(); }));
+  media.addEventListener('change', applyTheme);
+  applyTheme();
+
+  // Menüs
+  document.querySelectorAll('.menu > button').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const m = b.parentElement, open = m.classList.contains('open');
+    document.querySelectorAll('.menu').forEach(x => x.classList.remove('open'));
+    if (!open) m.classList.add('open');
+  }));
+  document.addEventListener('click', () => document.querySelectorAll('.menu').forEach(x => x.classList.remove('open')));
+
+  // Datumsformat: Liste füllt Textfeld, Textfeld wird validiert
+  const dateList = document.getElementById('dateList'), dateFmt = document.getElementById('dateFmt'), dateMsg = document.getElementById('dateMsg');
+  dateList.addEventListener('change', () => { dateFmt.value = dateList.value; validateDate(); });
+  dateFmt.addEventListener('input', validateDate);
+  function validateDate() {
+    const v = dateFmt.value, bad = /[<>:"\/\\|?*]/.test(v), empty = !/[yMd]/.test(v);
+    dateFmt.classList.toggle('invalid', bad || empty);
+    dateMsg.className = (bad || empty) ? 'err' : 'hint';
+    dateMsg.textContent = bad ? 'Ungültig: enthält ein in Dateinamen verbotenes Zeichen (< > : " / \\ | ? *).'
+                       : empty ? 'Ungültig: Format enthält keinen Datumsbestandteil (y, M, d).'
+                       : 'Liste wählt eine Vorlage, das Textfeld erlaubt ein eigenes Format.';
+  }
+
+  // Kette: Checkbox, Auswahl, Entfernen, Drag & Drop
+  const chain = document.getElementById('chain');
+  let dragged = null;
+  chain.addEventListener('change', e => { if (e.target.type === 'checkbox') e.target.closest('li').classList.toggle('off', !e.target.checked); });
+  chain.addEventListener('click', e => {
+    const li = e.target.closest('li'); if (!li) return;
+    if (e.target.classList.contains('del')) { li.remove(); return; }
+    if (e.target.type === 'checkbox') return;
+    chain.querySelectorAll('li').forEach(x => x.classList.toggle('active', x === li));
+  });
+  chain.addEventListener('dragstart', e => { dragged = e.target.closest('li'); dragged.classList.add('dragging'); });
+  chain.addEventListener('dragend', () => { dragged?.classList.remove('dragging'); chain.querySelectorAll('li').forEach(x => x.classList.remove('drop-target')); });
+  chain.addEventListener('dragover', e => {
+    e.preventDefault();
+    const li = e.target.closest('li');
+    chain.querySelectorAll('li').forEach(x => x.classList.toggle('drop-target', x === li && x !== dragged));
+  });
+  chain.addEventListener('drop', e => {
+    e.preventDefault();
+    const li = e.target.closest('li');
+    if (li && dragged && li !== dragged) chain.insertBefore(dragged, li);
+  });
+
+  // Checkbox "Letzte gefundene" / "Originalbreite" sperrt das vorangehende Zahlenfeld
+  document.querySelectorAll('.row-inline input[type=number] + label input[type=checkbox]').forEach(cb => {
+    const field = cb.closest('.row-inline').querySelector('input[type=number]');
+    if (!field.disabled && cb.checked === false) return;
+    cb.addEventListener('change', () => field.disabled = cb.checked);
+  });
+
+  // Ziffernkette Nr.: Eingabe auf den gültigen Bereich begrenzen
+  const digitNo = document.getElementById('digitNo'), digitMsg = document.getElementById('digitMsg');
+  digitNo.addEventListener('input', () => {
+    const v = Number(digitNo.value), max = Number(digitNo.max), bad = !Number.isInteger(v) || v < 1 || v > max;
+    const range = max === 1 ? '1' : `1–${max}`;
+    digitNo.classList.toggle('invalid', bad);
+    digitMsg.className = bad ? 'err' : 'hint';
+    digitMsg.textContent = bad ? `Ungültig: Nicht alle Dateien haben eine Ziffernkette Nr. ${digitNo.value}. Erlaubt: ${range}.`
+                               : `Erlaubt: ${range} (kleinste Anzahl Ziffernketten unter den Dateien mit Ziffernketten).`;
+  });
+
+  // Dateierweiterung ein-/ausblenden
+  document.getElementById('extToggle').addEventListener('change', e => {
+    document.querySelectorAll('.files .ext').forEach(x => x.style.display = e.target.checked ? 'none' : '');
+  });
+  document.querySelectorAll('.files .ext').forEach(x => x.style.display = 'none');
+</script>
+</body>
+</html>

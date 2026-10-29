@@ -1,0 +1,134 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:FileRenamer.App.Converters"
+             x:Class="FileRenamer.App.App"
+             RequestedThemeVariant="Default">
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <converters:EnumEqualsConverter x:Key="EnumEquals" />
+
+      <!-- Icons für die Theme-Auswahl: Monitor = System, Sonne = Hell, Mond = Dunkel -->
+      <StreamGeometry x:Key="IconSystem">M4,5 L20,5 C20.8,5 21.5,5.7 21.5,6.5 L21.5,15.5 C21.5,16.3 20.8,17 20,17 L4,17 C3.2,17 2.5,16.3 2.5,15.5 L2.5,6.5 C2.5,5.7 3.2,5 4,5 Z M4,6.5 L4,15.5 L20,15.5 L20,6.5 Z M8,19.5 L16,19.5 L16,21 L8,21 Z M11.25,17 L12.75,17 L12.75,19.5 L11.25,19.5 Z</StreamGeometry>
+      <StreamGeometry x:Key="IconLight">M12,7.5 A4.5,4.5 0 1 1 11.99,7.5 Z M11.25,1.5 L12.75,1.5 L12.75,4.5 L11.25,4.5 Z M11.25,19.5 L12.75,19.5 L12.75,22.5 L11.25,22.5 Z M1.5,11.25 L4.5,11.25 L4.5,12.75 L1.5,12.75 Z M19.5,11.25 L22.5,11.25 L22.5,12.75 L19.5,12.75 Z M4.4,5.5 L5.5,4.4 L7.6,6.5 L6.5,7.6 Z M16.4,17.5 L17.5,16.4 L19.6,18.5 L18.5,19.6 Z M4.4,18.5 L6.5,16.4 L7.6,17.5 L5.5,19.6 Z M16.4,6.5 L18.5,4.4 L19.6,5.5 L17.5,7.6 Z</StreamGeometry>
+      <StreamGeometry x:Key="IconDark">M12.5,3 A9,9 0 1 0 21,13.5 A7,7 0 1 1 12.5,3 Z</StreamGeometry>
+
+      <ResourceDictionary.ThemeDictionaries>
+        <!-- Helles Theme ohne reines Weiß (E30) -->
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F3F4F6" />
+          <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#E8EBEF" />
+          <SolidColorBrush x:Key="InputBackgroundBrush" Color="#F9FAFB" />
+          <SolidColorBrush x:Key="AppBorderBrush" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="MutedTextBrush" Color="#646C7C" />
+          <SolidColorBrush x:Key="SelectionBrush" Color="#D3DEF3" />
+          <SolidColorBrush x:Key="DangerBrush" Color="#C93434" />
+          <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#F6E1E1" />
+          <SolidColorBrush x:Key="WarnBrush" Color="#B7791F" />
+          <SolidColorBrush x:Key="DropHintBrush" Color="#E1E7F2" />
+
+          <SolidColorBrush x:Key="RuleColor.ReplaceText" Color="#2F6FDF" />
+          <SolidColorBrush x:Key="RuleColor.AppendDate" Color="#1F9D55" />
+          <SolidColorBrush x:Key="RuleColor.AppendCounter" Color="#E8740C" />
+          <SolidColorBrush x:Key="RuleColor.ShiftDigitRange" Color="#8B4FD6" />
+          <SolidColorBrush x:Key="RuleColor.InsertText" Color="#D63C86" />
+          <SolidColorBrush x:Key="RuleHighlight.ReplaceText" Color="#552F6FDF" />
+          <SolidColorBrush x:Key="RuleHighlight.AppendDate" Color="#551F9D55" />
+          <SolidColorBrush x:Key="RuleHighlight.AppendCounter" Color="#55E8740C" />
+          <SolidColorBrush x:Key="RuleHighlight.ShiftDigitRange" Color="#558B4FD6" />
+          <SolidColorBrush x:Key="RuleHighlight.InsertText" Color="#55D63C86" />
+
+          <!-- Fluent-Eingabefelder ebenfalls ohne reines Weiß -->
+          <SolidColorBrush x:Key="TextControlBackground" Color="#F9FAFB" />
+          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#F4F6F8" />
+          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FBFCFD" />
+          <SolidColorBrush x:Key="ComboBoxBackground" Color="#F9FAFB" />
+          <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#F4F6F8" />
+          <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#F3F4F6" />
+          <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#F3F4F6" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="AppBackgroundBrush" Color="#1B1F27" />
+          <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#222731" />
+          <SolidColorBrush x:Key="InputBackgroundBrush" Color="#171A21" />
+          <SolidColorBrush x:Key="AppBorderBrush" Color="#353C4A" />
+          <SolidColorBrush x:Key="MutedTextBrush" Color="#97A0B0" />
+          <SolidColorBrush x:Key="SelectionBrush" Color="#2D3B57" />
+          <SolidColorBrush x:Key="DangerBrush" Color="#F06A6A" />
+          <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#3A2124" />
+          <SolidColorBrush x:Key="WarnBrush" Color="#E0A94A" />
+          <SolidColorBrush x:Key="DropHintBrush" Color="#2A3140" />
+
+          <SolidColorBrush x:Key="RuleColor.ReplaceText" Color="#5B8FF0" />
+          <SolidColorBrush x:Key="RuleColor.AppendDate" Color="#3CC47A" />
+          <SolidColorBrush x:Key="RuleColor.AppendCounter" Color="#F39A4A" />
+          <SolidColorBrush x:Key="RuleColor.ShiftDigitRange" Color="#A982EC" />
+          <SolidColorBrush x:Key="RuleColor.InsertText" Color="#EC6AA8" />
+          <SolidColorBrush x:Key="RuleHighlight.ReplaceText" Color="#665B8FF0" />
+          <SolidColorBrush x:Key="RuleHighlight.AppendDate" Color="#663CC47A" />
+          <SolidColorBrush x:Key="RuleHighlight.AppendCounter" Color="#66F39A4A" />
+          <SolidColorBrush x:Key="RuleHighlight.ShiftDigitRange" Color="#66A982EC" />
+          <SolidColorBrush x:Key="RuleHighlight.InsertText" Color="#66EC6AA8" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+
+    <!-- Farbbalken der Verfahren (Klasse wird über RuleColor.Kind gesetzt) -->
+    <Style Selector="Border.ruleBar">
+      <Setter Property="Width" Value="4" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="MinHeight" Value="16" />
+    </Style>
+    <Style Selector="Border.ruleBar.kind-ReplaceText"><Setter Property="Background" Value="{DynamicResource RuleColor.ReplaceText}" /></Style>
+    <Style Selector="Border.ruleBar.kind-AppendDate"><Setter Property="Background" Value="{DynamicResource RuleColor.AppendDate}" /></Style>
+    <Style Selector="Border.ruleBar.kind-AppendCounter"><Setter Property="Background" Value="{DynamicResource RuleColor.AppendCounter}" /></Style>
+    <Style Selector="Border.ruleBar.kind-ShiftDigitRange"><Setter Property="Background" Value="{DynamicResource RuleColor.ShiftDigitRange}" /></Style>
+    <Style Selector="Border.ruleBar.kind-InsertText"><Setter Property="Background" Value="{DynamicResource RuleColor.InsertText}" /></Style>
+
+    <!-- Abschnittsüberschriften -->
+    <Style Selector="TextBlock.paneTitle">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.error">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- Segmentierte Auswahl aus RadioButtons -->
+    <Style Selector="RadioButton.segment">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="segmentBorder" Background="{DynamicResource InputBackgroundBrush}"
+                  BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" Padding="12,5">
+            <ContentPresenter Content="{TemplateBinding Content}" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Setter Property="Margin" Value="0,0,-1,0" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="RadioButton.segment:pointerover /template/ Border#segmentBorder">
+      <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+    </Style>
+    <Style Selector="RadioButton.segment:checked /template/ Border#segmentBorder">
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
+    <Style Selector="RadioButton.segment:checked">
+      <Setter Property="Foreground" Value="#F4F7FC" />
+    </Style>
+  </Application.Styles>
+</Application>
