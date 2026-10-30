@@ -10,8 +10,8 @@ Unterstützte Systeme: Windows 10/11, Linux, macOS ab Version 14.
 
 | Bereich | Funktion |
 |---------|----------|
-| Menü und Leiste oben | Dateien/Ordner hinzufügen, Profile, Theme (System, Hell, Dunkel) |
-| Oben links: **Verfahren** | Auswahl des Verfahrens, das Sie einstellen möchten |
+| Menü und Leiste oben | Dateien/Ordner hinzufügen, Profile, Theme (System, Hell, Dunkel), Akzentfarbe (farbiger Kreis) |
+| Oben links: **Verfahren** | Auswahl des Verfahrens, gruppiert in Text, Datum &amp; Zahlen, Metadaten &amp; Ordner, Erweiterung |
 | Oben rechts: **Optionen** | Einstellungen des gewählten Verfahrens |
 | Unten links: **Angewandte Verfahren** | Die Kette in Anwendungsreihenfolge |
 | Unten rechts: **Vorschau** | Aktueller und neuer Name; Änderungen sind in der Farbe des Verfahrens hinterlegt |
@@ -32,7 +32,10 @@ Unterstützte Systeme: Windows 10/11, Linux, macOS ab Version 14.
   „Zur Kette hinzufügen“ legt in diesem Fall eine Kopie an.
 - **Checkbox:** schaltet ein Verfahren in der Vorschau aus und wieder ein (Rückgängig pro Verfahren).
 - **✕:** entfernt das Verfahren aus der Kette.
-- **⋮⋮ ziehen:** ändert die Reihenfolge.
+- **⋮⋮ ziehen:** ändert die Reihenfolge. Ein Abbild des Eintrags hängt am Mauszeiger, der Eintrag selbst
+  bleibt blass an seinem Platz. Eine farbige Linie zeigt, wo er beim Loslassen eingefügt wird.
+
+  ![Eintrag wird gezogen](images/drag-during.png)
 - **Rot umrandeter Eintrag:** Das Verfahren ist so nicht anwendbar; der Tooltip nennt den Grund.
 
 Dasselbe Verfahren darf mehrfach in der Kette vorkommen. Die farbige Markierung des gerade gewählten
@@ -45,7 +48,9 @@ Sucht einen Text und ersetzt den **ersten**, **letzten** oder **alle** Treffer. 
 wird beachtet. Mit **Regulärer Ausdruck** sind Muster möglich, z. B. `(\d{4})-(\d{2})` → `$2.$1`.
 
 ### Datum / Zeit anfügen
-Fügt das **Erstellungs-** oder **Änderungsdatum** vor oder nach dem Namen ein, optional mit Uhrzeit.
+Fügt das **Erstellungs-**, **Änderungs-** oder **EXIF-Aufnahmedatum** vor oder nach dem Namen ein, optional mit Uhrzeit.
+Beim EXIF-Aufnahmedatum gilt: Aufnahmedatum, ersatzweise Digitalisierungsdatum, dann EXIF-Änderungsdatum;
+ohne EXIF-Datum wird das Änderungsdatum der Datei verwendet (⚠).
 Das Format wählen Sie aus der Liste oder geben es selbst ein (`yyyy` Jahr, `MM` Monat, `dd` Tag,
 `HH` Stunde, `mm` Minute, `ss` Sekunde). Ungültige Formate, z. B. mit Doppelpunkt, werden rot gemeldet.
 Beide Trennzeichen (Name ↔ Datum, Datum ↔ Uhrzeit) sind frei wählbar.
@@ -69,6 +74,81 @@ Namen ohne Ziffernkette bleiben unverändert (⚠); ein negatives Ergebnis ist e
 ### Text einfügen
 Fügt Text an einer Position ein, gezählt ab 0 vom Anfang oder (Haken) vom Ende. Liegt die Position
 hinter dem Namensende, wird am Ende eingefügt.
+
+### Groß-/Kleinschreibung
+Wählt eine Schreibweise; die Auswahlliste zeigt zu jeder ein Beispiel:
+
+| Schreibweise | `mein Urlaub-Foto_2026` wird zu |
+|---|---|
+| kleinschreibung | `mein urlaub-foto_2026` |
+| GROSSSCHREIBUNG | `MEIN URLAUB-FOTO_2026` |
+| Erster buchstabe groß | `Mein urlaub-foto_2026` |
+| Jedes Wort Groß | `Mein Urlaub-Foto_2026` |
+| PascalCase | `MeinUrlaubFoto2026` |
+| camelCase | `meinUrlaubFoto2026` |
+| snake_case | `mein_urlaub_foto_2026` |
+| kebab-case | `mein-urlaub-foto-2026` |
+
+Wortgrenzen sind Leerzeichen, `_`, `-`, `.` und der Wechsel von klein zu GROSS (`meinBild` → mein, Bild).
+Ziffern bleiben am Wort; ß bleibt beim Großschreiben ß.
+
+### Zeichen bereinigen
+Entfernt Leerzeichen am Anfang und Ende, fasst mehrfache Leerzeichen zusammen, schreibt Umlaute um
+(ä→ae, ö→oe, ü→ue, ß→ss) und entfernt Akzente (é→e). Jede Option lässt sich einzeln abwählen.
+Beispiel: `␣␣Café␣␣␣Müller␣` → `Cafe Mueller`.
+
+### Bereich entfernen / kürzen
+- **Zeichen entfernen:** eine Anzahl Zeichen ab einer Position (ab 0, vom Anfang oder vom Ende) löschen,
+  z. B. 4 Zeichen ab 0: `IMG_0001` → `0001`.
+- **Auf Länge kürzen:** Namen, die länger als die Höchstlänge sind, werden am Ende abgeschnitten.
+
+### Name aus Vorlage
+Baut den Namen aus einer Vorlage mit Platzhaltern; `%name%` steht für den bisherigen Namen. Die Optionen
+haben zwei Tabs mit je einer eigenen Vorlage. Der aktive Tab ist farbig hinterlegt – kräftig in der
+Akzentfarbe, solange Sie im Editor arbeiten, sonst blasser:
+
+- **Fotos** (JPEG, TIFF, HEIC, PNG, RAW: DNG, CR2, CR3, NEF, ARW, ORF, RW2, RAF, PEF), z. B.
+  `%name%_%model%_%date:yyyy-MM-dd%` → `IMG_0001_Canon EOS R6_2026-10-12`
+- **Audio** (MP3 mit ID3, FLAC, M4A), z. B. `%artist% - %title%` → `Madonna - Like A Prayer`
+
+Andere Dateien (z. B. PDF) bleiben unverändert (⚠). Eine leere Vorlage lässt die Dateien dieses Typs unverändert.
+
+| Gruppe | Platzhalter |
+|---|---|
+| Datei (beide Tabs) | `%name%` `%ext%` `%folder%` |
+| Datum / Zeit | `%date%` `%time%` `%year%` `%month%` `%day%` `%hour%` `%minute%` `%second%` |
+| Kamera | `%make%` `%model%` `%lens%` `%iso%` `%fnumber%` (f4) `%exposure%` (1-250s) `%focallength%` (50mm) |
+| Bild | `%width%` `%height%` `%orientation%` (0/90/180/270) |
+| Ort | `%lat%` (48.13743N) `%lon%` (11.57549E) `%alt%` (519m) |
+| Beschreibung | `%description%` `%creator%` `%copyright%` (aus EXIF, sonst IPTC, sonst XMP) |
+| Audio: Titel | `%artist%` `%title%` `%album%` `%albumartist%` `%composer%` `%genre%` |
+| Audio: Nummerierung | `%track%` `%disc%` `%year%` |
+
+- **Platzhalter einfügen:** Ein Klick auf einen Platzhalter fügt ihn an der Cursorposition ein.
+- **Vorlage wählen:** Die Liste neben dem Vorlagenfeld übernimmt eine Vorlage ins Feld. Oben stehen Ihre
+  eigenen Vorlagen (neueste zuerst), unter der Linie die Beispielvorlagen.
+- **Eigene Vorlage speichern:** „Speichern“ nimmt die eingegebene Vorlage in die Liste des Tabs auf. Die
+  Schaltfläche ist nur aktiv, wenn die Vorlage fehlerfrei und noch nicht in der Liste ist. Je Tab werden
+  höchstens 10 eigene Vorlagen gemerkt; beim Speichern einer weiteren entfällt die älteste. Eigene Vorlagen
+  gelten für alle Profile und bleiben nach dem Beenden erhalten. **✕** in der Liste entfernt eine eigene Vorlage.
+
+  ![Vorlagenauswahl mit eigener Vorlage](images/template-presets.png)
+- **Format:** `%date:dd.MM.yyyy%` bzw. `%time:HH-mm%` legen das Datumsformat fest; `%track:000%` die Stellenzahl.
+  Standardmäßig hat `%track%` so viele Stellen wie unter „Stellen der Tracknummer“ eingestellt (2 → `03`).
+- **Fehlende Werte** werden durch den Ersatztext ersetzt (Standard „Unbekannt“, ⚠). Fehlt das EXIF-Datum,
+  verwenden die Datumsplatzhalter das Änderungsdatum der Datei (⚠).
+- **Verbotene Zeichen** in Werten werden durch das Ersatzzeichen ersetzt (Standard `_`): `AC/DC` → `AC_DC`.
+- **Tippfehler** wie `%artis%` markieren das Verfahren als fehlerhaft; Umbenennen ist dann gesperrt.
+
+### Ordnername einfügen
+Fügt den Namen des Ordners vor oder nach dem Namen ein. Ebene 1 ist der Ordner der Datei, Ebene 2 der
+darüber usw. Beispiel: `Reisen\Urlaub 2026\IMG_0001` → `Urlaub 2026_IMG_0001`.
+
+### Erweiterung ändern
+Ändert die Endung: nur bei einer bestimmten Endung (leer = alle), auf eine neue Endung (leer = beibehalten)
+und in einer Schreibweise (unverändert, klein, GROSS). Beispiel: `Foto.JPEG` → `Foto.jpg`.
+Das Verfahren wirkt auch, wenn „Dateierweiterung ignorieren“ aktiv ist; die geänderte Endung wird dann in
+der Vorschau eingeblendet.
 
 ## Dateien auswählen
 
@@ -118,9 +198,45 @@ Ein Profil speichert die Kette mit allen Einstellungen und der Reihenfolge sowie
 - Im Profilfeld können Sie einen Namen direkt eintippen; Eintippen allein lädt nichts.
 - **Laden:** ein Profil in der aufgeklappten Liste wählen (oder *Profile → Profil laden…*).
 - *Profile → Profil löschen…* entfernt das aktuelle Profil.
+- **Zurücksetzen** (Leiste, neben „Speichern“) bzw. *Profile → Profil zurücksetzen* entfernt alle Verfahren
+  aus der Kette und leert das Profilfeld. Enthält die Kette Verfahren, wird vorher nachgefragt.
+  Gespeicherte Profile bleiben in der Liste und können weiter gewählt werden; Dateiliste und
+  „Dateierweiterung ignorieren“ bleiben unverändert.
 
-Das zuletzt verwendete Profil und das Theme werden beim nächsten Start wiederhergestellt.
+Das zuletzt verwendete Profil, das Theme, die Akzentfarbe und die Sprache werden beim nächsten Start wiederhergestellt.
+
+## Sprache
+
+Unter *Ansicht → Sprache* (*View → Language*) wählen Sie:
+
+- **System:** Deutsch, wenn das Betriebssystem auf Deutsch eingestellt ist, sonst Englisch (Standard).
+- **Deutsch** bzw. **English:** feste Sprache.
+
+Der Wechsel wirkt sofort ohne Neustart; Kette, Dateien und Einstellungen bleiben erhalten. Übersetzt werden alle
+Beschriftungen, Hinweise, Konfliktmeldungen und Dialoge. Platzhalter wie `%artist%` sind in beiden Sprachen gleich.
+Der Ersatztext für fehlende Werte neuer Vorlagen lautet „Unbekannt“ bzw. „Unknown“; in gespeicherten Profilen
+bleibt der gespeicherte Text.
+
+![Englische Oberfläche](images/main-en.png)
 
 ## Theme
 
 Die drei Symbole oben rechts (bzw. *Ansicht*) wählen **System** (Monitor), **Hell** (Sonne) oder **Dunkel** (Mond).
+
+## Akzentfarbe
+
+Der farbige Kreis rechts neben den Theme-Symbolen (bzw. *Ansicht → Akzentfarbe…*) öffnet die Farbwahl.
+Die Akzentfarbe gilt für Schaltflächen, Checkboxen, die Theme-Auswahl und die Hervorhebung gewählter Einträge.
+
+- **Pastell:** fünf Pastellfarben; der Regler daneben stellt ihre Sättigung nach dem HSV-Prinzip ein
+  (10–90 %, Standard 30 %; die Zahl daneben zeigt den Wert auf der Skala bis 255).
+- **Kräftig:** Blau (Standard), Grün, Orange, Rot, Violett.
+- **Neutral:** 95 % Schwarz, 95 % Weiß.
+- **Eigene Farbe:** Hex-Code im Format `#25A0C3` eingeben und „Übernehmen“. Die Farbe erscheint unter
+  **Benutzerdefiniert** (höchstens 10; bei mehr fällt die älteste weg). Beim Überfahren entfernt ✕ eine Farbe.
+- **Standard** setzt auf das bisherige Blau zurück.
+
+Die Schrift auf akzentfarbigen Flächen wird automatisch hell oder dunkel gewählt. Hebt sich die Farbe kaum
+vom Hintergrund ab (z. B. 95 % Weiß im hellen Theme), erhalten Schaltflächen einen Rahmen.
+
+![Akzentfarbe wählen](images/screenshot-akzentfarbe.png)

@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using FileRenamer.Core.Rules;
 
 namespace FileRenamer.App.ViewModels.Editors;
@@ -59,7 +59,7 @@ public sealed partial class InsertTextEditorViewModel() : RuleEditorViewModel(Ru
     /// Beispiel wie im Mockup für „bericht“.
     /// </summary>
     /// <returns>Der Beispieltext.</returns>
-    protected override string? CreateExample() => $"bericht → {ApplyToSamples("bericht")[0]}";
+    protected override string? CreateExample() => $"{Localization.Loc.T("Sample.Report")} → {ApplyToSamples(Localization.Loc.T("Sample.Report"))[0]}";
 
     /// <summary>
     /// Übernimmt die Parameter eines Verfahrens.

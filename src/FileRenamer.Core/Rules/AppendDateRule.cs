@@ -1,3 +1,4 @@
+﻿using FileRenamer.Core.Localization;
 using System.Globalization;
 using System.Text.Json.Serialization;
 using FileRenamer.Core.Files;
@@ -89,9 +90,16 @@ public sealed record AppendDateRule : PerFileRenameRule
             return (file.LastWriteTime, []);
         }
 
+        if (Source == DateSource.ExifDate)
+        {
+            return file.Metadata.Image?.DateTaken is { } taken
+                ? (taken, [])
+                : (file.LastWriteTime, [RenameIssue.Hint(CoreText.ExifDateFallback, Id)]);
+        }
+
         return file.CreationTime is { } created
             ? (created, [])
-            : (file.LastWriteTime, [RenameIssue.Hint("Erstellungsdatum nicht verfügbar – Änderungsdatum wurde verwendet.", Id)]);
+            : (file.LastWriteTime, [RenameIssue.Hint(CoreText.CreationDateFallback, Id)]);
     }
 
     /// <summary>

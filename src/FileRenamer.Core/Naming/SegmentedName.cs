@@ -43,6 +43,65 @@ public sealed class SegmentedName
         new(text.Length == 0 ? [] : [new NameSegment(text, [])]);
 
     /// <summary>
+    /// Erzeugt einen Namen, dessen gesamter Text von einem Verfahren stammt.
+    /// </summary>
+    /// <param name="text">Der Text.</param>
+    /// <param name="ruleId">Id des verursachenden Verfahrens.</param>
+    /// <returns>Der Name.</returns>
+    public static SegmentedName Generated(string text, Guid ruleId) =>
+        new(text.Length == 0 ? [] : [new NameSegment(text, [ruleId])]);
+
+    /// <summary>
+    /// Setzt mehrere Namen hintereinander zusammen; die Herkunft der Abschnitte bleibt erhalten.
+    /// </summary>
+    /// <param name="parts">Die Teile in Reihenfolge.</param>
+    /// <returns>Der zusammengesetzte Name.</returns>
+    public static SegmentedName Concat(IEnumerable<SegmentedName> parts) =>
+        new(Merge(parts.SelectMany(part => part._segments).ToList()));
+
+    /// <summary>
+    /// Liefert einen Ausschnitt des Namens mit seinen Abschnitten.
+    /// </summary>
+    /// <param name="start">Startindex.</param>
+    /// <param name="length">Länge.</param>
+    /// <returns>Der Ausschnitt.</returns>
+    public SegmentedName SubName(int start, int length)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(start);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(start + length, Length);
+        return new SegmentedName(Merge(Slice(start, length)));
+    }
+
+    /// <summary>
+    /// Ersetzt den gesamten Text, markiert aber nur den tatsächlich geänderten Mittelteil: Gemeinsamer Anfang
+    /// und gemeinsames Ende behalten ihre bisherige Herkunft (präzise Hervorhebung bei kleinen Änderungen).
+    /// </summary>
+    /// <param name="newText">Der neue Text.</param>
+    /// <param name="ruleId">Id des verursachenden Verfahrens.</param>
+    /// <returns>Der geänderte Name (dieselbe Instanz, wenn sich nichts ändert).</returns>
+    public SegmentedName ReplaceText(string newText, Guid ruleId)
+    {
+        if (string.Equals(newText, Text, StringComparison.Ordinal))
+        {
+            return this;
+        }
+
+        var prefix = 0;
+        while (prefix < Length && prefix < newText.Length && Text[prefix] == newText[prefix])
+        {
+            prefix++;
+        }
+
+        var suffix = 0;
+        while (suffix < Length - prefix && suffix < newText.Length - prefix && Text[^(suffix + 1)] == newText[^(suffix + 1)])
+        {
+            suffix++;
+        }
+
+        return Replace(prefix, Length - prefix - suffix, newText[prefix..^suffix], ruleId);
+    }
+
+    /// <summary>
     /// Ersetzt einen Bereich des Namens durch neuen Text, der dem angegebenen Verfahren zugeordnet wird.
     /// Die Herkunft des ersetzten Textes bleibt am neuen Abschnitt erhalten (Überschneidung).
     /// </summary>

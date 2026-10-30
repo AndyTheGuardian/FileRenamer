@@ -1,3 +1,4 @@
+﻿using FileRenamer.Core.Localization;
 using FileRenamer.Core.Validation;
 
 namespace FileRenamer.Core.Rules;
@@ -32,7 +33,7 @@ public sealed record InsertTextRule : PerFileRenameRule
     /// <returns>Fehlermeldung oder <c>null</c>.</returns>
     public override string? ValidateSettings() =>
         Position < 0
-            ? "Die Position darf nicht negativ sein."
+            ? CoreText.PositionNegative
             : FileNameValidator.DescribeInvalidCharacter(Text);
 
     /// <summary>

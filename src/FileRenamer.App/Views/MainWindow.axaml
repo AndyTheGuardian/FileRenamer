@@ -1,10 +1,12 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:FileRenamer.App.ViewModels"
         xmlns:ed="using:FileRenamer.App.ViewModels.Editors"
         xmlns:views="using:FileRenamer.App.Views.Editors"
+        xmlns:views1="using:FileRenamer.App.Views"
         xmlns:controls="using:FileRenamer.App.Controls"
         xmlns:profiles="using:FileRenamer.Core.Profiles"
+        xmlns:loc="using:FileRenamer.App.Localization"
         x:Class="FileRenamer.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="FileRenamer"
@@ -20,6 +22,12 @@
     <DataTemplate DataType="ed:AppendCounterEditorViewModel"><views:AppendCounterEditorView /></DataTemplate>
     <DataTemplate DataType="ed:ShiftDigitRangeEditorViewModel"><views:ShiftDigitRangeEditorView /></DataTemplate>
     <DataTemplate DataType="ed:InsertTextEditorViewModel"><views:InsertTextEditorView /></DataTemplate>
+    <DataTemplate DataType="ed:ChangeCaseEditorViewModel"><views:ChangeCaseEditorView /></DataTemplate>
+    <DataTemplate DataType="ed:CleanCharactersEditorViewModel"><views:CleanCharactersEditorView /></DataTemplate>
+    <DataTemplate DataType="ed:RemoveRangeEditorViewModel"><views:RemoveRangeEditorView /></DataTemplate>
+    <DataTemplate DataType="ed:TemplateEditorViewModel"><views:TemplateEditorView /></DataTemplate>
+    <DataTemplate DataType="ed:InsertFolderEditorViewModel"><views:InsertFolderEditorView /></DataTemplate>
+    <DataTemplate DataType="ed:ChangeExtensionEditorViewModel"><views:ChangeExtensionEditorView /></DataTemplate>
   </Window.DataTemplates>
 
   <Window.Styles>
@@ -35,8 +43,16 @@
     <Style Selector="Border.previewRow.unselected TextBlock.name">
       <Setter Property="Opacity" Value="0.45" />
     </Style>
+    <!-- Rahmenfarbe nur per Style, damit .error sie überschreiben kann -->
+    <Style Selector="Border.chainItem">
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
     <Style Selector="Border.chainItem.error">
       <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+    </Style>
+    <!-- Gezogener Ketteneintrag bleibt blass an seinem Platz, bis er abgelegt wird (wie Mockup v10, E102) -->
+    <Style Selector="ListBoxItem.dragging">
+      <Setter Property="Opacity" Value="0.4" />
     </Style>
     <Style Selector="TextBlock.strike">
       <Setter Property="TextDecorations" Value="Strikethrough" />
@@ -63,205 +79,263 @@
     </Style>
   </Window.Styles>
 
-  <DockPanel>
-    <!-- Menü -->
-    <Menu DockPanel.Dock="Top">
-      <MenuItem Header="_Datei">
-        <MenuItem Header="Dateien _hinzufügen…" Command="{Binding AddFilesCommand}" InputGesture="Ctrl+O" />
-        <MenuItem Header="_Ordner hinzufügen…" Command="{Binding AddFolderCommand}" InputGesture="Ctrl+Shift+O" />
-        <Separator />
-        <MenuItem Header="Liste _leeren" Command="{Binding ClearFilesCommand}" />
-        <Separator />
-        <MenuItem Header="_Beenden" Click="OnExitClick" />
-      </MenuItem>
-      <MenuItem Header="_Profile">
-        <MenuItem Header="Profil _laden…" Click="OnLoadProfileClick" />
-        <MenuItem Header="Profil _speichern…" Command="{Binding SaveProfileCommand}" InputGesture="Ctrl+S" />
-        <Separator />
-        <MenuItem Header="Profil l_öschen…" Command="{Binding DeleteProfileCommand}" />
-      </MenuItem>
-      <MenuItem Header="_Ansicht">
-        <MenuItem Header="Theme: _System" ToggleType="Radio" Command="{Binding SetThemeCommand}"
-                  CommandParameter="{x:Static profiles:ThemePreference.System}"
-                  IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.System}}" />
-        <MenuItem Header="Theme: _Hell" ToggleType="Radio" Command="{Binding SetThemeCommand}"
-                  CommandParameter="{x:Static profiles:ThemePreference.Light}"
-                  IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Light}}" />
-        <MenuItem Header="Theme: _Dunkel" ToggleType="Radio" Command="{Binding SetThemeCommand}"
-                  CommandParameter="{x:Static profiles:ThemePreference.Dark}"
-                  IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Dark}}" />
-      </MenuItem>
-    </Menu>
+  <!-- Äußeres Panel: Inhalt plus Ebene für das Ziehen von Ketteneinträgen (E102) -->
+  <Panel>
+    <DockPanel>
+      <!-- Menü -->
+      <Menu DockPanel.Dock="Top">
+        <MenuItem Header="{loc:T Menu.File}">
+          <MenuItem Header="{loc:T Menu.AddFiles}" Command="{Binding AddFilesCommand}" InputGesture="Ctrl+O" />
+          <MenuItem Header="{loc:T Menu.AddFolder}" Command="{Binding AddFolderCommand}" InputGesture="Ctrl+Shift+O" />
+          <Separator />
+          <MenuItem Header="{loc:T Menu.ClearList}" Command="{Binding ClearFilesCommand}" />
+          <Separator />
+          <MenuItem Header="{loc:T Menu.Exit}" Click="OnExitClick" />
+        </MenuItem>
+        <MenuItem Header="{loc:T Menu.Profiles}">
+          <MenuItem Header="{loc:T Menu.LoadProfile}" Click="OnLoadProfileClick" />
+          <MenuItem Header="{loc:T Menu.SaveProfile}" Command="{Binding SaveProfileCommand}" InputGesture="Ctrl+S" />
+          <MenuItem Header="{loc:T Menu.ResetProfile}" Command="{Binding ResetProfileCommand}" />
+          <Separator />
+          <MenuItem Header="{loc:T Menu.DeleteProfile}" Command="{Binding DeleteProfileCommand}" />
+        </MenuItem>
+        <MenuItem Header="{loc:T Menu.View}">
+          <MenuItem Header="{loc:T Menu.ThemeSystem}" ToggleType="Radio" Command="{Binding SetThemeCommand}"
+                    CommandParameter="{x:Static profiles:ThemePreference.System}"
+                    IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.System}}" />
+          <MenuItem Header="{loc:T Menu.ThemeLight}" ToggleType="Radio" Command="{Binding SetThemeCommand}"
+                    CommandParameter="{x:Static profiles:ThemePreference.Light}"
+                    IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Light}}" />
+          <MenuItem Header="{loc:T Menu.ThemeDark}" ToggleType="Radio" Command="{Binding SetThemeCommand}"
+                    CommandParameter="{x:Static profiles:ThemePreference.Dark}"
+                    IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Dark}}" />
+          <Separator />
+          <MenuItem Header="{loc:T Menu.Accent}" Click="OnAccentMenuClick" />
+          <Separator />
+          <!-- Sprache (E92): wirkt sofort, das Fenster wird neu aufgebaut -->
+          <MenuItem Header="{loc:T Menu.Language}">
+            <MenuItem Header="{loc:T Menu.LanguageSystem}" ToggleType="Radio" Command="{Binding SetLanguageCommand}"
+                      CommandParameter="{x:Static profiles:LanguagePreference.System}"
+                      IsChecked="{Binding Language, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:LanguagePreference.System}}" />
+            <MenuItem Header="{loc:T Menu.LanguageGerman}" ToggleType="Radio" Command="{Binding SetLanguageCommand}"
+                      CommandParameter="{x:Static profiles:LanguagePreference.German}"
+                      IsChecked="{Binding Language, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:LanguagePreference.German}}" />
+            <MenuItem Header="{loc:T Menu.LanguageEnglish}" ToggleType="Radio" Command="{Binding SetLanguageCommand}"
+                      CommandParameter="{x:Static profiles:LanguagePreference.English}"
+                      IsChecked="{Binding Language, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:LanguagePreference.English}}" />
+          </MenuItem>
+        </MenuItem>
+      </Menu>
 
-    <!-- Toolbar: Profil und Theme -->
-    <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,1,0,1" Padding="12,8">
-      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
-        <TextBlock Text="Profil" VerticalAlignment="Center" Margin="0,0,8,0" />
-        <ComboBox Grid.Column="1" x:Name="ProfileComboBox" MinWidth="240" IsEditable="True"
-                  PlaceholderText="Profilname eingeben oder wählen"
-                  ToolTip.Tip="Profil aus der Liste wählen, um es zu laden – oder einen neuen Namen eintippen und speichern"
-                  ItemsSource="{Binding ProfileNames}" Text="{Binding ProfileNameInput}"
-                  SelectedItem="{Binding CurrentProfileName, Mode=OneWay}" DropDownClosed="OnProfileDropDownClosed" />
-        <Button Grid.Column="2" Content="Speichern" Margin="8,0,0,0" Command="{Binding SaveProfileCommand}"
-                ToolTip.Tip="Aktuelle Kette als Profil speichern (neuer Name = neues Profil)" />
-        <StackPanel Grid.Column="4" Orientation="Horizontal">
-          <RadioButton Classes="segment" GroupName="theme" ToolTip.Tip="Theme: System"
-                       IsChecked="{Binding Theme, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.System}}">
-            <PathIcon Data="{StaticResource IconSystem}" Width="16" Height="16" />
-          </RadioButton>
-          <RadioButton Classes="segment" GroupName="theme" ToolTip.Tip="Theme: Hell"
-                       IsChecked="{Binding Theme, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Light}}">
-            <PathIcon Data="{StaticResource IconLight}" Width="16" Height="16" />
-          </RadioButton>
-          <RadioButton Classes="segment" GroupName="theme" ToolTip.Tip="Theme: Dunkel"
-                       IsChecked="{Binding Theme, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Dark}}">
-            <PathIcon Data="{StaticResource IconDark}" Width="16" Height="16" />
-          </RadioButton>
-        </StackPanel>
-      </Grid>
-    </Border>
-
-    <!-- Fußzeile: Status und Aktionen -->
-    <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBackgroundBrush}"
-            BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,1,0,0" Padding="12,10">
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
-        <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource MutedTextBrush}" VerticalAlignment="Center" />
-        <TextBlock Grid.Column="1" Text="{Binding BlockingText}" Margin="6,0,0,0" FontWeight="SemiBold"
-                   Foreground="{DynamicResource DangerBrush}" VerticalAlignment="Center" />
-        <Button Grid.Column="3" Content="Letzte Umbenennung widerrufen" Command="{Binding UndoRenameCommand}" Margin="0,0,8,0"
-                ToolTip.Tip="Gibt den zuletzt umbenannten Dateien ihre vorherigen Namen zurück" />
-        <Button Grid.Column="4" Content="Änderungen verwerfen" Command="{Binding DiscardCommand}" Margin="0,0,8,0"
-                ToolTip.Tip="Leert die Kette; die Dateiliste bleibt erhalten" />
-        <Button Grid.Column="5" Content="Umbenennen" Classes="accent" Command="{Binding RenameCommand}" />
-      </Grid>
-    </Border>
-
-    <!-- Zweigeteilter Inhalt -->
-    <Grid RowDefinitions="*,Auto,*">
-      <!-- Obere Hälfte: Einstellungen -->
-      <Grid ColumnDefinitions="270,*">
-        <Border Classes="pane" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,1,0">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Classes="paneTitle" Text="VERFAHREN" />
-            <ListBox Classes="plain" ItemsSource="{Binding RuleKinds}" SelectedItem="{Binding SelectedRuleKind}">
-              <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:RuleKindItem">
-                  <StackPanel Orientation="Horizontal" Spacing="10" Margin="8,6">
-                    <Border Classes="ruleBar" controls:RuleColor.Kind="{Binding Kind}" />
-                    <TextBlock Text="{Binding DisplayName}" TextWrapping="Wrap" MaxWidth="200" VerticalAlignment="Center" />
-                  </StackPanel>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </DockPanel>
-        </Border>
-
-        <ScrollViewer Grid.Column="1">
-          <StackPanel Margin="16,12" Spacing="12" IsVisible="{Binding Editor, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <Border Classes="ruleBar" controls:RuleColor.Kind="{Binding Editor.Kind}" MinHeight="20" />
-              <TextBlock Text="{Binding Editor.Title}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+      <!-- Toolbar: Profil und Theme -->
+      <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,1,0,1" Padding="12,8">
+        <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+          <TextBlock Text="{loc:T Toolbar.Profile}" VerticalAlignment="Center" Margin="0,0,8,0" />
+          <ComboBox Grid.Column="1" x:Name="ProfileComboBox" MinWidth="240" IsEditable="True"
+                    PlaceholderText="{loc:T Toolbar.ProfilePlaceholder}"
+                    ToolTip.Tip="{loc:T Toolbar.ProfileTip}"
+                    ItemsSource="{Binding ProfileNames}" Text="{Binding ProfileNameInput}"
+                    SelectedItem="{Binding CurrentProfileName, Mode=OneWay}" DropDownClosed="OnProfileDropDownClosed" />
+          <Button Grid.Column="2" Content="{loc:T Toolbar.Save}" Margin="8,0,0,0" Command="{Binding SaveProfileCommand}"
+                  ToolTip.Tip="{loc:T Toolbar.SaveTip}" />
+          <Button Grid.Column="3" Content="{loc:T Toolbar.Reset}" Margin="8,0,0,0" Command="{Binding ResetProfileCommand}"
+                  ToolTip.Tip="{loc:T Toolbar.ResetTip}" />
+          <StackPanel Grid.Column="5" Orientation="Horizontal">
+            <!-- Eigenes Panel, damit die Randrundung der Segmente greift -->
+            <StackPanel Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="theme" ToolTip.Tip="{loc:T Toolbar.ThemeSystem}"
+                           IsChecked="{Binding Theme, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.System}}">
+                <PathIcon Data="{StaticResource IconSystem}" Width="16" Height="16" />
+              </RadioButton>
+              <RadioButton Classes="segment" GroupName="theme" ToolTip.Tip="{loc:T Toolbar.ThemeLight}"
+                           IsChecked="{Binding Theme, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Light}}">
+                <PathIcon Data="{StaticResource IconLight}" Width="16" Height="16" />
+              </RadioButton>
+              <RadioButton Classes="segment" GroupName="theme" ToolTip.Tip="{loc:T Toolbar.ThemeDark}"
+                           IsChecked="{Binding Theme, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Dark}}">
+                <PathIcon Data="{StaticResource IconDark}" Width="16" Height="16" />
+              </RadioButton>
             </StackPanel>
-            <ContentControl Content="{Binding Editor}" />
-            <Grid ColumnDefinitions="190,*" IsVisible="{Binding Editor.HasExample}">
-              <TextBlock Text="Beispiel" VerticalAlignment="Center" />
-              <Border Grid.Column="1" HorizontalAlignment="Left" Padding="10,5" CornerRadius="4" BorderThickness="1"
-                      Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource AppBorderBrush}">
-                <TextBlock Classes="mono" Text="{Binding Editor.Example}" />
-              </Border>
-            </Grid>
-            <TextBlock Classes="error" Text="{Binding Editor.ValidationMessage}" IsVisible="{Binding Editor.HasValidationMessage}" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button Classes="accent" Content="Zur Kette hinzufügen" Command="{Binding AddToChainCommand}" />
-              <Button Content="Auf Standardwerte zurücksetzen" Command="{Binding ResetEditorCommand}" />
-            </StackPanel>
-            <TextBlock Classes="hint" IsVisible="{Binding IsEditingChainItem}"
-                       Text="Sie bearbeiten den gewählten Ketteneintrag – Änderungen wirken sofort auf die Vorschau. „Zur Kette hinzufügen“ legt eine Kopie an." />
+            <!-- Akzentfarbe: farbiger Kreis öffnet die Farbwahl (E79) -->
+            <Button x:Name="AccentButton" Margin="10,0,0,0" Width="28" Height="28" Padding="0" CornerRadius="14"
+                    Background="Transparent" BorderThickness="0" ToolTip.Tip="{loc:T Toolbar.Accent}" VerticalAlignment="Center">
+              <Ellipse Width="24" Height="24" Fill="{Binding Accent.CurrentHex, Converter={StaticResource HexToBrush}}"
+                       Stroke="{DynamicResource AppBorderBrush}" StrokeThickness="1" />
+              <Button.Flyout>
+                <Flyout Placement="BottomEdgeAlignedRight">
+                  <views1:AccentPickerView DataContext="{Binding Accent}" />
+                </Flyout>
+              </Button.Flyout>
+            </Button>
           </StackPanel>
-        </ScrollViewer>
-      </Grid>
+        </Grid>
+      </Border>
 
-      <GridSplitter Grid.Row="1" Height="5" ResizeDirection="Rows" Background="{DynamicResource AppBorderBrush}" />
+      <!-- Fußzeile: Status und Aktionen -->
+      <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBackgroundBrush}"
+              BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,1,0,0" Padding="12,10">
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+          <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource MutedTextBrush}" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding BlockingText}" Margin="6,0,0,0" FontWeight="SemiBold"
+                     Foreground="{DynamicResource DangerBrush}" VerticalAlignment="Center" />
+          <Button Grid.Column="3" Content="{loc:T Footer.Undo}" Command="{Binding UndoRenameCommand}" Margin="0,0,8,0"
+                  ToolTip.Tip="{loc:T Footer.UndoTip}" />
+          <Button Grid.Column="4" Content="{loc:T Footer.Discard}" Command="{Binding DiscardCommand}" Margin="0,0,8,0"
+                  ToolTip.Tip="{loc:T Footer.DiscardTip}" />
+          <Button Grid.Column="5" Content="{loc:T Footer.Rename}" Classes="accent" Command="{Binding RenameCommand}" />
+        </Grid>
+      </Border>
 
-      <!-- Untere Hälfte: Kette und Vorschau -->
-      <Grid Grid.Row="2" ColumnDefinitions="270,*">
-        <Border Classes="pane" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,1,0">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Classes="paneTitle" Text="ANGEWANDTE VERFAHREN" />
-            <TextBlock DockPanel.Dock="Top" Classes="hint" Text="▾ Kette (Reihenfolge per Drag &amp; Drop)" Margin="2,0,0,6" />
-            <ListBox x:Name="ChainList" Classes="plain" ItemsSource="{Binding Chain}" SelectedItem="{Binding SelectedChainItem}">
-              <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:ChainItemViewModel">
-                  <Border Classes="chainItem" Classes.error="{Binding HasError}" BorderThickness="1" BorderBrush="Transparent"
-                          CornerRadius="4" Padding="4,4" ToolTip.Tip="{Binding Error}">
-                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
-                      <TextBlock Classes="dragHandle" Text="⋮⋮" Cursor="SizeNorthSouth" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource MutedTextBrush}" Padding="4,0" ToolTip.Tip="Ziehen zum Verschieben" />
-                      <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled}" MinWidth="0" Margin="2,0,4,0" ToolTip.Tip="Verfahren anwenden" />
-                      <Border Grid.Column="2" Classes="ruleBar" controls:RuleColor.Kind="{Binding Kind}" Margin="0,0,8,0" />
-                      <TextBlock Grid.Column="3" Text="{Binding DisplayName}" TextWrapping="Wrap" VerticalAlignment="Center"
-                                 Classes.strike="{Binding !IsEnabled}" />
-                      <Button Grid.Column="4" Content="✕" Padding="6,2" Background="Transparent" ToolTip.Tip="Entfernen"
-                              Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).RemoveChainItemCommand}"
-                              CommandParameter="{Binding}" />
+      <!-- Zweigeteilter Inhalt -->
+      <Grid RowDefinitions="*,Auto,*">
+        <!-- Obere Hälfte: Einstellungen -->
+        <Grid ColumnDefinitions="270,*">
+          <Border Classes="pane" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,1,0">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Classes="paneTitle" Text="{loc:T Pane.Methods}" />
+              <!-- Gruppierte Verfahrensliste (E72); Überschriften sind nicht auswählbar -->
+              <ListBox Classes="plain ruleList" ItemsSource="{Binding RuleEntries}" SelectedItem="{Binding SelectedRuleKind}">
+                <ListBox.Styles>
+                  <Style Selector="ListBox.ruleList ListBoxItem" x:DataType="vm:RuleListEntry">
+                    <Setter Property="IsEnabled" Value="{Binding IsSelectable}" />
+                  </Style>
+                </ListBox.Styles>
+                <ListBox.DataTemplates>
+                  <DataTemplate DataType="vm:RuleGroupHeader">
+                    <TextBlock Classes="paneTitle" Text="{Binding Title}" Margin="8,8,0,0" FontSize="10.5" />
+                  </DataTemplate>
+                  <DataTemplate DataType="vm:RuleKindItem">
+                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="8,5">
+                      <Border Classes="ruleBar" controls:RuleColor.Kind="{Binding Kind}" />
+                      <TextBlock Text="{Binding DisplayName}" TextWrapping="Wrap" MaxWidth="200" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.DataTemplates>
+              </ListBox>
+            </DockPanel>
+          </Border>
+
+          <ScrollViewer Grid.Column="1">
+            <StackPanel Margin="16,12" Spacing="12" IsVisible="{Binding Editor, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Border Classes="ruleBar" controls:RuleColor.Kind="{Binding Editor.Kind}" MinHeight="20" />
+                <TextBlock Text="{Binding Editor.Title}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+              </StackPanel>
+              <ContentControl Content="{Binding Editor}" />
+              <Grid ColumnDefinitions="190,*" IsVisible="{Binding Editor.HasExample}">
+                <TextBlock Text="{loc:T Editor.Example}" VerticalAlignment="Center" />
+                <Border Grid.Column="1" HorizontalAlignment="Left" Padding="10,5" CornerRadius="4" BorderThickness="1"
+                        Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource AppBorderBrush}">
+                  <TextBlock Classes="mono" Text="{Binding Editor.Example}" />
+                </Border>
+              </Grid>
+              <TextBlock Classes="error" Text="{Binding Editor.ValidationMessage}" IsVisible="{Binding Editor.HasValidationMessage}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="accent" Content="{loc:T Editor.AddToChain}" Command="{Binding AddToChainCommand}" />
+                <Button Content="{loc:T Editor.Reset}" Command="{Binding ResetEditorCommand}" />
+              </StackPanel>
+              <TextBlock Classes="hint" IsVisible="{Binding IsEditingChainItem}"
+                         Text="{loc:T Editor.EditingHint}" />
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+
+        <GridSplitter Grid.Row="1" Height="5" ResizeDirection="Rows" Background="{DynamicResource AppBorderBrush}" />
+
+        <!-- Untere Hälfte: Kette und Vorschau -->
+        <Grid Grid.Row="2" ColumnDefinitions="270,*">
+          <Border Classes="pane" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,1,0">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Classes="paneTitle" Text="{loc:T Pane.Applied}" />
+              <TextBlock DockPanel.Dock="Top" Classes="hint" Text="{loc:T Pane.ChainRoot}" Margin="2,0,0,6" />
+              <ListBox x:Name="ChainList" Classes="plain" ItemsSource="{Binding Chain}" SelectedItem="{Binding SelectedChainItem}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ChainItemViewModel">
+                    <Border Classes="chainItem" Classes.error="{Binding HasError}" BorderThickness="1"
+                            CornerRadius="4" Padding="4,4" ToolTip.Tip="{Binding Error}">
+                      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+                        <TextBlock Classes="dragHandle" Text="⋮⋮" Cursor="SizeNorthSouth" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MutedTextBrush}" Padding="4,0" ToolTip.Tip="{loc:T Chain.DragTip}" />
+                        <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled}" MinWidth="0" Margin="2,0,4,0" ToolTip.Tip="{loc:T Chain.EnableTip}" />
+                        <Border Grid.Column="2" Classes="ruleBar" controls:RuleColor.Kind="{Binding Kind}" Margin="0,0,8,0" />
+                        <TextBlock Grid.Column="3" Text="{Binding DisplayName}" TextWrapping="Wrap" VerticalAlignment="Center"
+                                   Classes.strike="{Binding !IsEnabled}" />
+                        <Button Grid.Column="4" Content="✕" Padding="6,2" Background="Transparent" ToolTip.Tip="{loc:T Chain.RemoveTip}"
+                                Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).RemoveChainItemCommand}"
+                                CommandParameter="{Binding}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </DockPanel>
+          </Border>
+
+          <Border Grid.Column="1" Classes="pane">
+            <DockPanel>
+              <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                <TextBlock Classes="paneTitle" Text="{loc:T Pane.Preview}" />
+                <CheckBox Grid.Column="1" Content="{loc:T Pane.IgnoreExtension}" IsChecked="{Binding IgnoreExtension}" />
+              </Grid>
+              <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                <Border BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1"
+                        CornerRadius="4" Padding="8" Background="{DynamicResource DropHintBrush}">
+                  <TextBlock Text="{loc:T Pane.DropHint}" HorizontalAlignment="Center" Foreground="{DynamicResource MutedTextBrush}" />
+                </Border>
+                <Button Grid.Column="1" Content="{loc:T Pane.ClearList}" Command="{Binding ClearFilesCommand}" Margin="8,0,0,0"
+                        VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
+              </Grid>
+              <Border BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" CornerRadius="4">
+                <DockPanel>
+                  <Border DockPanel.Dock="Top" Background="{DynamicResource PanelBackgroundBrush}" Padding="8,6"
+                          BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,0,1">
+                    <Grid ColumnDefinitions="32,28,*,*">
+                      <CheckBox IsChecked="{Binding AreAllSelected}" MinWidth="0" Padding="0" VerticalAlignment="Center"
+                                ToolTip.Tip="{loc:T Pane.SelectAllTip}" />
+                      <TextBlock Grid.Column="2" Classes="paneTitle" Margin="0" Text="{loc:T Pane.CurrentName}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="3" Classes="paneTitle" Margin="0" Text="{loc:T Pane.NewName}" VerticalAlignment="Center" />
                     </Grid>
                   </Border>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </DockPanel>
-        </Border>
-
-        <Border Grid.Column="1" Classes="pane">
-          <DockPanel>
-            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
-              <TextBlock Classes="paneTitle" Text="VORSCHAU" />
-              <CheckBox Grid.Column="1" Content="Dateierweiterung ignorieren" IsChecked="{Binding IgnoreExtension}" />
-            </Grid>
-            <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
-              <Border BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1"
-                      CornerRadius="4" Padding="8" Background="{DynamicResource DropHintBrush}">
-                <TextBlock Text="Dateien oder Ordner hierher ziehen" HorizontalAlignment="Center" Foreground="{DynamicResource MutedTextBrush}" />
+                  <ListBox Classes="preview" ItemsSource="{Binding PreviewRows}" Background="Transparent">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PreviewRowViewModel">
+                        <Border Classes="previewRow" Classes.conflict="{Binding HasConflict}" Classes.unselected="{Binding !IsSelected}" Padding="8,3">
+                          <Grid ColumnDefinitions="32,28,*,*">
+                            <CheckBox IsChecked="{Binding IsSelected}" MinWidth="0" Padding="0" VerticalAlignment="Center"
+                                      ToolTip.Tip="{loc:T Pane.SelectFileTip}" />
+                            <TextBlock Grid.Column="1" Text="⚠" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding HasHint}"
+                                       ToolTip.Tip="{Binding IssueText}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="⛔" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding HasConflict}"
+                                       ToolTip.Tip="{Binding IssueText}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="2" Classes="mono name" Text="{Binding OriginalName}" TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <controls:HighlightedTextBlock Grid.Column="3" Classes="mono name" Spans="{Binding Spans}" TextTrimming="CharacterEllipsis"
+                                                           VerticalAlignment="Center" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </DockPanel>
               </Border>
-              <Button Grid.Column="1" Content="Liste leeren" Command="{Binding ClearFilesCommand}" Margin="8,0,0,0"
-                      VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
-            </Grid>
-            <Border BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" CornerRadius="4">
-              <DockPanel>
-                <Border DockPanel.Dock="Top" Background="{DynamicResource PanelBackgroundBrush}" Padding="8,6"
-                        BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,0,1">
-                  <Grid ColumnDefinitions="32,28,*,*">
-                    <CheckBox IsChecked="{Binding AreAllSelected}" MinWidth="0" Padding="0" VerticalAlignment="Center"
-                              ToolTip.Tip="Alle bzw. keine Dateien auswählen" />
-                    <TextBlock Grid.Column="2" Classes="paneTitle" Margin="0" Text="AKTUELLER NAME" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="3" Classes="paneTitle" Margin="0" Text="NEUER NAME" VerticalAlignment="Center" />
-                  </Grid>
-                </Border>
-                <ListBox Classes="preview" ItemsSource="{Binding PreviewRows}" Background="Transparent">
-                  <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="vm:PreviewRowViewModel">
-                      <Border Classes="previewRow" Classes.conflict="{Binding HasConflict}" Classes.unselected="{Binding !IsSelected}" Padding="8,3">
-                        <Grid ColumnDefinitions="32,28,*,*">
-                          <CheckBox IsChecked="{Binding IsSelected}" MinWidth="0" Padding="0" VerticalAlignment="Center"
-                                    ToolTip.Tip="Datei umbenennen" />
-                          <TextBlock Grid.Column="1" Text="⚠" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding HasHint}"
-                                     ToolTip.Tip="{Binding IssueText}" VerticalAlignment="Center" />
-                          <TextBlock Grid.Column="1" Text="⛔" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding HasConflict}"
-                                     ToolTip.Tip="{Binding IssueText}" VerticalAlignment="Center" />
-                          <TextBlock Grid.Column="2" Classes="mono name" Text="{Binding OriginalName}" TextTrimming="CharacterEllipsis"
-                                     VerticalAlignment="Center" Margin="0,0,12,0" />
-                          <controls:HighlightedTextBlock Grid.Column="3" Classes="mono name" Spans="{Binding Spans}" TextTrimming="CharacterEllipsis"
-                                                         VerticalAlignment="Center" />
-                        </Grid>
-                      </Border>
-                    </DataTemplate>
-                  </ListBox.ItemTemplate>
-                </ListBox>
-              </DockPanel>
-            </Border>
-          </DockPanel>
-        </Border>
+            </DockPanel>
+          </Border>
+        </Grid>
       </Grid>
-    </Grid>
-  </DockPanel>
+    </DockPanel>
+
+    <!-- Ziehebene: Abbild des gezogenen Eintrags folgt dem Mauszeiger, die Linie zeigt die Einfügestelle (E102) -->
+    <Canvas x:Name="DragLayer" IsHitTestVisible="False">
+      <Border x:Name="DropLine" Height="2" CornerRadius="1" Background="{DynamicResource SystemAccentColor}" IsVisible="False" />
+      <Border x:Name="DragGhost" IsVisible="False" x:DataType="vm:ChainItemViewModel" Opacity="0.92"
+              Background="{DynamicResource SelectionBrush}" BorderBrush="{DynamicResource SystemAccentColor}"
+              BorderThickness="1" CornerRadius="4" Padding="4,4" BoxShadow="0 4 12 0 #40000000">
+        <Grid ColumnDefinitions="Auto,Auto,*" MinHeight="28">
+          <TextBlock Text="⋮⋮" VerticalAlignment="Center" Foreground="{DynamicResource MutedTextBrush}" Padding="4,0" />
+          <Border Grid.Column="1" Classes="ruleBar" controls:RuleColor.Kind="{Binding Kind}" Margin="4,0,8,0" />
+          <TextBlock Grid.Column="2" Text="{Binding DisplayName}" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" />
+        </Grid>
+      </Border>
+    </Canvas>
+  </Panel>
 </Window>

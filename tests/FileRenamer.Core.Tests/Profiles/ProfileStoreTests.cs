@@ -24,6 +24,12 @@ public sealed class ProfileStoreTests : IDisposable
             new AppendCounterRule { Start = 5, Step = 2, Digits = 4, SortBy = CounterSortCriterion.Size, IsEnabled = false },
             new ShiftDigitRangeRule { Offset = -3, UseLastRun = false, RunNumber = 2 },
             new InsertTextRule { Text = "_final", Position = 2, FromEnd = true },
+            new ChangeCaseRule { Mode = CaseMode.Kebab },
+            new CleanCharactersRule { RemoveAccents = false },
+            new RemoveRangeRule { Mode = RemoveMode.Truncate, MaxLength = 12 },
+            new TemplateRule { PhotoTemplate = "%date:yyyyMMdd%_%model%", AudioTemplate = "%track% %title%", TrackDigits = 3, MissingText = "x" },
+            new InsertFolderRule { Level = 2, Position = AffixPosition.AfterName },
+            new ChangeExtensionRule { OnlyExtension = "jpeg", NewExtension = "jpg", Casing = ExtensionCasing.Upper },
         ];
         var profile = new RenameProfile("Urlaub: Fotos/2026?", IgnoreExtension: false, rules);
 
@@ -65,6 +71,51 @@ public sealed class ProfileStoreTests : IDisposable
         store.Save(new AppSettings(ThemePreference.Dark, "Urlaub"));
 
         Assert.Equal(new AppSettings(ThemePreference.Dark, "Urlaub"), store.Load());
+    }
+
+    /// <summary>
+    /// Akzentfarbe, Pastell-Sättigung und benutzerdefinierte Farben werden gespeichert (E79, E83, E84).
+    /// </summary>
+    [Fact]
+    public void AppSettingsStore_PersistsAccentSettings()
+    {
+        var store = new AppSettingsStore(Path.Combine(_directory, "settings.json"));
+        var settings = new AppSettings(ThemePreference.Light) { AccentColor = "#25A0C3", PastelSaturation = 45, CustomColors = ["#25A0C3", "#6B8E23"] };
+
+        store.Save(settings);
+
+        Assert.Equal(settings, store.Load());
+        Assert.Equal(30, new AppSettingsStore(Path.Combine(_directory, "fehlt.json")).Load().PastelSaturation);
+    }
+
+    /// <summary>
+    /// Die Sprachwahl wird gespeichert; ohne Datei gilt „System“ (E92).
+    /// </summary>
+    [Fact]
+    public void AppSettingsStore_PersistsLanguage()
+    {
+        var store = new AppSettingsStore(Path.Combine(_directory, "settings.json"));
+
+        Assert.Equal(LanguagePreference.System, store.Load().Language);
+
+        store.Save(new AppSettings { Language = LanguagePreference.English });
+
+        Assert.Equal(LanguagePreference.English, store.Load().Language);
+    }
+
+    /// <summary>
+    /// Eigene Vorlagen werden je Tab mit Reihenfolge gespeichert; ohne Datei sind die Listen leer (E106).
+    /// </summary>
+    [Fact]
+    public void AppSettingsStore_PersistsCustomTemplates()
+    {
+        var store = new AppSettingsStore(Path.Combine(_directory, "settings.json"));
+        Assert.Empty(store.Load().CustomPhotoTemplates);
+
+        var settings = new AppSettings { CustomPhotoTemplates = ["%b%", "%a%"], CustomAudioTemplates = ["%title%"] };
+        store.Save(settings);
+
+        Assert.Equal(settings, store.Load());
     }
 
     /// <summary>

@@ -82,27 +82,56 @@ FileRenamer/
 │   │   ├── Profiles/
 │   │   │   ├── RenameProfile.cs         Profil (Kette + Erweiterungseinstellung)
 │   │   │   ├── ProfileStore.cs          Profile als JSON
-│   │   │   ├── AppSettings.cs           Theme, letztes Profil, AppSettingsStore
+│   │   │   ├── AppSettings.cs           Theme, letztes Profil, Akzentfarbe, Sprache, AppSettingsStore
 │   │   │   ├── AppDataLocator.cs        Ablageorte je Plattform
 │   │   │   └── JsonFileStore.cs         gemeinsame JSON-Hilfen
+│   │   ├── Localization/
+│   │   │   └── CoreText.cs              Meldungen der Fachlogik Deutsch/Englisch, Sprachermittlung
+│   │   ├── Metadata/
+│   │   │   ├── FileMetadata.cs          MediaKind, ImageMetadata, AudioMetadata, FileMetadata
+│   │   │   ├── MediaTypes.cs            Endung → Bild/Audio
+│   │   │   ├── MetadataReader.cs        Einstieg: passender Leser je Endung, fehlertolerant
+│   │   │   └── Readers/
+│   │   │       ├── ByteSource.cs        wahlfreies Lesen von Dateiausschnitten
+│   │   │       ├── TiffParser.cs        EXIF aus TIFF-Struktur (IFD0, EXIF-, GPS-IFD)
+│   │   │       ├── JpegReader.cs        APP1 EXIF/XMP, APP13 IPTC, SOF-Maße
+│   │   │       ├── PngReader.cs         IHDR, eXIf, iTXt/tEXt
+│   │   │       ├── IsoBox.cs            Boxen des ISOBMFF (HEIC, CR3, M4A)
+│   │   │       ├── HeifReader.cs        HEIC/HEIF: iinf/iloc → EXIF-/XMP-Item
+│   │   │       ├── RawContainerReader.cs CR3 (CMT1/2/4), RAF (eingebettetes JPEG)
+│   │   │       ├── IptcParser.cs, XmpParser.cs  Beschreibung, Ersteller, Copyright
+│   │   │       ├── ImageMetadataBuilder.cs      Priorität EXIF → IPTC → XMP → PNG-Text
+│   │   │       ├── Id3Reader.cs         ID3v2.2–2.4 und ID3v1
+│   │   │       ├── FlacAndMp4Reader.cs  Vorbis Comments (FLAC), iTunes-Atome (M4A)
+│   │   │       └── AudioMetadataBuilder.cs      Track „3/12“, Jahr, ID3-Genre-Nummern
 │   │   ├── Rules/
-│   │   │   ├── RenameRule.cs            Basis + PerFileRenameRule
+│   │   │   ├── RenameRule.cs            Basis + PerFileRenameRule (TargetsExtension)
 │   │   │   ├── ReplaceTextRule.cs       Text ersetzen
-│   │   │   ├── AppendDateRule.cs        Datum / Zeit anfügen
+│   │   │   ├── AppendDateRule.cs        Datum / Zeit anfügen (auch EXIF-Datum)
 │   │   │   ├── AppendCounterRule.cs     Zähler anhängen
 │   │   │   ├── ShiftDigitRangeRule.cs   Ziffernkette Wertebereich verschieben
 │   │   │   ├── InsertTextRule.cs        Text einfügen
+│   │   │   ├── ChangeCaseRule.cs        Groß-/Kleinschreibung
+│   │   │   ├── CleanCharactersRule.cs   Zeichen bereinigen
+│   │   │   ├── RemoveRangeRule.cs       Bereich entfernen / kürzen
+│   │   │   ├── TemplateRule.cs          Name aus Vorlage (Fotos/Audio)
+│   │   │   ├── InsertFolderRule.cs      Ordnername einfügen
+│   │   │   ├── ChangeExtensionRule.cs   Erweiterung ändern (wirkt auf die Endung)
+│   │   │   ├── Templates/               TemplateParser, Placeholders (Katalog + Prüfung),
+│   │   │   │                            CustomTemplateList (Regeln für eigene Vorlagen, E106)
 │   │   │   ├── Affix.cs                 Zusatz vor/nach dem Namen
 │   │   │   ├── RenameIssue.cs           Hinweis/Konflikt
 │   │   │   ├── RuleInput.cs             RuleInput, RuleOutput
 │   │   │   └── RuleOptions.cs           Aufzählungen
+│   │   ├── Theming/
+│   │   │   └── AccentPalette.cs         Akzentfarben: Paletten, HSV, Kontrast, Benutzerdefiniert
 │   │   └── Validation/
 │   │       ├── FileNameValidator.cs     gültige Dateinamen
 │   │       └── DateFormatValidator.cs   Datums-/Uhrzeitformate
 │   └── FileRenamer.App/                 Avalonia-Oberfläche
 │       ├── FileRenamer.App.csproj
 │       ├── Program.cs                   Einstiegspunkt
-│       ├── App.axaml(.cs)               Ressourcen, Theme-Farben, Start
+│       ├── App.axaml(.cs)               Ressourcen, Theme-Farben, Start, Fensterneuaufbau beim Sprachwechsel
 │       ├── app.manifest
 │       ├── Assets/
 │       │   ├── app.ico                  Programmsymbol (16–256 px)
@@ -111,33 +140,46 @@ FileRenamer/
 │       │   ├── HighlightedTextBlock.cs  farbig hervorgehobener Name
 │       │   └── RuleColor.cs             Farbklasse je Verfahren
 │       ├── Converters/
-│       │   └── EnumEqualsConverter.cs   RadioButtons ↔ Aufzählung
+│       │   ├── EnumEqualsConverter.cs   RadioButtons ↔ Aufzählung
+│       │   └── HexToBrushConverter.cs   #RRGGBB → Pinsel (Farbflächen)
+│       ├── Localization/
+│       │   ├── Loc.cs                   Textzugriff (T, F) und XAML-Erweiterung {loc:T Schlüssel}
+│       │   └── Strings.cs               alle Oberflächentexte: Schlüssel → (Deutsch, Englisch)
 │       ├── Services/
 │       │   ├── IDialogService.cs        IDialogService, IThemeService
 │       │   ├── DialogService.cs         Dialoge, Datei-/Ordnerauswahl
-│       │   └── ThemeService.cs          System/Hell/Dunkel
+│       │   └── ThemeService.cs          System/Hell/Dunkel, Akzentfarbe → Fluent-Ressourcen
 │       ├── ViewModels/
 │       │   ├── MainWindowViewModel.cs           Kern: Kette, Vorschau, Umbenennen, Widerrufen
 │       │   ├── MainWindowViewModel.Files.cs     Dateien hinzufügen/entfernen
-│       │   ├── MainWindowViewModel.Profiles.cs  Profile, Theme
+│       │   ├── MainWindowViewModel.Profiles.cs  Profile (inkl. Zurücksetzen), Theme, Sprache
 │       │   ├── MainWindowViewModel.Selection.cs Dateiauswahl per Checkbox
 │       │   ├── ChainItemViewModel.cs            Eintrag der Kette
 │       │   ├── PreviewRowViewModel.cs           Zeile der Vorschau
-│       │   ├── RuleCatalog.cs                   Verfahren ↔ Name ↔ Editor
+│       │   ├── AccentColorViewModel.cs          Akzentfarbwahl, SwatchViewModel
+│       │   ├── TemplateLibrary.cs               eigene Vorlagen (Fotos/Audio), programmweit
+│       │   ├── RuleCatalog.cs                   gruppierte Verfahrensliste ↔ Name ↔ Editor
 │       │   └── Editors/                         je Verfahren ein Editor + RuleEditorViewModel
+│       │                                        (einfache Editoren der Erweiterung in SimpleEditors.cs)
 │       └── Views/
 │           ├── MainWindow.axaml(.cs)            Hauptfenster
+│           ├── ChainDragController.cs           Umsortieren der Kette per Drag & Drop
+│           ├── AccentPickerView.axaml(.cs)      Farbwahl im Flyout am farbigen Kreis
 │           └── Editors/                         je Verfahren eine Options-Ansicht
 ├── tests/
 │   └── FileRenamer.Core.Tests/
 │       ├── FileRenamer.Core.Tests.csproj
 │       ├── Execution/       FileRenameExecutorTests.cs
-│       ├── Integration/     RenameIntegrationTests.cs (echte Dateien aus testdata/)
+│       ├── Integration/     RenameIntegrationTests.cs (echte Dateien aus testdata/ und erzeugte Mediendateien)
+│       ├── Localization/    CoreTextTests.cs (Sprachermittlung, Meldungen je Sprache)
+│       ├── Metadata/        MetadataReaderTests.cs (alle Bild- und Audioformate)
 │       ├── Naming/          SegmentedNameTests.cs, NaturalStringComparerTests.cs
 │       ├── Preview/         RenamePipelineTests.cs
 │       ├── Profiles/        ProfileStoreTests.cs
-│       ├── Rules/           je Verfahren eine Testklasse
-│       ├── Support/         InMemoryFileSystem.cs, RuleTestHelper.cs
+│       ├── Rules/           Testklassen der Verfahren, TemplateRuleTests, CustomTemplateListTests, ChangeExtensionRuleTests, TextRulesTests
+│       ├── Theming/         AccentPaletteTests.cs
+│       ├── Support/         InMemoryFileSystem.cs, RuleTestHelper.cs,
+│       │                    MediaFiles.cs + TiffWriter.cs (erzeugen Test-Mediendateien)
 │       └── Validation/      FileNameValidatorTests.cs, DateFormatValidatorTests.cs
 └── testdata/
     ├── README.md
@@ -155,7 +197,11 @@ FileRenamer/
 | `Validation` | `FileNameValidator` (plattformübergreifend strengste Regeln), `DateFormatValidator` |
 | `Execution` | `FileRenameExecutor` – zweiphasiges Umbenennen mit Rücknahme |
 | `Files` | `IFileSystem` und `PhysicalFileSystem` |
-| `Profiles` | Profile und Einstellungen als JSON, plattformübliche Ablageorte |
+| `Profiles` | Profile und Einstellungen als JSON (inkl. Akzentfarbe), plattformübliche Ablageorte |
+| `Metadata` | Eigene Leser für EXIF/IPTC/XMP (JPEG, TIFF, HEIC, PNG, RAW) und Audio-Tags (ID3, FLAC, M4A) – ohne Fremdbibliothek |
+| `Rules.Templates` | Platzhalterkatalog und Zerlegung der Vorlagen für „Name aus Vorlage“ |
+| `Theming` | `AccentPalette`: Paletten, HSV-Sättigung, lesbare Schriftfarbe, Kontrastprüfung, benutzerdefinierte Farben |
+| `Localization` | `CoreText`: alle Meldungen der Fachlogik auf Deutsch und Englisch; `Resolve` ermittelt die Sprache aus der Einstellung |
 
 ### App
 
@@ -166,6 +212,7 @@ FileRenamer/
 | `Views` | `MainWindow` und je Verfahren eine Editor-Ansicht |
 | `Controls` | `HighlightedTextBlock` (farbige Abschnitte), `RuleColor` (Farbklasse je Verfahren) |
 | `Services` | Dialoge/Dateiauswahl (`IDialogService`) und Theme (`IThemeService`) |
+| `Localization` | `Loc` (Textzugriff), `Strings` (Texte je Sprache), Markup-Erweiterung `TExtension` |
 
 ## Architektur
 
@@ -195,7 +242,7 @@ Die Diagramme sind in Mermaid notiert und werden u. a. von GitHub, GitLab und VS
 
 ```mermaid
 flowchart TD
-    Start([Programmstart]) --> Settings[Einstellungen laden:<br/>Theme, letztes Profil]
+    Start([Programmstart]) --> Settings[Einstellungen laden:<br/>Sprache, Theme, Akzentfarbe, letztes Profil]
     Settings --> Idle{{Warten auf Eingabe}}
 
     Idle -->|Dateien / Ordner hinzufügen<br/>Menü oder Drag & Drop| AddFiles[Dateien einlesen<br/>Ordner ohne Unterordner,<br/>Duplikate überspringen]
@@ -231,6 +278,10 @@ flowchart TD
     Idle -->|„Änderungen verwerfen“| Clear[Kette leeren] --> Preview
     Idle -->|Profil speichern| SaveProfile[Dialog: Name bestätigen,<br/>ggf. Überschreiben bestätigen] --> Idle
     Idle -->|Theme wählen| Theme[Theme anwenden und merken] --> Idle
+    Idle -->|„Zurücksetzen“| ResetConfirm{Kette leer oder<br/>Rückfrage bestätigt?}
+    ResetConfirm -->|nein| Idle
+    ResetConfirm -->|ja| Reset[Kette und Profilfeld leeren,<br/>Profile bleiben] --> Preview
+    Idle -->|Sprache wählen| Lang[Texte neu erzeugen, merken,<br/>Fenster neu aufbauen] --> Preview
     Idle -->|Beenden| End([Programmende])
 ```
 
@@ -270,6 +321,61 @@ flowchart TD
 Widerrufen ruft denselben Ablauf mit den umgekehrten Aufträgen auf
 (`RenameExecutionResult.CreateUndoOperations()`), deshalb gelten dieselben Garantien.
 
+### Metadaten
+
+`PhysicalFileSystem.ReadFileEntry` liest beim Hinzufügen einer Datei einmal deren Metadaten
+(`FileEntry.Metadata`, E66). `MetadataReader` wählt anhand der Endung den Leser; alle Leser arbeiten über
+`ByteSource` und lesen nur die benötigten Bereiche (wichtig bei großen RAW-Dateien). Beschädigte Daten führen
+nie zum Abbruch – es fehlen dann lediglich Werte. Reihenfolge der Quellen für Beschreibung, Ersteller und
+Copyright: EXIF → IPTC → XMP (→ PNG-Text). Aufnahmedatum: DateTimeOriginal → DateTimeDigitized → DateTime.
+
+| Format | Ort der Daten |
+|---|---|
+| JPEG | APP1 „Exif“ (TIFF), APP1 XMP, APP13 Photoshop/8BIM 0x0404 (IPTC), SOF (Maße) |
+| TIFF, DNG, CR2, NEF, ARW, ORF, RW2, PEF | gesamte Datei ist eine TIFF-Struktur |
+| PNG | `eXIf` (TIFF), `iTXt` „XML:com.adobe.xmp“, `tEXt`/`iTXt` (Author, Description, Copyright), `IHDR` |
+| HEIC/HEIF | `meta` → `iinf` (Item-Typ „Exif“/„mime“) + `iloc` (Position) |
+| CR3 | `moov` → Canon-UUID → `CMT1` (IFD0), `CMT2` (EXIF), `CMT4` (GPS) |
+| RAF | Offset (84) und Länge (88) des eingebetteten JPEG |
+| MP3 | ID3v2.2/2.3/2.4 am Anfang (inkl. Unsynchronisation), ID3v1 am Ende als Ergänzung |
+| FLAC | Metadatenblock 4 (Vorbis Comments) |
+| M4A | `moov/udta/meta/ilst` (©ART, ©nam, ©alb, aART, ©wrt, ©gen, ©day, trkn, disk, gnre) |
+
+### Endungen
+
+Verfahren mit `TargetsExtension = true` („Erweiterung ändern“) erhalten von der Pipeline statt des Namens die
+Endung inklusive Punkt – die ausgeblendete Endung bzw. bei eingeblendeter Endung den abgetrennten Teil des
+Namens (`RenamePipeline.WorkingNames`). Eine geänderte ausgeblendete Endung zeigt die Vorschau an
+(`FilePreview.IsExtensionChanged`, E73).
+
+### Akzentfarbe
+
+`AccentPalette` (Core, getestet) berechnet Farben; `ThemeService` schreibt die Akzentfarbe in die
+Fluent-Ressourcen (`SystemAccentColor` samt Abstufungen, `AccentButtonForeground*`, `AccentButtonBorderBrush*`,
+`CheckBoxCheckGlyphForegroundChecked*`) sowie in eigene Ressourcen (`SelectionBrush`, `AccentForegroundBrush`,
+`AccentSegmentBorderBrush`). Bei jedem Theme-Wechsel werden sie neu berechnet, weil Auswahlhintergrund und
+Rahmen bei geringem Kontrast vom Fensterhintergrund abhängen. Der Fokusring erscheint in Avalonia nur bei
+Tastaturbedienung (E88).
+
+### Sprache
+
+Die Sprache gilt programmweit (`CoreText.Language`, in der App über `Loc.Language` gesetzt). Die Einstellung
+(`LanguagePreference` System/Deutsch/English, E92) wird mit `CoreText.Resolve` aufgelöst: „System“ ergibt Deutsch
+nur bei deutscher `CultureInfo.CurrentUICulture`, sonst Englisch (E93).
+
+- **Fachlogik:** Alle Meldungen (Hinweise, Konflikte, Prüfungen) liefert `CoreText`; sie werden bei jedem Abruf in
+  der aktuellen Sprache erzeugt.
+- **Oberfläche:** XAML nutzt `{loc:T Schlüssel}`, C# `Loc.T(...)` bzw. `Loc.F(...)` mit Platzhaltern `{0}`.
+  Alle Texte stehen in `Strings.All`. Ein unbekannter Schlüssel erscheint als Schlüssel selbst und fällt so auf.
+- **Wechsel ohne Neustart:** `MainWindowViewModel.OnLanguageChanged` setzt die Sprache, erzeugt Editor (mit
+  seinen Einstellungen) und Farbwahl neu, berechnet die Vorschau neu, speichert die Einstellung und löst
+  `LanguageChanged` aus. `App` baut daraufhin ein neues `MainWindow` mit demselben ViewModel auf (Größe, Lage
+  und Zustand bleiben) und setzt `DialogService.Owner` um. Die Verfahrensliste wird nicht per Änderungsmeldung
+  erneuert, weil das alte Fenster sonst seine Auswahl auf `null` zurückschreibt; `RuleKindItem` vergleicht
+  deshalb nur die Verfahrensart.
+- **Neuer Text:** Schlüssel mit beiden Sprachen in `Strings.All` eintragen und per `{loc:T …}` bzw. `Loc.T`
+  verwenden.
+
 ### Hervorhebung
 
 `SegmentedName.Replace` ordnet neuen Text dem verursachenden Verfahren zu und übernimmt die Herkunft
@@ -285,7 +391,9 @@ wenn es beteiligt ist (E5), sonst das zuletzt angewandte. Die Farben liegen als 
 3. `[JsonDerivedType]` in `RenameRule` ergänzen (Profile).
 4. Editor-ViewModel von `RuleEditorViewModel` ableiten, Editor-Ansicht anlegen, beides in
    `RuleCatalog` und den `DataTemplates` von `MainWindow.axaml` registrieren.
-5. Farben `RuleColor.<Art>`/`RuleHighlight.<Art>` und Stil `Border.ruleBar.kind-<Art>` in `App.axaml` ergänzen.
+5. Farben `RuleColor.<Art>`/`RuleHighlight.<Art>` und Stil `Border.ruleBar.kind-<Art>` in `App.axaml` ergänzen
+   und das Verfahren in `RuleCatalog.Entries` der passenden Gruppe zuordnen.
+   Wirkt es auf die Endung, `TargetsExtension` überschreiben.
 6. Tests in `tests/FileRenamer.Core.Tests/Rules` und ggf. Testdateien in `testdata/` ergänzen.
 
 ## Tests
@@ -310,4 +418,29 @@ wenn es beteiligt ist (E5), sonst das zuletzt angewandte. Die Farben liegen als 
 - Verfahren sind unveränderliche `record`s; Änderungen entstehen per `with` (gleiche `Id`).
 - Kurze Methoden, keine Logik im Code-Behind außer reiner Oberflächenmechanik (Drag &amp; Drop,
   Laden eines Profils beim Schließen der Profilliste – damit Eintippen nie ein Profil lädt).
+- Umsortieren der Kette (E102): `Views/ChainDragController` fängt am Griff `⋮⋮` den Mauszeiger ein. Während des
+  Ziehens folgt das Abbild `DragGhost` dem Zeiger in der Ebene `DragLayer` (Canvas über dem Fensterinhalt), der
+  Ursprungseintrag erhält die Klasse `dragging` (blass), `DropLine` markiert die Einfügestelle. Erst beim Loslassen
+  wird `MoveChainItem` aufgerufen; bei Verlust der Mauserfassung wird abgebrochen. `MoveChainItem` stellt die
+  Auswahl wieder her, weil die ListBox sie bei `ObservableCollection.Move` verwirft.
+- Rahmenfarben von Ketteneinträgen nur per Style setzen: Ein lokal gesetzter Wert hat in Avalonia Vorrang vor
+  Styles und würde `.error` überdecken.
+- Spalten mit unterschiedlichen Schriften auf eine Grundlinie bringen (E100): Jede Spalte erhält zusätzlich ein
+  U+200B in der Schrift der anderen Spalte; damit sind Ober- und Unterlängen beider Zeilen gleich.
+- Reiter von „Name aus Vorlage“ (E99, E103): eigene Templates für `TabControl.cardTabs` und `TabItem`
+  (`MinHeight` 0, sonst gilt Fluents Mindesthöhe von 48 px). Der aktive Reiter nutzt `SelectionBrush`;
+  `StackPanel#EditorRoot:focus-within` schaltet auf `SystemAccentColor` mit `AccentForegroundBrush` um.
+- Eigene Vorlagen (E106): Die Regeln (neueste zuerst, keine Duplikate, max. 10) liegen testbar in
+  `CustomTemplateList` (Core). `TemplateLibrary` hält beide Listen im Hauptfenster-ViewModel, damit sie den
+  Editorwechsel überdauern, und meldet Änderungen zum Speichern in `AppSettings`. `SetEditor` übergibt sie dem
+  `TemplateEditorViewModel`. Die Auswahl verarbeitet der Code-Behind (`OnPresetSelected`) und setzt sie nachgelagert
+  zurück (E107); das ✕ im Popup wird per Click-Ereignis weitergeleitet, weil Bindungen mit `$parent` den Editor aus
+  dem Popup nicht erreichen.
+- Fluent-Mindestgrößen beachten: Textfelder haben 64 px Mindestbreite und 32 px Höhe. Kleinere Zahlenfelder
+  (Sättigung, Klasse `NumericUpDown.compact`) heben `MinWidth` des inneren Textfelds auf, statt die Höhe zu
+  erzwingen – sonst wird der Rahmen abgeschnitten (E104).
+- Das gewählte Segment hat `ZIndex` 1, damit sein Rahmen nicht vom überlappenden Nachbarn verdeckt wird (E101).
+- Segment-Schaltflächen (`RadioButton.segment`) erhalten ihre Außenrundung über `:nth-child(1)` und
+  `:nth-last-child(1)`; jede Gruppe braucht daher ein eigenes Panel ohne weitere Elemente (E95).
+- `RuleCatalog.CreateEditor` lädt die Standardwerte einmal, damit Prüfung und Beispiel sofort vorliegen (E97).
 - Hinweis zum Build: Läuft die App, sind ihre DLLs gesperrt und `dotnet build` schlägt mit MSB3027 fehl – App vorher schließen.

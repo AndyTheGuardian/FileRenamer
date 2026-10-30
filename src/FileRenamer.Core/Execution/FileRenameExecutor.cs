@@ -1,4 +1,5 @@
-using FileRenamer.Core.Files;
+﻿using FileRenamer.Core.Files;
+using FileRenamer.Core.Localization;
 
 namespace FileRenamer.Core.Execution;
 
@@ -103,7 +104,7 @@ public sealed class FileRenameExecutor(IFileSystem fileSystem)
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                errors.Add($"„{move.To}“ konnte nicht zurück nach „{move.From}“ benannt werden: {exception.Message}");
+                errors.Add(CoreText.RollbackFailed(move.To, move.From, exception.Message));
             }
         }
 

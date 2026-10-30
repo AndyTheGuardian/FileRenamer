@@ -1,0 +1,29 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:FileRenamer.App.Localization"
+             xmlns:ed="using:FileRenamer.App.ViewModels.Editors"
+             x:Class="FileRenamer.App.Views.Editors.ChangeCaseEditorView"
+             x:DataType="ed:ChangeCaseEditorViewModel">
+  <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto" RowSpacing="9" MaxWidth="720" HorizontalAlignment="Left">
+    <TextBlock Text="{loc:T Case.Mode}" VerticalAlignment="Center" />
+    <!-- E75: Beispiel direkt in der Auswahl; breit genug für den längsten Eintrag -->
+    <ComboBox Grid.Column="1" ItemsSource="{Binding Options}" SelectedItem="{Binding SelectedOption}" MinWidth="460">
+      <ComboBox.ItemTemplate>
+        <DataTemplate x:DataType="ed:CaseOption">
+          <!-- E100: gemeinsame Grundlinie. Jede Spalte enthält ein unsichtbares Zeichen (U+200B) in der Schrift der
+               anderen Spalte; so haben beide Zeilen dieselbe Ober- und Unterlänge und die Grundlinien liegen gleich. -->
+          <Grid ColumnDefinitions="190,*">
+            <TextBlock VerticalAlignment="Top">
+              <Run Text="{Binding Label}" /><Run Text="&#x200B;" FontFamily="Cascadia Mono, Consolas, Menlo, monospace" />
+            </TextBlock>
+            <TextBlock Grid.Column="1" VerticalAlignment="Top" Foreground="{DynamicResource MutedTextBrush}">
+              <Run Text="{Binding Example}" FontFamily="Cascadia Mono, Consolas, Menlo, monospace" /><Run Text="&#x200B;" />
+            </TextBlock>
+          </Grid>
+        </DataTemplate>
+      </ComboBox.ItemTemplate>
+    </ComboBox>
+    <TextBlock Grid.Row="1" Grid.Column="1" Classes="hint"
+               Text="{loc:T Case.Hint}" />
+  </Grid>
+</UserControl>

@@ -32,8 +32,8 @@ public sealed class PhysicalFileSystem : IFileSystem
     public void MoveFile(string sourcePath, string targetPath) => File.Move(sourcePath, targetPath, overwrite: false);
 
     /// <summary>
-    /// Liest die Metadaten einer Datei. Unter Linux wird das Erstellungsdatum als nicht verfügbar
-    /// gemeldet, weil .NET dort keinen verlässlichen Wert liefert.
+    /// Liest die Dateiangaben samt Bild-/Audio-Metadaten. Unter Linux wird das Erstellungsdatum als nicht
+    /// verfügbar gemeldet, weil .NET dort keinen verlässlichen Wert liefert.
     /// </summary>
     /// <param name="path">Pfad der Datei.</param>
     /// <returns>Die Dateibeschreibung.</returns>
@@ -41,7 +41,10 @@ public sealed class PhysicalFileSystem : IFileSystem
     {
         var info = new FileInfo(path);
         DateTime? creationTime = OperatingSystem.IsLinux() ? null : info.CreationTime;
-        return new FileEntry(info.FullName, creationTime, info.LastWriteTime, info.Length);
+        return new FileEntry(info.FullName, creationTime, info.LastWriteTime, info.Length)
+        {
+            Metadata = Metadata.MetadataReader.Read(info.FullName),
+        };
     }
 
     /// <summary>

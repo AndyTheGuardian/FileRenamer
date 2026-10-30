@@ -54,7 +54,8 @@ public sealed class RenamePipelineTests
         var preview = CreatePipeline().CreatePreview(AddFiles("archiv.tar.gz"), [], ignoreExtension: true).Files[0];
 
         Assert.Equal("archiv.tar", preview.OriginalDisplayName);
-        Assert.Equal(".gz", preview.HiddenExtension);
+        Assert.Equal(".gz", preview.OriginalExtension);
+        Assert.False(preview.IsExtensionChanged);
     }
 
     /// <summary>

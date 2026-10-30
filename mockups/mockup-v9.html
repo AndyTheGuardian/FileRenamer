@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FileRenamer Mockup v9</title>
+<style>
+  /* Helles Theme ohne reines Weiß */
+  :root {
+    --bg: #dde1e7; --window: #f3f4f6; --panel: #e8ebef; --border: #cdd2da; --text: #1d2330; --muted: #646c7c;
+    --accent: #2f6fdf; --accent-text: #f4f7fc; --input: #f9fafb; --hover: #e1e7f2; --selected: #d3def3;
+    --danger: #c93434; --danger-bg: #f6e1e1; --warn: #b7791f;
+    --c-replace: #2f6fdf; --c-date: #1f9d55; --c-counter: #e8740c; --c-digits: #8b4fd6; --c-insert: #d63c86;
+    --c-case: #0e9aa7; --c-template: #c99a06; --c-clean: #64748b; --c-remove: #a0522d; --c-ext: #7c8b1a; --c-folder: #4338ca;
+    --hl-alpha: 22%;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101318; --window: #1b1f27; --panel: #222731; --border: #353c4a; --text: #e4e8ef; --muted: #97a0b0;
+    --accent: #5b8ff0; --input: #171a21; --hover: #2a3140; --selected: #2d3b57;
+    --danger: #f06a6a; --danger-bg: #3a2124; --warn: #e0a94a;
+    --c-replace: #5b8ff0; --c-date: #3cc47a; --c-counter: #f39a4a; --c-digits: #a982ec; --c-insert: #ec6aa8;
+    --c-case: #3cc8d4; --c-template: #e8bf3a; --c-clean: #94a3b8; --c-remove: #d08a5c; --c-ext: #b3c447; --c-folder: #8b85f0;
+    --hl-alpha: 32%;
+  }
+  /* Akzentfarbe (E79): Auswahl-Hintergrund und Checkboxen leiten sich von der Akzentfarbe ab */
+  :root, :root[data-theme="dark"] { --selected: color-mix(in srgb, var(--accent) 24%, var(--window)); accent-color: var(--accent); }
+  .accent-wrap { position: relative; display: inline-flex; }
+  .accent-dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--window); box-shadow: 0 0 0 1px var(--border); background: var(--accent); cursor: pointer; padding: 0; }
+  .accent-dot:hover { box-shadow: 0 0 0 2px var(--accent); }
+  .accent-pop { display: none; position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; width: 248px; background: var(--window); border: 1px solid var(--border); border-radius: 8px; padding: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.2); }
+  .accent-pop.open { display: block; }
+  .accent-pop h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 6px; }
+  .swatches { display: flex; gap: 8px; margin-bottom: 10px; }
+  .swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--window); box-shadow: 0 0 0 1px var(--border); cursor: pointer; padding: 0; }
+  .swatch.on { box-shadow: 0 0 0 2px var(--text); }
+  .accent-pop .hex-row { display: flex; gap: 6px; align-items: center; }
+  .accent-pop .hex-row input { width: 100px; font-family: Consolas, monospace; }
+  .accent-pop .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .accent-pop { width: 290px; }
+  .accent-pop h3.with-control { display: flex; align-items: center; justify-content: space-between; }
+  .accent-pop .sat { display: inline-flex; align-items: center; gap: 4px; text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--text); font-size: 12px; }
+  .accent-pop .sat input[type=range] { width: 90px; }
+  /* Fokusring am Regler nur bei Tastaturbedienung (E88) */
+  .accent-pop .sat input[type=range]:focus { outline: none; }
+  .accent-pop .sat input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .accent-pop .sat input[type=number] { width: 52px; padding: 2px 4px; }
+  .swatches.custom { flex-wrap: wrap; min-height: 30px; }
+  .swatches.custom .empty { color: var(--muted); font-size: 12px; align-self: center; }
+  .swatch-wrap { position: relative; }
+  .swatch-wrap .remove { display: none; position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--border); background: var(--window); color: var(--text); font-size: 10px; line-height: 14px; padding: 0; cursor: pointer; }
+  .swatch-wrap:hover .remove { display: block; }
+  .low-contrast .btn.primary { border-color: var(--text); }
+  .low-contrast .seg button.on { box-shadow: inset 0 0 0 1px var(--text); }
+  .low-contrast .accent-dot { box-shadow: 0 0 0 1px var(--text); }
+  .linkbtn { background: none; border: 0; color: var(--text); cursor: pointer; padding: 0; font: inherit; text-decoration: underline; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px 48px; background: var(--bg); color: var(--text); font: 13px/1.4 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .intro { max-width: 1240px; margin: 0 auto 16px; color: var(--muted); }
+  .intro strong { color: var(--text); }
+  .intro ul { margin: 6px 0 0; padding-left: 18px; }
+  .new { display: inline-block; font-size: 10px; font-weight: 700; color: var(--accent-text); background: var(--accent); border-radius: 3px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
+
+  .window { max-width: 1240px; margin: 0 auto; background: var(--window); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12); overflow: hidden; display: flex; flex-direction: column; }
+  .titlebar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--panel); font-weight: 600; }
+  .titlebar .appicon { width: 18px; height: 18px; border-radius: 4px; background: linear-gradient(135deg,#2b3140,#12151c); color: #f4f7fc; font-size: 9px; font-weight: 700; display: grid; place-items: center; }
+  .titlebar .dots { margin-left: auto; color: var(--muted); letter-spacing: 6px; }
+  .menubar { display: flex; gap: 2px; padding: 2px 6px; border-bottom: 1px solid var(--border); }
+  .menu { position: relative; }
+  .menu > button { background: none; border: 0; color: var(--text); padding: 5px 10px; border-radius: 4px; font: inherit; cursor: pointer; }
+  .menu > button:hover, .menu.open > button { background: var(--hover); }
+  .menu .dropdown { display: none; position: absolute; top: 100%; left: 0; z-index: 10; min-width: 220px; background: var(--window); border: 1px solid var(--border); border-radius: 6px; padding: 4px; box-shadow: 0 8px 20px rgba(0,0,0,.18); }
+  .menu.open .dropdown { display: block; }
+  .dropdown div { padding: 6px 10px; border-radius: 4px; display: flex; justify-content: space-between; gap: 16px; }
+  .dropdown div:hover { background: var(--hover); }
+  .dropdown .sep { height: 1px; padding: 0; margin: 4px 0; background: var(--border); }
+  .dropdown kbd { color: var(--muted); font: inherit; }
+  .toolbar { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .toolbar .spacer { flex: 1; }
+  label.inline { display: inline-flex; align-items: center; gap: 6px; }
+
+  input[type=text], input[type=number], select { background: var(--input); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font: inherit; }
+  input[type=number] { width: 80px; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  input.invalid { border-color: var(--danger); }
+  input:disabled { opacity: .5; cursor: not-allowed; }
+  .mono { font-family: Consolas, "Cascadia Mono", monospace; }
+  .btn { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 6px 14px; font: inherit; cursor: pointer; }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; flex-wrap: wrap; }
+  .seg button { background: var(--input); color: var(--text); border: 0; padding: 5px 12px; font: inherit; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--border); }
+  .seg button.on { background: var(--accent); color: var(--accent-text); }
+  .seg.icons button { padding: 5px 9px; display: inline-flex; align-items: center; }
+  .seg.icons svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .half { display: grid; grid-template-columns: 270px 1fr; min-height: 0; }
+  .top { border-bottom: 4px double var(--border); }
+  .pane { padding: 10px 12px; min-width: 0; }
+  .pane + .pane { border-left: 1px solid var(--border); }
+  .pane-title { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .pane-title .right { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 400; }
+
+  .proc-list { list-style: none; margin: 0; padding: 0; }
+  .proc-list .group { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 10px 8px 3px; cursor: default; font-weight: 600; }
+  .proc-list .group:first-child { padding-top: 0; }
+  .proc-list li.item { display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-radius: 4px; cursor: pointer; }
+  .proc-list li.item:hover { background: var(--hover); }
+  .proc-list li.item.active { background: var(--selected); font-weight: 600; }
+  .bar { width: 4px; align-self: stretch; min-height: 16px; border-radius: 2px; flex: 0 0 4px; }
+
+  .options { max-height: 470px; overflow: auto; }
+  .options h2 { font-size: 15px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .options h2 .bar { min-height: 18px; }
+  .form { display: grid; grid-template-columns: 190px 1fr; gap: 9px 14px; align-items: center; max-width: 720px; }
+  .form > .seg, .form > .example { justify-self: start; }
+  .hint { color: var(--muted); font-size: 12px; }
+  .err { color: var(--danger); font-size: 12px; }
+  .example { background: var(--panel); border: 1px dashed var(--border); border-radius: 4px; padding: 6px 10px; font-family: Consolas, monospace; }
+  .examples { display: grid; gap: 4px; justify-self: start; }
+  .opt-actions { margin-top: 14px; display: flex; gap: 8px; }
+  .opt-panel { display: none; }
+  .opt-panel.show { display: block; }
+  .row-inline { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .checks { display: grid; gap: 6px; }
+
+  /* Platzhalter */
+  .chips { display: grid; gap: 6px; }
+  /* Bezeichnung links fest, Platzhalter brechen eingerückt um (E78) */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; position: relative; padding-left: 96px; }
+  .chip-group > span { position: absolute; left: 0; top: 2px; width: 92px; color: var(--muted); font-size: 12px; }
+  .chip { font: 12px Consolas, monospace; background: var(--input); border: 1px solid var(--border); border-radius: 10px; padding: 1px 8px; cursor: pointer; color: var(--text); }
+  .chip:hover { background: var(--hover); border-color: var(--accent); }
+  .case-select { width: 440px; max-width: 100%; font-family: Consolas, "Cascadia Mono", monospace; }
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  .tabs button { background: none; border: 1px solid transparent; border-bottom: 0; border-radius: 6px 6px 0 0; padding: 6px 16px; font: inherit; color: var(--muted); cursor: pointer; margin-bottom: -1px; }
+  .tabs button.on { background: var(--window); border-color: var(--border); color: var(--text); font-weight: 600; }
+  .tab-page { display: none; }
+  .tab-page.show { display: block; }
+  .shared { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
+
+  .chain { list-style: none; margin: 0; padding: 0; }
+  .chain li { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 4px; border: 1px solid transparent; }
+  .chain li:hover { background: var(--hover); }
+  .chain li.active { background: var(--selected); font-weight: 600; }
+  .chain li.dragging { opacity: .4; }
+  .chain li.drop-target { border-top: 2px solid var(--accent); }
+  .chain .grip { cursor: grab; color: var(--muted); user-select: none; }
+  .chain .name { flex: 1; }
+  .chain li.off .name { color: var(--muted); text-decoration: line-through; font-weight: 400; }
+  .chain .del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
+  .chain .del:hover { color: var(--danger); background: var(--danger-bg); }
+  .tree-root { color: var(--muted); padding: 2px 6px 6px; }
+
+  .files { width: 100%; border-collapse: collapse; font-family: Consolas, "Cascadia Mono", monospace; font-size: 13px; }
+  .files th { text-align: left; font: 600 11px "Segoe UI", system-ui, sans-serif; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--panel); position: sticky; top: 0; }
+  .files td { padding: 5px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .files td.cb, .files th.cb { width: 30px; }
+  .files td.state { width: 26px; text-align: center; font-family: "Segoe UI", sans-serif; }
+  .files tr.conflict td { background: var(--danger-bg); }
+  .files tr.unselected td.name { opacity: .45; }
+  .files .ext { color: var(--muted); }
+  .hl { border-radius: 3px; padding: 0 1px; }
+  .hl.template { background: color-mix(in srgb, var(--c-template) var(--hl-alpha), transparent); box-shadow: inset 0 -2px 0 var(--c-template); }
+  .hl.clean { background: color-mix(in srgb, var(--c-clean) var(--hl-alpha), transparent); box-shadow: inset 0 -2px 0 var(--c-clean); }
+  .hl.ext { background: color-mix(in srgb, var(--c-ext) var(--hl-alpha), transparent); box-shadow: inset 0 -2px 0 var(--c-ext); color: var(--text) !important; }
+  .icon-warn { color: var(--warn); cursor: help; }
+  .list-wrap { border: 1px solid var(--border); border-radius: 4px; overflow: auto; max-height: 260px; }
+  .below-list { display: flex; gap: 8px; margin-top: 8px; }
+  .drop-hint { flex: 1; border: 1px solid var(--border); border-radius: 4px; padding: 7px; text-align: center; color: var(--muted); background: var(--hover); }
+
+  .footer { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-top: 1px solid var(--border); background: var(--panel); flex-wrap: wrap; }
+  .footer .status { color: var(--muted); }
+  .footer .status b { color: var(--warn); }
+  .footer .spacer { flex: 1; }
+
+  .notes { max-width: 1240px; margin: 24px auto 0; background: var(--window); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; }
+  .notes h2 { font-size: 14px; margin: 0 0 8px; }
+  .notes li { margin: 3px 0; }
+
+  @media (max-width: 900px) { .half { grid-template-columns: 1fr; } .pane + .pane { border-left: 0; border-top: 1px solid var(--border); } .form { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>FileRenamer – Mockup v9</h1>
+  Überarbeitung von Mockup v8 (farbiger Kreis rechts neben der Theme-Auswahl oder <em>Ansicht → Akzentfarbe…</em>):
+  Die <strong>Sättigung</strong> ist jetzt ein absoluter Wert (10–90 %) für alle Pastellfarben; der Fokusring am Regler erscheint
+  nur bei Bedienung per Tastatur (Tab). Sättigung und <strong>Benutzerdefiniert</strong> werden gespeichert – im Mockup im Browser. <strong>Klickbar:</strong> Verfahrensliste, Modi,
+  Platzhalter (fügen an der Cursorposition ein), Theme, Kette. Die Beispiele rechnen mit; die Vorschau unten ist statisch.
+  <ul>
+    <li><strong>Neu</strong> (mit <span class="new">NEU</span> markiert): Groß-/Kleinschreibung, Name aus Vorlage (EXIF + Audio-Tags), Zeichen bereinigen, Bereich entfernen / kürzen, Erweiterung ändern, Ordnername einfügen; Datumsquelle „EXIF-Aufnahmedatum“.</li>
+    <li>Übernommen aus der umgesetzten App: editierbares Profilfeld, Datei-Checkboxen, „Liste leeren“, „Letzte Umbenennung widerrufen“, App-Icon.</li>
+  </ul>
+</div>
+
+<div class="window">
+  <div class="titlebar"><span class="appicon">Aa</span>FileRenamer <span class="dots">— ▢ ✕</span></div>
+
+  <nav class="menubar">
+    <div class="menu"><button>Datei</button>
+      <div class="dropdown"><div>Dateien hinzufügen… <kbd>Strg+O</kbd></div><div>Ordner hinzufügen… <kbd>Strg+Umschalt+O</kbd></div><div class="sep"></div><div>Liste leeren</div><div class="sep"></div><div>Beenden</div></div>
+    </div>
+    <div class="menu"><button>Profile</button>
+      <div class="dropdown"><div>Profil laden…</div><div>Profil speichern… <kbd>Strg+S</kbd></div><div class="sep"></div><div>Profil löschen…</div></div>
+    </div>
+    <div class="menu"><button>Ansicht</button>
+      <div class="dropdown"><div>Theme: System</div><div>Theme: Hell</div><div>Theme: Dunkel</div><div class="sep"></div><div id="menuAccent">Akzentfarbe…</div></div>
+    </div>
+  </nav>
+
+  <div class="toolbar">
+    <label class="inline">Profil <input type="text" list="profiles" value="Fotos mit Kamera" style="width:230px" placeholder="Profilname eingeben oder wählen"></label>
+    <datalist id="profiles"><option value="Fotos mit Kamera"><option value="Musik nach Interpret"><option value="Scans nummerieren"></datalist>
+    <button class="btn">Speichern</button>
+    <span class="spacer"></span>
+    <span class="seg icons" id="theme" role="group" aria-label="Theme">
+      <button data-t="system" class="on" title="Theme: System"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg></button><button data-t="light" title="Theme: Hell"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button><button data-t="dark" title="Theme: Dunkel"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
+    </span>
+    <span class="accent-wrap">
+      <button class="accent-dot" id="accentDot" title="Akzentfarbe" aria-label="Akzentfarbe wählen"></button>
+      <div class="accent-pop" id="accentPop" role="dialog" aria-label="Akzentfarbe">
+        <h3 class="with-control">Pastell
+          <span class="sat" title="Sättigung der Pastellfarben (absolut)">
+            <input type="range" id="satRange" min="10" max="90" value="60" aria-label="Sättigung"><input type="number" id="satNumber" min="10" max="90" value="60" aria-label="Sättigung in Prozent">%
+          </span>
+        </h3>
+        <div class="swatches" data-group="pastel"></div>
+        <h3>Kräftig</h3>
+        <div class="swatches" data-group="strong"></div>
+        <h3>Neutral</h3>
+        <div class="swatches" data-group="neutral"></div>
+        <h3>Benutzerdefiniert</h3>
+        <div class="swatches custom" id="customSwatches"></div>
+        <h3>Eigene Farbe</h3>
+        <div class="hex-row"><input type="text" id="hexInput" value="#2F6FDF" maxlength="7" placeholder="#25A0C3"><button class="btn" id="hexApply">Übernehmen</button></div>
+        <div class="hint" id="hexMsg">Hex-Code im Format #25A0C3</div>
+        <div class="foot"><button class="linkbtn" id="accentReset">Standard</button><span class="hint">wird gespeichert</span></div>
+      </div>
+    </span>
+  </div>
+
+  <!-- Obere Hälfte -->
+  <section class="half top">
+    <div class="pane">
+      <p class="pane-title">Verfahren</p>
+      <ul class="proc-list" id="procs">
+        <li class="group">Text</li>
+        <li class="item" data-p="replace"><span class="bar" style="background:var(--c-replace)"></span>Text ersetzen</li>
+        <li class="item" data-p="insert"><span class="bar" style="background:var(--c-insert)"></span>Text einfügen</li>
+        <li class="item" data-p="case"><span class="bar" style="background:var(--c-case)"></span>Groß-/Kleinschreibung<span class="new">NEU</span></li>
+        <li class="item" data-p="clean"><span class="bar" style="background:var(--c-clean)"></span>Zeichen bereinigen<span class="new">NEU</span></li>
+        <li class="item" data-p="remove"><span class="bar" style="background:var(--c-remove)"></span>Bereich entfernen / kürzen<span class="new">NEU</span></li>
+        <li class="group">Datum &amp; Zahlen</li>
+        <li class="item" data-p="date"><span class="bar" style="background:var(--c-date)"></span>Datum / Zeit anfügen</li>
+        <li class="item" data-p="counter"><span class="bar" style="background:var(--c-counter)"></span>Zähler anhängen</li>
+        <li class="item" data-p="digits"><span class="bar" style="background:var(--c-digits)"></span>Ziffernkette Wertebereich verschieben</li>
+        <li class="group">Metadaten &amp; Ordner</li>
+        <li class="item active" data-p="template"><span class="bar" style="background:var(--c-template)"></span>Name aus Vorlage<span class="new">NEU</span></li>
+        <li class="item" data-p="folder"><span class="bar" style="background:var(--c-folder)"></span>Ordnername einfügen<span class="new">NEU</span></li>
+        <li class="group">Erweiterung</li>
+        <li class="item" data-p="ext"><span class="bar" style="background:var(--c-ext)"></span>Erweiterung ändern<span class="new">NEU</span></li>
+      </ul>
+    </div>
+
+    <div class="pane options">
+      <!-- Text ersetzen (unverändert) -->
+      <div class="opt-panel" data-p="replace">
+        <h2><span class="bar" style="background:var(--c-replace)"></span>Text ersetzen</h2>
+        <div class="form">
+          <label>Suchen nach</label><input type="text" value="IMG">
+          <label>Ersetzen durch</label><input type="text" value="Urlaub">
+          <label>Treffer</label><span class="seg"><button>Erster</button><button>Letzter</button><button class="on">Alle</button></span>
+          <span></span><label class="inline"><input type="checkbox"> Regulärer Ausdruck</label>
+        </div>
+      </div>
+
+      <!-- Text einfügen (unverändert) -->
+      <div class="opt-panel" data-p="insert">
+        <h2><span class="bar" style="background:var(--c-insert)"></span>Text einfügen</h2>
+        <div class="form">
+          <label>Text</label><input type="text" value="_final">
+          <label>Position</label><div class="row-inline"><input type="number" value="0" min="0"><label class="inline"><input type="checkbox"> Vom Ende zählen</label></div>
+          <label>Beispiel</label><span class="example">bericht → bericht_final</span>
+        </div>
+      </div>
+
+      <!-- NEU: Groß-/Kleinschreibung -->
+      <div class="opt-panel" data-p="case">
+        <h2><span class="bar" style="background:var(--c-case)"></span>Groß-/Kleinschreibung</h2>
+        <div class="form">
+          <label>Schreibweise</label>
+          <select id="caseMode" class="case-select"></select>
+          <label>Beispiel</label><span class="example" id="caseExample"></span>
+          <span></span><span class="hint">Wortgrenzen: Leerzeichen, <code>_</code>, <code>-</code>, <code>.</code> und Wechsel klein→GROSS. Ziffern bleiben am Wort, ß bleibt ß.</span>
+        </div>
+      </div>
+
+      <!-- NEU: Zeichen bereinigen -->
+      <div class="opt-panel" data-p="clean">
+        <h2><span class="bar" style="background:var(--c-clean)"></span>Zeichen bereinigen</h2>
+        <div class="form">
+          <label>Bereinigen</label>
+          <div class="checks">
+            <label class="inline"><input type="checkbox" checked> Leerzeichen am Anfang und Ende entfernen</label>
+            <label class="inline"><input type="checkbox" checked> Mehrfache Leerzeichen zusammenfassen</label>
+            <label class="inline"><input type="checkbox" checked> Umlaute umschreiben (ä→ae, ö→oe, ü→ue, ß→ss)</label>
+            <label class="inline"><input type="checkbox" checked> Akzente entfernen (é→e, ñ→n)</label>
+          </div>
+          <label>Beispiel</label><span class="example">„␣␣Café&nbsp;&nbsp;&nbsp;Müller␣“ → „Cafe Mueller“</span>
+        </div>
+      </div>
+
+      <!-- NEU: Bereich entfernen / kürzen -->
+      <div class="opt-panel" data-p="remove">
+        <h2><span class="bar" style="background:var(--c-remove)"></span>Bereich entfernen / kürzen</h2>
+        <div class="form">
+          <label>Modus</label><span class="seg" id="removeMode"><button class="on" data-m="cut">Zeichen entfernen</button><button data-m="trim">Auf Länge kürzen</button></span>
+          <label class="m-cut">Ab Position</label><div class="row-inline m-cut"><input type="number" value="0" min="0"><label class="inline"><input type="checkbox"> Vom Ende zählen</label></div>
+          <label class="m-cut">Anzahl Zeichen</label><input class="m-cut" type="number" value="4" min="1">
+          <label class="m-trim" hidden>Maximale Länge</label><input class="m-trim" type="number" value="20" min="1" hidden>
+          <label>Beispiel</label><span class="example" id="removeExample">IMG_0001 → 0001</span>
+          <span></span><span class="hint">Position zählt ab 0. Liegt der Bereich teilweise hinter dem Namensende, wird nur der vorhandene Teil entfernt.</span>
+        </div>
+      </div>
+
+      <!-- Datum (Quelle erweitert) -->
+      <div class="opt-panel" data-p="date">
+        <h2><span class="bar" style="background:var(--c-date)"></span>Datum / Zeit anfügen</h2>
+        <div class="form">
+          <label>Datumsquelle</label><span class="seg"><button>Erstellungsdatum</button><button>Änderungsdatum</button><button class="on">EXIF-Aufnahmedatum <span class="new">NEU</span></button></span>
+          <span></span><span class="hint">EXIF: Aufnahmedatum → Digitalisierungsdatum → EXIF-Änderungsdatum. Ohne EXIF-Datum wird das Änderungsdatum der Datei verwendet (Hinweis ⚠).</span>
+          <label>Position</label><span class="seg"><button class="on">Vor dem Namen</button><button>Nach dem Namen</button></span>
+          <label>Datumsformat</label><div class="row-inline"><select><option>yyyy-MM-dd</option><option>yyyyMMdd</option><option>dd.MM.yyyy</option></select><input type="text" value="yyyy-MM-dd" style="width:160px"></div>
+          <span></span><label class="inline"><input type="checkbox"> Uhrzeit anfügen</label>
+          <label>Trennzeichen Name ↔ Datum</label><input type="text" value="_" style="width:60px">
+          <label>Beispiel</label><span class="example">2026-10-12_IMG_0001</span>
+        </div>
+      </div>
+
+      <!-- Zähler (unverändert) -->
+      <div class="opt-panel" data-p="counter">
+        <h2><span class="bar" style="background:var(--c-counter)"></span>Zähler anhängen</h2>
+        <div class="form">
+          <label>Position</label><span class="seg"><button>Vor dem Namen</button><button class="on">Nach dem Namen</button></span>
+          <label>Startwert</label><input type="number" value="1">
+          <label>Schrittweite</label><input type="number" value="1">
+          <label>Stellen (führende Nullen)</label><input type="number" value="3">
+          <label>Beispiel</label><span class="example">bericht-001, bericht-002, …</span>
+        </div>
+      </div>
+
+      <!-- Ziffernkette (unverändert) -->
+      <div class="opt-panel" data-p="digits">
+        <h2><span class="bar" style="background:var(--c-digits)"></span>Ziffernkette Wertebereich verschieben</h2>
+        <div class="form">
+          <label>Wert (auch negativ)</label><input type="number" value="10">
+          <label>Ziffernkette Nr.</label><div class="row-inline"><input type="number" value="1" disabled><label class="inline"><input type="checkbox" checked> Letzte gefundene</label></div>
+          <label>Beispiel</label><span class="example">name-301-001 → name-301-011</span>
+        </div>
+      </div>
+
+      <!-- NEU: Name aus Vorlage -->
+      <div class="opt-panel show" data-p="template">
+        <h2><span class="bar" style="background:var(--c-template)"></span>Name aus Vorlage</h2>
+        <div class="tabs" id="tplTabs"><button class="on" data-tab="photo">Fotos</button><button data-tab="audio">Audio</button></div>
+
+        <!-- Tab Fotos -->
+        <div class="tab-page show" data-tab="photo">
+          <div class="form">
+            <label>Vorlage für Fotos</label>
+            <div class="row-inline">
+              <input type="text" id="tplPhoto" class="mono tpl" value="%name%_%model%_%date:yyyy-MM-dd%" style="width:340px">
+              <select class="preset" data-target="tplPhoto" title="Beispielvorlagen">
+                <option value="">Beispielvorlage wählen…</option>
+                <option>%name%_%model%_%date:yyyy-MM-dd%</option>
+                <option>%date:yyyy-MM-dd%_%time:HH-mm-ss%</option>
+                <option>%date:yyyyMMdd%_%make%_%name%</option>
+              </select>
+            </div>
+            <span></span><span class="hint msg" id="msgPhoto"></span>
+            <label>Platzhalter</label>
+            <div class="chips" data-target="tplPhoto">
+              <div class="chip-group"><span>Datei</span><button class="chip">%name%</button><button class="chip">%ext%</button><button class="chip">%folder%</button></div>
+              <div class="chip-group"><span>Datum / Zeit</span><button class="chip">%date%</button><button class="chip">%time%</button><button class="chip">%year%</button><button class="chip">%month%</button><button class="chip">%day%</button><button class="chip">%hour%</button><button class="chip">%minute%</button><button class="chip">%second%</button></div>
+              <div class="chip-group"><span>Kamera</span><button class="chip">%make%</button><button class="chip">%model%</button><button class="chip">%lens%</button><button class="chip">%iso%</button><button class="chip">%fnumber%</button><button class="chip">%exposure%</button><button class="chip">%focallength%</button></div>
+              <div class="chip-group"><span>Bild</span><button class="chip">%width%</button><button class="chip">%height%</button><button class="chip">%orientation%</button></div>
+              <div class="chip-group"><span>Ort</span><button class="chip">%lat%</button><button class="chip">%lon%</button><button class="chip">%alt%</button></div>
+              <div class="chip-group"><span>Beschreibung</span><button class="chip">%description%</button><button class="chip">%creator%</button><button class="chip">%copyright%</button></div>
+            </div>
+            <label>Beispiel</label><span class="example mono" id="exPhoto"></span>
+            <span></span><span class="hint">Gilt für JPEG, TIFF, HEIC, PNG und RAW. Ohne EXIF-Datum wird das Änderungsdatum verwendet (Hinweis ⚠).</span>
+          </div>
+        </div>
+
+        <!-- Tab Audio -->
+        <div class="tab-page" data-tab="audio">
+          <div class="form">
+            <label>Vorlage für Audio</label>
+            <div class="row-inline">
+              <input type="text" id="tplAudio" class="mono tpl" value="%artist% - %title%" style="width:340px">
+              <select class="preset" data-target="tplAudio" title="Beispielvorlagen">
+                <option value="">Beispielvorlage wählen…</option>
+                <option>%artist% - %title%</option>
+                <option>%track% %title%</option>
+                <option>%albumartist% - %album% - %track% - %title%</option>
+              </select>
+            </div>
+            <span></span><span class="hint msg" id="msgAudio"></span>
+            <label>Platzhalter</label>
+            <div class="chips" data-target="tplAudio">
+              <div class="chip-group"><span>Datei</span><button class="chip">%name%</button><button class="chip">%ext%</button><button class="chip">%folder%</button></div>
+              <div class="chip-group"><span>Titel</span><button class="chip">%artist%</button><button class="chip">%title%</button><button class="chip">%album%</button><button class="chip">%albumartist%</button><button class="chip">%composer%</button><button class="chip">%genre%</button></div>
+              <div class="chip-group"><span>Nummerierung</span><button class="chip">%track%</button><button class="chip">%disc%</button><button class="chip">%year%</button></div>
+            </div>
+            <label>Stellen der Tracknummer</label>
+            <div class="row-inline"><input type="number" id="trackDigits" value="2" min="1" max="4"><span class="hint">2 → <code>03</code>, 3 → <code>003</code>; einzeln überschreibbar mit <code>%track:000%</code></span></div>
+            <label>Beispiel</label><span class="example mono" id="exAudio"></span>
+            <span></span><span class="hint">Gilt für MP3 (ID3), FLAC und M4A.</span>
+          </div>
+        </div>
+
+        <!-- Gemeinsame Einstellungen -->
+        <div class="form shared">
+          <label>Ersatztext bei fehlendem Wert</label><input type="text" value="Unbekannt" id="tplMissing" style="width:160px">
+          <label>Ersatz für verbotene Zeichen</label><input type="text" value="_" id="tplReplace" style="width:60px">
+          <span></span><span class="hint">Platzhalter anklicken fügt ihn an der Cursorposition ein. Format: <code>%platzhalter:format%</code>, z. B. <code>%date:dd.MM.yyyy%</code>. Eine leere Vorlage lässt diese Dateien unverändert.</span>
+        </div>
+      </div>
+
+      <!-- NEU: Ordnername einfügen -->
+      <div class="opt-panel" data-p="folder">
+        <h2><span class="bar" style="background:var(--c-folder)"></span>Ordnername einfügen</h2>
+        <div class="form">
+          <label>Position</label><span class="seg"><button class="on">Vor dem Namen</button><button>Nach dem Namen</button></span>
+          <label>Ordnerebene</label><div class="row-inline"><input type="number" value="1" min="1"><span class="hint">1 = Ordner der Datei, 2 = darüber, …</span></div>
+          <label>Trennzeichen</label><input type="text" value="_" style="width:60px">
+          <label>Beispiel</label><span class="example">Urlaub 2026\IMG_0001 → Urlaub 2026_IMG_0001</span>
+        </div>
+      </div>
+
+      <!-- NEU: Erweiterung ändern -->
+      <div class="opt-panel" data-p="ext">
+        <h2><span class="bar" style="background:var(--c-ext)"></span>Erweiterung ändern</h2>
+        <div class="form">
+          <label>Nur bei Endung</label><div class="row-inline"><input type="text" value="jpeg" style="width:110px"><span class="hint">leer = alle Dateien; Groß-/Kleinschreibung egal</span></div>
+          <label>Neue Endung</label><div class="row-inline"><input type="text" value="jpg" style="width:110px"><span class="hint">leer = Endung beibehalten</span></div>
+          <label>Schreibweise</label><span class="seg"><button>Unverändert</button><button class="on">klein</button><button>GROSS</button></span>
+          <label>Beispiel</label><span class="example">Foto.JPEG → Foto.jpg</span>
+          <span></span><span class="hint">Wirkt auch, wenn „Dateierweiterung ignorieren“ aktiv ist; die geänderte Endung wird dann in der Vorschau eingeblendet.</span>
+        </div>
+      </div>
+
+      <div class="opt-actions">
+        <button class="btn primary">Zur Kette hinzufügen</button>
+        <button class="btn">Auf Standardwerte zurücksetzen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Untere Hälfte -->
+  <section class="half">
+    <div class="pane">
+      <p class="pane-title">Angewandte Verfahren</p>
+      <div class="tree-root">▾ Kette (Reihenfolge per Drag &amp; Drop)</div>
+      <ul class="chain" id="chain">
+        <li draggable="true" class="active"><span class="grip">⋮⋮</span><input type="checkbox" checked><span class="bar" style="background:var(--c-template)"></span><span class="name">Name aus Vorlage</span><button class="del">✕</button></li>
+        <li draggable="true"><span class="grip">⋮⋮</span><input type="checkbox" checked><span class="bar" style="background:var(--c-clean)"></span><span class="name">Zeichen bereinigen</span><button class="del">✕</button></li>
+        <li draggable="true" class="off"><span class="grip">⋮⋮</span><input type="checkbox"><span class="bar" style="background:var(--c-case)"></span><span class="name">Groß-/Kleinschreibung</span><button class="del">✕</button></li>
+        <li draggable="true"><span class="grip">⋮⋮</span><input type="checkbox" checked><span class="bar" style="background:var(--c-ext)"></span><span class="name">Erweiterung ändern</span><button class="del">✕</button></li>
+      </ul>
+    </div>
+
+    <div class="pane">
+      <p class="pane-title">Vorschau <span class="right"><label class="inline"><input type="checkbox" checked> Dateierweiterung ignorieren</label></span></p>
+      <div class="list-wrap">
+        <table class="files">
+          <thead><tr><th class="cb"><input type="checkbox" id="allFiles" title="Alle bzw. keine auswählen"></th><th></th><th>Aktueller Name</th><th>Neuer Name</th></tr></thead>
+          <tbody id="fileRows">
+            <tr><td class="cb"><input type="checkbox" checked></td><td class="state"></td><td class="name">IMG_0001</td><td class="name"><span class="hl template">IMG_0001_Canon EOS R6_2026-10-12</span><span class="hl ext">.jpg</span></td></tr>
+            <tr><td class="cb"><input type="checkbox" checked></td><td class="state"></td><td class="name">IMG_0002</td><td class="name"><span class="hl template">IMG_0002_Canon EOS R6_2026-10-12</span><span class="hl ext">.jpg</span></td></tr>
+            <tr><td class="cb"><input type="checkbox" checked></td><td class="state"></td><td class="name">DSC_4711</td><td class="name"><span class="hl template">DSC_4711_NIKON Z 6_2026-09-30</span></td></tr>
+            <tr><td class="cb"><input type="checkbox" checked></td><td class="state"><span class="icon-warn" title="Kein EXIF: %model% → „Unbekannt“; Datum aus Änderungsdatum">⚠</span></td><td class="name">Bildschirmfoto  </td><td class="name"><span class="hl template">Bildschirmfoto</span><span class="hl clean"></span><span class="hl template">_Unbekannt_2026-10-28</span></td></tr>
+            <tr><td class="cb"><input type="checkbox" checked></td><td class="state"></td><td class="name">01 like a prayer</td><td class="name"><span class="hl template">Madonna - Like A Prayer</span></td></tr>
+            <tr class="unselected"><td class="cb"><input type="checkbox"></td><td class="state"></td><td class="name">Rechnung 2026</td><td class="name">Rechnung 2026</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="below-list"><div class="drop-hint">Dateien oder Ordner hierher ziehen</div><button class="btn">Liste leeren</button></div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <span class="status">6 Dateien · 5 ausgewählt · 5 geändert · <b>1 Hinweis</b></span>
+    <span class="spacer"></span>
+    <button class="btn" disabled>Letzte Umbenennung widerrufen</button>
+    <button class="btn">Änderungen verwerfen</button>
+    <button class="btn primary">Umbenennen</button>
+  </div>
+</div>
+
+<div class="notes">
+  <h2>Noch offen (bitte mit der Freigabe beantworten)</h2>
+  <ul>
+    <li><strong>F44</strong> Standardwert der Sättigung 60 % (Mitte der kräftigeren Töne aus v7, 52–69 %)? Die Helligkeit der Pastellfarben bleibt dabei unverändert.</li>
+  </ul>
+</div>
+
+<script>
+  // Verfahrensliste
+  document.querySelectorAll('#procs li.item').forEach(li => li.addEventListener('click', () => {
+    document.querySelectorAll('#procs li.item').forEach(x => x.classList.toggle('active', x === li));
+    document.querySelectorAll('.opt-panel').forEach(p => p.classList.toggle('show', p.dataset.p === li.dataset.p));
+  }));
+  // Segment-Buttons
+  document.querySelectorAll('.seg').forEach(seg => seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  }));
+  // Theme
+  const root = document.documentElement, media = window.matchMedia('(prefers-color-scheme: dark)');
+  let themeMode = 'system';
+  const applyTheme = () => root.dataset.theme = (themeMode === 'dark' || (themeMode === 'system' && media.matches)) ? 'dark' : 'light';
+  document.querySelectorAll('#theme button').forEach(b => b.addEventListener('click', () => { themeMode = b.dataset.t; applyTheme(); }));
+  media.addEventListener('change', applyTheme); applyTheme();
+  // Akzentfarbe: 5 Pastell- und 5 kräftige Farben oder eigener Hex-Code
+  const accentColors = {
+    // Pastell wird aus den Grundfarben (Mockup v6) und der eingestellten Sättigung berechnet, siehe pastelColors()
+    pastel: [],
+    strong: [['#2F6FDF', 'Blau (Standard)'], ['#1F9D55', 'Grün'], ['#E8740C', 'Orange'], ['#C93434', 'Rot'], ['#8B4FD6', 'Violett']],
+    neutral: [['#0D0D0D', '95 % Schwarz'], ['#F2F2F2', '95 % Weiß']],
+  };
+  const accentPop = document.getElementById('accentPop'), hexInput = document.getElementById('hexInput'), hexMsg = document.getElementById('hexMsg');
+
+  // Gespeicherte Einstellungen (in der App: Einstellungsdatei; im Mockup: Browser-Speicher)
+  const store = {
+    load() { try { return JSON.parse(localStorage.getItem('fr-mockup-accent')) ?? {}; } catch { return {}; } },
+    save(v) { try { localStorage.setItem('fr-mockup-accent', JSON.stringify(v)); } catch { /* ohne Speicher weiter */ } },
+  };
+  const saved = store.load();
+  const SAT_MIN = 10, SAT_MAX = 90, SAT_DEFAULT = 60;
+  const clampSat = v => Math.max(SAT_MIN, Math.min(SAT_MAX, Math.round(Number(v) || SAT_DEFAULT)));
+  let saturation = clampSat(saved.saturation ?? SAT_DEFAULT);
+  let customColors = Array.isArray(saved.custom) ? saved.custom : [];
+  const persist = () => store.save({ saturation, custom: customColors, accent: accentHex });
+
+  // HSL-Umrechnung für die einstellbare Sättigung der Pastellfarben
+  const toHsl = hex => {
+    const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255), max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
+    if (max === min) return [0, 0, l];
+    const d = max - min, s = l > .5 ? d / (2 - max - min) : d / (max + min);
+    const h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return [h / 6, s, l];
+  };
+  const hue2rgb = (p, q, t) => { t = (t + 1) % 1; return t < 1/6 ? p + (q - p) * 6 * t : t < 1/2 ? q : t < 2/3 ? p + (q - p) * (2/3 - t) * 6 : p; };
+  const toHex = (h, s, l) => { const q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+    return '#' + [h + 1/3, h, h - 1/3].map(t => Math.round(hue2rgb(p, q, t) * 255).toString(16).padStart(2, '0')).join('').toUpperCase(); };
+  const pastelBase = [['#A7C7E7', 'Pastellblau'], ['#B5EAD7', 'Mint'], ['#FFDAC1', 'Pfirsich'], ['#E2B6CF', 'Rosé'], ['#C7CEEA', 'Lavendel']];
+  // Absolute Sättigung (E86): Farbton und Helligkeit der Grundfarbe bleiben, die Sättigung wird auf p % gesetzt
+  const pastelColors = p => pastelBase.map(([hex, name]) => {
+    const [h, , l] = toHsl(hex);
+    return [toHex(h, p / 100, l), name];
+  });
+
+  const swatchHtml = ([hex, name]) => `<button class="swatch" data-hex="${hex}" title="${name} ${hex}" style="background:${hex}"></button>`;
+  function renderSwatches() {
+    accentColors.pastel = pastelColors(saturation);
+    document.querySelectorAll('.swatches[data-group]').forEach(box => box.innerHTML = accentColors[box.dataset.group].map(swatchHtml).join(''));
+    const custom = document.getElementById('customSwatches');
+    custom.innerHTML = customColors.length === 0
+      ? '<span class="empty">Noch keine – eigene Farbe unten per Hex-Code übernehmen.</span>'
+      : customColors.map(hex => `<span class="swatch-wrap">${swatchHtml([hex, 'Benutzerdefiniert'])}<button class="remove" data-remove="${hex}" title="Entfernen">✕</button></span>`).join('');
+    markSelected();
+  }
+  function markSelected() {
+    const current = (accentHex ?? '#2F6FDF').toUpperCase();
+    document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('on', s.dataset.hex.toUpperCase() === current));
+  }
+
+  // Sättigung: Regler und Zahlenfeld synchron; eine gewählte Pastellfarbe passt sich live an
+  const satRange = document.getElementById('satRange'), satNumber = document.getElementById('satNumber');
+  function setSaturation(value) {
+    const previous = pastelColors(saturation).map(([hex]) => hex);
+    const pastelIndex = accentHex ? previous.indexOf(accentHex.toUpperCase()) : -1;
+    saturation = clampSat(value);
+    satRange.value = satNumber.value = saturation;
+    renderSwatches();
+    if (pastelIndex >= 0) setAccent(accentColors.pastel[pastelIndex][0]);
+    persist();
+  }
+  satRange.addEventListener('input', () => setSaturation(satRange.value));
+  satNumber.addEventListener('change', () => setSaturation(satNumber.value));
+  satRange.value = satNumber.value = saturation;
+  // Helle Akzentfarben erhalten dunkle Schrift, dunkle helle Schrift (F39)
+  const textOn = hex => {
+    const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(c => c <= .03928 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4);
+    return .2126 * r + .7152 * g + .0722 * b > .45 ? '#1d2330' : '#f4f7fc';
+  };
+  // Zu geringer Kontrast zum Fensterhintergrund: akzentfarbige Flächen bekommen einen Rahmen (F41)
+  const luminance = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map(c => c <= .03928 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4).reduce((sum, c, i) => sum + c * [.2126, .7152, .0722][i], 0);
+  let accentHex = null;
+  function updateOutline() {
+    const accent = accentHex ?? getComputedStyle(root).getPropertyValue('--accent').trim();
+    const windowHex = root.dataset.theme === 'dark' ? '#1B1F27' : '#F3F4F6';
+    const [a, b] = [luminance(accent), luminance(windowHex)].sort((x, y) => y - x);
+    root.classList.toggle('low-contrast', (a + .05) / (b + .05) < 1.6);
+  }
+  function setAccent(hex) {
+    accentHex = hex;
+    if (hex) { root.style.setProperty('--accent', hex); root.style.setProperty('--accent-text', textOn(hex)); }
+    else { root.style.removeProperty('--accent'); root.style.removeProperty('--accent-text'); }
+    updateOutline();
+    hexInput.value = (hex ?? '#2F6FDF').toUpperCase(); hexInput.classList.remove('invalid');
+    hexMsg.className = 'hint'; hexMsg.textContent = 'Hex-Code im Format #25A0C3';
+    markSelected();
+    persist();
+  }
+  document.getElementById('accentDot').addEventListener('click', e => { e.stopPropagation(); accentPop.classList.toggle('open'); });
+  document.getElementById('menuAccent').addEventListener('click', e => { e.stopPropagation(); document.querySelectorAll('.menu').forEach(x => x.classList.remove('open')); accentPop.classList.add('open'); });
+  accentPop.addEventListener('click', e => {
+    e.stopPropagation();
+    const remove = e.target.closest('[data-remove]');
+    if (remove) { customColors = customColors.filter(c => c !== remove.dataset.remove); renderSwatches(); persist(); return; }
+    const swatch = e.target.closest('.swatch'); if (swatch) setAccent(swatch.dataset.hex);
+  });
+  // Eigene Farbe: in „Benutzerdefiniert“ aufnehmen, sofern noch nicht vorhanden; höchstens 10, die älteste fällt weg
+  function addCustom(hex) {
+    const known = [...accentColors.pastel, ...accentColors.strong, ...accentColors.neutral].map(([c]) => c);
+    if (known.includes(hex) || customColors.includes(hex)) return;
+    customColors = [...customColors, hex].slice(-10);
+    renderSwatches();
+  }
+  function applyHex() {
+    const v = hexInput.value.trim();
+    if (/^#[0-9A-Fa-f]{6}$/.test(v)) { addCustom(v.toUpperCase()); setAccent(v.toUpperCase()); return; }
+    hexInput.classList.add('invalid'); hexMsg.className = 'err'; hexMsg.textContent = 'Ungültig – bitte im Format #25A0C3 eingeben.';
+  }
+  document.getElementById('hexApply').addEventListener('click', applyHex);
+  hexInput.addEventListener('keydown', e => { if (e.key === 'Enter') applyHex(); });
+  document.getElementById('accentReset').addEventListener('click', () => setAccent(null));
+  document.addEventListener('click', () => accentPop.classList.remove('open'));
+  document.querySelectorAll('#theme button').forEach(b => b.addEventListener('click', () => setTimeout(updateOutline)));
+  renderSwatches();
+  setAccent(saved.accent ?? null);
+
+  // Menüs
+  document.querySelectorAll('.menu > button').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation(); const m = b.parentElement, open = m.classList.contains('open');
+    document.querySelectorAll('.menu').forEach(x => x.classList.remove('open')); if (!open) m.classList.add('open');
+  }));
+  document.addEventListener('click', () => document.querySelectorAll('.menu').forEach(x => x.classList.remove('open')));
+
+  // Groß-/Kleinschreibung: Beispiel rechnet mit
+  const caseSample = 'mein Urlaub-Foto_2026';
+  const words = s => s.split(/[\s_.\-]+|(?<=[a-zäöüß])(?=[A-ZÄÖÜ])/).filter(Boolean);
+  const cap = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  const caseModes = {
+    lower: ['kleinschreibung', s => s.toLowerCase()],
+    upper: ['GROSSSCHREIBUNG', s => s.replace(/[^ß]/g, c => c.toUpperCase())],
+    sentence: ['Erster buchstabe groß', s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()],
+    title: ['Jedes Wort Groß', s => s.replace(/[^\s_.\-]+/g, cap)],
+    pascal: ['PascalCase', s => words(s).map(cap).join('')],
+    camel: ['camelCase', s => words(s).map((w, i) => i ? cap(w) : w.toLowerCase()).join('')],
+    snake: ['snake_case', s => words(s).map(w => w.toLowerCase()).join('_')],
+    kebab: ['kebab-case', s => words(s).map(w => w.toLowerCase()).join('-')],
+  };
+  // Jede Option zeigt ihr Beispiel direkt in der Auswahl (Name links, Ergebnis rechts)
+  const caseMode = document.getElementById('caseMode');
+  caseMode.innerHTML = Object.entries(caseModes)
+    .map(([k, [label, f]]) => `<option value="${k}"${k === 'pascal' ? ' selected' : ''}>${label.padEnd(24, ' ')}${f(caseSample)}</option>`).join('');
+  function renderCase() {
+    document.getElementById('caseExample').textContent = `${caseSample} → ${caseModes[caseMode.value][1](caseSample)}`;
+  }
+  caseMode.addEventListener('change', renderCase); renderCase();
+
+  // Bereich entfernen: Modus umschalten
+  document.getElementById('removeMode').addEventListener('click', e => {
+    const m = e.target.closest('button')?.dataset.m; if (!m) return;
+    document.querySelectorAll('.m-cut').forEach(x => x.hidden = m !== 'cut');
+    document.querySelectorAll('.m-trim').forEach(x => x.hidden = m !== 'trim');
+    document.getElementById('removeExample').textContent = m === 'cut' ? 'IMG_0001 → 0001' : 'Ein sehr langer Dateiname für Tests → Ein sehr langer Date';
+  });
+
+  // Name aus Vorlage: Tabs, Platzhalter einfügen, prüfen, Beispiele berechnen
+  document.getElementById('tplTabs').addEventListener('click', e => {
+    const tab = e.target.closest('button')?.dataset.tab; if (!tab) return;
+    document.querySelectorAll('#tplTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-page').forEach(p => p.classList.toggle('show', p.dataset.tab === tab));
+  });
+  const knownFor = id => [...document.querySelectorAll(`.chips[data-target="${id}"] .chip`)].map(c => c.textContent.slice(1, -1));
+  const [photo, audio] = [
+    { file: 'IMG_0001.jpg', name: 'IMG_0001', ext: 'jpg', folder: 'Urlaub 2026', date: '2026-10-12', time: '14-30-05', year: '2026', month: '10', day: '12', hour: '14', minute: '30', second: '05',
+      make: 'Canon', model: 'Canon EOS R6', lens: 'RF24-105mm F4 L IS USM', iso: '400', fnumber: 'f4', exposure: '1-250s', focallength: '50mm', width: '6000', height: '4000', orientation: '0',
+      lat: '48.13743N', lon: '11.57549E', alt: '519m', description: 'Marienplatz', creator: 'Max Muster', copyright: '(c) Max Muster' },
+    { file: '01 like a prayer.mp3', name: '01 like a prayer', ext: 'mp3', folder: 'Musik', year: '1989', date: '1989', artist: 'Madonna', title: 'Like A Prayer', album: 'Like A Prayer',
+      albumartist: 'Madonna', track: '01', disc: '1', genre: 'Pop', composer: 'Madonna, Patrick Leonard' },
+  ];
+  function applyTemplate(t, s) {
+    const missing = document.getElementById('tplMissing').value, rep = document.getElementById('tplReplace').value;
+    return t.replace(/%(\w+)(?::([^%]+))?%/g, (_, key, fmt) => {
+      let v = s[key];
+      if (v !== undefined && key === 'track') v = v.replace(/^0+/, '').padStart(fmt ? fmt.length : Number(document.getElementById('trackDigits').value), '0');
+      if (v !== undefined && key === 'date' && fmt && s.month) v = fmt.replace('yyyy', s.year).replace('MM', s.month).replace('dd', s.day);
+      return v === undefined ? missing : v.replace(/[<>:"\/\\|?*]/g, rep);
+    });
+  }
+  // Prüft eine Vorlage gegen die Platzhalter ihres Tabs und zeigt Beispiel oder Fehler
+  function renderOne(inputId, msgId, exampleId, sample) {
+    const input = document.getElementById(inputId), msg = document.getElementById(msgId), known = knownFor(inputId);
+    const unknown = [...input.value.matchAll(/%(\w+)(?::[^%]+)?%/g)].map(m => m[1]).filter(k => !known.includes(k));
+    input.classList.toggle('invalid', unknown.length > 0);
+    msg.className = unknown.length ? 'err msg' : 'hint msg';
+    msg.innerHTML = unknown.length
+      ? `Unbekannter Platzhalter: ${unknown.map(u => `<code>%${u}%</code>`).join(', ')} – Verfahren fehlerhaft, Umbenennen gesperrt.`
+      : input.value.trim() === '' ? 'Leere Vorlage: Dateien dieses Typs bleiben unverändert.' : '';
+    document.getElementById(exampleId).textContent = unknown.length ? '–'
+      : `${sample.file} → ${input.value.trim() === '' ? sample.name : applyTemplate(input.value, sample)}.${sample.ext}`;
+  }
+  function renderTemplate() {
+    renderOne('tplPhoto', 'msgPhoto', 'exPhoto', photo);
+    renderOne('tplAudio', 'msgAudio', 'exAudio', audio);
+  }
+  document.querySelectorAll('.chips').forEach(group => group.addEventListener('click', e => {
+    const chip = e.target.closest('.chip'); if (!chip) return;
+    const input = document.getElementById(group.dataset.target);
+    const start = input.selectionStart ?? input.value.length, end = input.selectionEnd ?? start;
+    input.value = input.value.slice(0, start) + chip.textContent + input.value.slice(end);
+    input.focus(); input.selectionStart = input.selectionEnd = start + chip.textContent.length; renderTemplate();
+  }));
+  document.querySelectorAll('.preset').forEach(p => p.addEventListener('change', () => {
+    if (p.value) { document.getElementById(p.dataset.target).value = p.value; p.value = ''; renderTemplate(); }
+  }));
+  ['tplPhoto', 'tplAudio', 'tplMissing', 'tplReplace', 'trackDigits'].forEach(id => document.getElementById(id).addEventListener('input', renderTemplate));
+  renderTemplate();
+
+  // Kette: Checkbox, Auswahl, Entfernen, Drag & Drop
+  const chain = document.getElementById('chain'); let dragged = null;
+  chain.addEventListener('change', e => { if (e.target.type === 'checkbox') e.target.closest('li').classList.toggle('off', !e.target.checked); });
+  chain.addEventListener('click', e => {
+    const li = e.target.closest('li'); if (!li) return;
+    if (e.target.classList.contains('del')) { li.remove(); return; }
+    if (e.target.type !== 'checkbox') chain.querySelectorAll('li').forEach(x => x.classList.toggle('active', x === li));
+  });
+  chain.addEventListener('dragstart', e => { dragged = e.target.closest('li'); dragged.classList.add('dragging'); });
+  chain.addEventListener('dragend', () => { dragged?.classList.remove('dragging'); chain.querySelectorAll('li').forEach(x => x.classList.remove('drop-target')); });
+  chain.addEventListener('dragover', e => { e.preventDefault(); const li = e.target.closest('li'); chain.querySelectorAll('li').forEach(x => x.classList.toggle('drop-target', x === li && x !== dragged)); });
+  chain.addEventListener('drop', e => { e.preventDefault(); const li = e.target.closest('li'); if (li && dragged && li !== dragged) chain.insertBefore(dragged, li); });
+
+  // Datei-Checkboxen und Kopf-Checkbox
+  const rows = [...document.querySelectorAll('#fileRows tr')], all = document.getElementById('allFiles');
+  function syncAll() {
+    const n = rows.filter(r => r.querySelector('input').checked).length;
+    all.checked = n === rows.length; all.indeterminate = n > 0 && n < rows.length;
+  }
+  rows.forEach(r => r.querySelector('input').addEventListener('change', e => { r.classList.toggle('unselected', !e.target.checked); syncAll(); }));
+  all.addEventListener('change', () => { rows.forEach(r => { r.querySelector('input').checked = all.checked; r.classList.toggle('unselected', !all.checked); }); syncAll(); });
+  syncAll();
+</script>
+</body>
+</html>

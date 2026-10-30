@@ -1,3 +1,4 @@
+﻿using FileRenamer.Core.Localization;
 using System.Globalization;
 using System.Numerics;
 using System.Text.RegularExpressions;
@@ -64,11 +65,11 @@ public sealed partial record ShiftDigitRangeRule : PerFileRenameRule
     {
         if (!UseLastRun && RunNumber < 1)
         {
-            return "Die Nummer der Ziffernkette muss mindestens 1 sein.";
+            return CoreText.RunNumberTooSmall;
         }
 
         return !KeepOriginalWidth && MinDigits is < 1 or > MaxDigits
-            ? $"Die Mindeststellen müssen zwischen 1 und {MaxDigits} liegen."
+            ? CoreText.MinDigitsRange(MaxDigits)
             : null;
     }
 
@@ -82,13 +83,13 @@ public sealed partial record ShiftDigitRangeRule : PerFileRenameRule
         var runs = DigitRunPattern().Matches(input.Name.Text);
         if (runs.Count == 0)
         {
-            return RuleOutput.Unchanged(input.Name, RenameIssue.Hint("Keine Ziffernkette gefunden – Name unverändert.", Id));
+            return RuleOutput.Unchanged(input.Name, RenameIssue.Hint(CoreText.NoDigitRun, Id));
         }
 
         if (!UseLastRun && RunNumber > runs.Count)
         {
             return RuleOutput.Unchanged(input.Name,
-                RenameIssue.Conflict($"Ziffernkette Nr. {RunNumber} ist nicht vorhanden (nur {runs.Count}).", Id));
+                RenameIssue.Conflict(CoreText.RunNumberMissing(RunNumber, runs.Count), Id));
         }
 
         var run = UseLastRun ? runs[^1] : runs[RunNumber - 1];
@@ -96,7 +97,7 @@ public sealed partial record ShiftDigitRangeRule : PerFileRenameRule
         if (value < 0)
         {
             return RuleOutput.Unchanged(input.Name,
-                RenameIssue.Conflict($"Das Ergebnis wäre negativ ({run.Value} {Offset:+#;-#;0} = {value}).", Id));
+                RenameIssue.Conflict(CoreText.NegativeResult($"{run.Value} {Offset:+#;-#;0} = {value}"), Id));
         }
 
         var width = KeepOriginalWidth ? run.Length : MinDigits;

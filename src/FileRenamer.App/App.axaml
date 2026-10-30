@@ -7,6 +7,12 @@
   <Application.Resources>
     <ResourceDictionary>
       <converters:EnumEqualsConverter x:Key="EnumEquals" />
+      <converters:HexToBrushConverter x:Key="HexToBrush" />
+
+      <!-- Werden vom ThemeService passend zur Akzentfarbe überschrieben (E80, E85) -->
+      <SolidColorBrush x:Key="AccentForegroundBrush" Color="#F4F7FC" />
+      <SolidColorBrush x:Key="AccentOutlineBrush" Color="Transparent" />
+      <SolidColorBrush x:Key="AccentSegmentBorderBrush" Color="#2F6FDF" />
 
       <!-- Icons für die Theme-Auswahl: Monitor = System, Sonne = Hell, Mond = Dunkel -->
       <StreamGeometry x:Key="IconSystem">M4,5 L20,5 C20.8,5 21.5,5.7 21.5,6.5 L21.5,15.5 C21.5,16.3 20.8,17 20,17 L4,17 C3.2,17 2.5,16.3 2.5,15.5 L2.5,6.5 C2.5,5.7 3.2,5 4,5 Z M4,6.5 L4,15.5 L20,15.5 L20,6.5 Z M8,19.5 L16,19.5 L16,21 L8,21 Z M11.25,17 L12.75,17 L12.75,19.5 L11.25,19.5 Z</StreamGeometry>
@@ -37,6 +43,18 @@
           <SolidColorBrush x:Key="RuleHighlight.AppendCounter" Color="#55E8740C" />
           <SolidColorBrush x:Key="RuleHighlight.ShiftDigitRange" Color="#558B4FD6" />
           <SolidColorBrush x:Key="RuleHighlight.InsertText" Color="#55D63C86" />
+          <SolidColorBrush x:Key="RuleColor.ChangeCase" Color="#0E9AA7" />
+          <SolidColorBrush x:Key="RuleColor.Template" Color="#C99A06" />
+          <SolidColorBrush x:Key="RuleColor.CleanCharacters" Color="#64748B" />
+          <SolidColorBrush x:Key="RuleColor.RemoveRange" Color="#A0522D" />
+          <SolidColorBrush x:Key="RuleColor.ChangeExtension" Color="#7C8B1A" />
+          <SolidColorBrush x:Key="RuleColor.InsertFolder" Color="#4338CA" />
+          <SolidColorBrush x:Key="RuleHighlight.ChangeCase" Color="#550E9AA7" />
+          <SolidColorBrush x:Key="RuleHighlight.Template" Color="#55C99A06" />
+          <SolidColorBrush x:Key="RuleHighlight.CleanCharacters" Color="#5564748B" />
+          <SolidColorBrush x:Key="RuleHighlight.RemoveRange" Color="#55A0522D" />
+          <SolidColorBrush x:Key="RuleHighlight.ChangeExtension" Color="#557C8B1A" />
+          <SolidColorBrush x:Key="RuleHighlight.InsertFolder" Color="#554338CA" />
 
           <!-- Fluent-Eingabefelder ebenfalls ohne reines Weiß -->
           <SolidColorBrush x:Key="TextControlBackground" Color="#F9FAFB" />
@@ -70,6 +88,18 @@
           <SolidColorBrush x:Key="RuleHighlight.AppendCounter" Color="#66F39A4A" />
           <SolidColorBrush x:Key="RuleHighlight.ShiftDigitRange" Color="#66A982EC" />
           <SolidColorBrush x:Key="RuleHighlight.InsertText" Color="#66EC6AA8" />
+          <SolidColorBrush x:Key="RuleColor.ChangeCase" Color="#3CC8D4" />
+          <SolidColorBrush x:Key="RuleColor.Template" Color="#E8BF3A" />
+          <SolidColorBrush x:Key="RuleColor.CleanCharacters" Color="#94A3B8" />
+          <SolidColorBrush x:Key="RuleColor.RemoveRange" Color="#D08A5C" />
+          <SolidColorBrush x:Key="RuleColor.ChangeExtension" Color="#B3C447" />
+          <SolidColorBrush x:Key="RuleColor.InsertFolder" Color="#8B85F0" />
+          <SolidColorBrush x:Key="RuleHighlight.ChangeCase" Color="#663CC8D4" />
+          <SolidColorBrush x:Key="RuleHighlight.Template" Color="#66E8BF3A" />
+          <SolidColorBrush x:Key="RuleHighlight.CleanCharacters" Color="#6694A3B8" />
+          <SolidColorBrush x:Key="RuleHighlight.RemoveRange" Color="#66D08A5C" />
+          <SolidColorBrush x:Key="RuleHighlight.ChangeExtension" Color="#66B3C447" />
+          <SolidColorBrush x:Key="RuleHighlight.InsertFolder" Color="#668B85F0" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
@@ -89,6 +119,12 @@
     <Style Selector="Border.ruleBar.kind-AppendCounter"><Setter Property="Background" Value="{DynamicResource RuleColor.AppendCounter}" /></Style>
     <Style Selector="Border.ruleBar.kind-ShiftDigitRange"><Setter Property="Background" Value="{DynamicResource RuleColor.ShiftDigitRange}" /></Style>
     <Style Selector="Border.ruleBar.kind-InsertText"><Setter Property="Background" Value="{DynamicResource RuleColor.InsertText}" /></Style>
+    <Style Selector="Border.ruleBar.kind-ChangeCase"><Setter Property="Background" Value="{DynamicResource RuleColor.ChangeCase}" /></Style>
+    <Style Selector="Border.ruleBar.kind-Template"><Setter Property="Background" Value="{DynamicResource RuleColor.Template}" /></Style>
+    <Style Selector="Border.ruleBar.kind-CleanCharacters"><Setter Property="Background" Value="{DynamicResource RuleColor.CleanCharacters}" /></Style>
+    <Style Selector="Border.ruleBar.kind-RemoveRange"><Setter Property="Background" Value="{DynamicResource RuleColor.RemoveRange}" /></Style>
+    <Style Selector="Border.ruleBar.kind-ChangeExtension"><Setter Property="Background" Value="{DynamicResource RuleColor.ChangeExtension}" /></Style>
+    <Style Selector="Border.ruleBar.kind-InsertFolder"><Setter Property="Background" Value="{DynamicResource RuleColor.InsertFolder}" /></Style>
 
     <!-- Abschnittsüberschriften -->
     <Style Selector="TextBlock.paneTitle">
@@ -113,13 +149,22 @@
       <Setter Property="Template">
         <ControlTemplate>
           <Border Name="segmentBorder" Background="{DynamicResource InputBackgroundBrush}"
-                  BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" Padding="12,5">
+                  BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" Padding="12,5"
+                  CornerRadius="{TemplateBinding CornerRadius}">
             <ContentPresenter Content="{TemplateBinding Content}" />
           </Border>
         </ControlTemplate>
       </Setter>
       <Setter Property="Margin" Value="0,0,-1,0" />
+      <Setter Property="CornerRadius" Value="0" />
       <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <!-- Außenkanten der Gruppe so rund wie Buttons und Textfelder (Fluent: ControlCornerRadius = 4, E95) -->
+    <Style Selector="RadioButton.segment:nth-child(1)">
+      <Setter Property="CornerRadius" Value="4,0,0,4" />
+    </Style>
+    <Style Selector="RadioButton.segment:nth-last-child(1)">
+      <Setter Property="CornerRadius" Value="0,4,4,0" />
     </Style>
     <Style Selector="RadioButton.segment:pointerover /template/ Border#segmentBorder">
       <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
@@ -128,7 +173,13 @@
       <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
     </Style>
     <Style Selector="RadioButton.segment:checked">
-      <Setter Property="Foreground" Value="#F4F7FC" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
+      <!-- Oben zeichnen, damit der rechte Rahmen nicht vom überlappenden Nachbarn verdeckt wird (E101) -->
+      <Setter Property="ZIndex" Value="1" />
+    </Style>
+    <!-- Rahmen bei zu geringem Kontrast der Akzentfarbe (E85) -->
+    <Style Selector="RadioButton.segment:checked /template/ Border#segmentBorder">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSegmentBorderBrush}" />
     </Style>
   </Application.Styles>
 </Application>

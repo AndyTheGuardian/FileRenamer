@@ -1,47 +1,51 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:FileRenamer.App.Localization"
              xmlns:ed="using:FileRenamer.App.ViewModels.Editors"
              xmlns:rules="using:FileRenamer.Core.Rules"
              x:Class="FileRenamer.App.Views.Editors.AppendDateEditorView"
              x:DataType="ed:AppendDateEditorViewModel">
   <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="9" MaxWidth="640" HorizontalAlignment="Left">
-    <TextBlock Text="Datumsquelle" VerticalAlignment="Center" />
+    <TextBlock Text="{loc:T Date.Source}" VerticalAlignment="Center" />
     <StackPanel Grid.Column="1" Orientation="Horizontal">
-      <RadioButton Classes="segment" GroupName="dateSource" Content="Erstellungsdatum"
+      <RadioButton Classes="segment" GroupName="dateSource" Content="{loc:T Date.Created}"
                    IsChecked="{Binding Source, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static rules:DateSource.CreationDate}}" />
-      <RadioButton Classes="segment" GroupName="dateSource" Content="Änderungsdatum"
+      <RadioButton Classes="segment" GroupName="dateSource" Content="{loc:T Date.Modified}"
                    IsChecked="{Binding Source, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static rules:DateSource.ModificationDate}}" />
+      <RadioButton Classes="segment" GroupName="dateSource" Content="{loc:T Date.Exif}"
+                   ToolTip.Tip="{loc:T Date.ExifTip}"
+                   IsChecked="{Binding Source, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static rules:DateSource.ExifDate}}" />
     </StackPanel>
 
-    <TextBlock Grid.Row="1" Text="Position" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="1" Text="{loc:T Common.Position}" VerticalAlignment="Center" />
     <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
-      <RadioButton Classes="segment" GroupName="datePosition" Content="Vor dem Namen"
+      <RadioButton Classes="segment" GroupName="datePosition" Content="{loc:T Common.BeforeName}"
                    IsChecked="{Binding Position, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static rules:AffixPosition.BeforeName}}" />
-      <RadioButton Classes="segment" GroupName="datePosition" Content="Nach dem Namen"
+      <RadioButton Classes="segment" GroupName="datePosition" Content="{loc:T Common.AfterName}"
                    IsChecked="{Binding Position, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static rules:AffixPosition.AfterName}}" />
     </StackPanel>
 
-    <TextBlock Grid.Row="2" Text="Datumsformat" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="2" Text="{loc:T Date.Format}" VerticalAlignment="Center" />
     <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="10">
-      <ComboBox ItemsSource="{Binding DatePresets}" SelectedItem="{Binding SelectedDatePreset}" MinWidth="150" PlaceholderText="Eigenes Format" />
-      <TextBox Text="{Binding DateFormat}" Width="170" ToolTip.Tip="Eigenes Format, z. B. yyyy.MM oder dd-MM-yy" />
+      <ComboBox ItemsSource="{Binding DatePresets}" SelectedItem="{Binding SelectedDatePreset}" MinWidth="150" PlaceholderText="{loc:T Date.CustomFormat}" />
+      <TextBox Text="{Binding DateFormat}" Width="170" ToolTip.Tip="{loc:T Date.FormatTip}" />
     </StackPanel>
 
-    <CheckBox Grid.Row="3" Grid.Column="1" Content="Uhrzeit anfügen" IsChecked="{Binding IncludeTime}" />
+    <CheckBox Grid.Row="3" Grid.Column="1" Content="{loc:T Date.IncludeTime}" IsChecked="{Binding IncludeTime}" />
 
-    <TextBlock Grid.Row="4" Text="Uhrzeitformat" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="4" Text="{loc:T Date.TimeFormat}" VerticalAlignment="Center" />
     <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Spacing="10" IsEnabled="{Binding IncludeTime}">
-      <ComboBox ItemsSource="{Binding TimePresets}" SelectedItem="{Binding SelectedTimePreset}" MinWidth="150" PlaceholderText="Eigenes Format" />
-      <TextBox Text="{Binding TimeFormat}" Width="170" ToolTip.Tip="Eigenes Format, z. B. HH-mm (kein Doppelpunkt)" />
+      <ComboBox ItemsSource="{Binding TimePresets}" SelectedItem="{Binding SelectedTimePreset}" MinWidth="150" PlaceholderText="{loc:T Date.CustomFormat}" />
+      <TextBox Text="{Binding TimeFormat}" Width="170" ToolTip.Tip="{loc:T Date.TimeFormatTip}" />
     </StackPanel>
 
-    <TextBlock Grid.Row="5" Text="Trennzeichen Name ↔ Datum" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="5" Text="{loc:T Date.NameSeparator}" VerticalAlignment="Center" />
     <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding NameSeparator}" Width="70" HorizontalAlignment="Left" />
 
-    <TextBlock Grid.Row="6" Text="Trennzeichen Datum ↔ Zeit" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="6" Text="{loc:T Date.TimeSeparator}" VerticalAlignment="Center" />
     <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding DateTimeSeparator}" Width="70" HorizontalAlignment="Left" IsEnabled="{Binding IncludeTime}" />
 
     <TextBlock Grid.Row="7" Grid.Column="1" Classes="hint"
-               Text="Die Liste wählt eine Vorlage, das Textfeld erlaubt ein eigenes Format (.NET-Schreibweise: yyyy Jahr, MM Monat, dd Tag, HH Stunde, mm Minute, ss Sekunde)." />
+               Text="{loc:T Date.Hint}" />
   </Grid>
 </UserControl>

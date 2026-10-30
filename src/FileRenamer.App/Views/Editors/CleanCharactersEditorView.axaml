@@ -1,0 +1,16 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:FileRenamer.App.Localization"
+             xmlns:ed="using:FileRenamer.App.ViewModels.Editors"
+             x:Class="FileRenamer.App.Views.Editors.CleanCharactersEditorView"
+             x:DataType="ed:CleanCharactersEditorViewModel">
+  <Grid ColumnDefinitions="190,*" MaxWidth="720" HorizontalAlignment="Left">
+    <TextBlock Text="{loc:T Clean.Label}" VerticalAlignment="Top" Margin="0,6,0,0" />
+    <StackPanel Grid.Column="1" Spacing="2">
+      <CheckBox Content="{loc:T Clean.Trim}" IsChecked="{Binding TrimSpaces}" />
+      <CheckBox Content="{loc:T Clean.Collapse}" IsChecked="{Binding CollapseSpaces}" />
+      <CheckBox Content="{loc:T Clean.Umlauts}" IsChecked="{Binding TransliterateUmlauts}" />
+      <CheckBox Content="{loc:T Clean.Accents}" IsChecked="{Binding RemoveAccents}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

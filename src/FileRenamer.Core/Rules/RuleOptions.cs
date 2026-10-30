@@ -19,6 +19,81 @@ public enum RuleKind
 
     /// <summary>Text einfügen.</summary>
     InsertText,
+
+    /// <summary>Groß-/Kleinschreibung.</summary>
+    ChangeCase,
+
+    /// <summary>Zeichen bereinigen.</summary>
+    CleanCharacters,
+
+    /// <summary>Bereich entfernen / kürzen.</summary>
+    RemoveRange,
+
+    /// <summary>Name aus Vorlage (EXIF / Audio-Tags).</summary>
+    Template,
+
+    /// <summary>Ordnername einfügen.</summary>
+    InsertFolder,
+
+    /// <summary>Erweiterung ändern.</summary>
+    ChangeExtension,
+}
+
+/// <summary>
+/// Schreibweise für „Groß-/Kleinschreibung“.
+/// </summary>
+public enum CaseMode
+{
+    /// <summary>kleinschreibung.</summary>
+    Lower,
+
+    /// <summary>GROSSSCHREIBUNG (ß bleibt ß).</summary>
+    Upper,
+
+    /// <summary>Erster buchstabe groß.</summary>
+    Sentence,
+
+    /// <summary>Jedes Wort Groß.</summary>
+    Title,
+
+    /// <summary>PascalCase.</summary>
+    Pascal,
+
+    /// <summary>camelCase.</summary>
+    Camel,
+
+    /// <summary>snake_case.</summary>
+    Snake,
+
+    /// <summary>kebab-case.</summary>
+    Kebab,
+}
+
+/// <summary>
+/// Modus für „Bereich entfernen / kürzen“.
+/// </summary>
+public enum RemoveMode
+{
+    /// <summary>Eine Anzahl Zeichen ab einer Position entfernen.</summary>
+    Cut,
+
+    /// <summary>Den Namen auf eine maximale Länge kürzen.</summary>
+    Truncate,
+}
+
+/// <summary>
+/// Schreibweise der Endung für „Erweiterung ändern“.
+/// </summary>
+public enum ExtensionCasing
+{
+    /// <summary>Unverändert.</summary>
+    Unchanged,
+
+    /// <summary>klein.</summary>
+    Lower,
+
+    /// <summary>GROSS.</summary>
+    Upper,
 }
 
 /// <summary>
@@ -58,6 +133,9 @@ public enum DateSource
 
     /// <summary>Änderungsdatum.</summary>
     ModificationDate,
+
+    /// <summary>EXIF-Aufnahmedatum (Fallback: Änderungsdatum mit Hinweis, E60).</summary>
+    ExifDate,
 }
 
 /// <summary>

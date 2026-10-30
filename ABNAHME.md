@@ -1,4 +1,4 @@
-# FileRenamer – Abnahmeprotokoll
+﻿# FileRenamer – Abnahmeprotokoll
 
 | | |
 |---|---|
@@ -99,4 +99,52 @@ Beanstandungen gemeldet. Die Einschränkungen aus Abschnitt 5 sind bekannt.
 | Abnahme erteilt | ☐ ja  ☐ nein  ☐ unter Vorbehalt |
 | Vorbehalte / Restpunkte | |
 | Datum | |
+| Name, Unterschrift | |
+
+---
+
+# Nachtrag: Erweiterung vom 2026-10-30
+
+Grundlage: Entscheidungen E56–E108 in `PROTOKOLL.md`, freigegebenes **Mockup v10** (`mockups/mockup-v10.html`, E90).
+
+## N1. Abnahmekriterien
+
+| Nr. | Kriterium | Nachweis | Ergebnis |
+|-----|-----------|----------|----------|
+| 1 | Gestaltung – Mockup freigegeben | Mockups v4–v9 mit Änderungswünschen, **Mockup v10 freigegeben** (E90); Umsetzung per Headless-Rendering (hell, dunkel, Akzentfarbe) mit dem Mockup abgeglichen | ✅ erfüllt |
+| 2 | Fachliche Korrektheit – alle Tests bestanden | **198 von 198 Tests** bestanden (vorher 101), Build ohne Warnungen und Fehler | ✅ erfüllt |
+| 3 | Vorschau = tatsächliche Umbenennung | Integrationstest `MetadataTemplate_PreviewMatchesDisk` mit echten JPEG-, NEF-, MP3- und PDF-Dateien | ✅ erfüllt |
+| 4 | Abschließende Abnahme | manueller Test durch den Anwender; Abnahme am 2026-10-30 erklärt | ✅ erfüllt |
+
+## N2. Umgesetzte Anforderungen
+
+| Anforderung | Umsetzung | Tests |
+|-------------|-----------|-------|
+| Groß-/Kleinschreibung (8 Schreibweisen, Beispiele in der Auswahl) | `ChangeCaseRule` (E58, E59, E75) | `TextRulesTests` |
+| Datum/Uhrzeit aus EXIF | Datumsquelle „EXIF-Aufnahmedatum“ mit Fallback (E60) | `TemplateRuleTests.AppendDate_ExifSource` |
+| EXIF an den Namen hängen / ID3 als Name, gesteuert über Platzhalter | „Name aus Vorlage“ mit Tabs Fotos/Audio, `%name%`, Formate, Ersatztext, Ersatzzeichen, Tracknummer-Stellen (E61–E65, E68, E74, E76, E77) | `TemplateRuleTests` |
+| Formate | eigene Leser: JPEG, TIFF, HEIC, PNG, DNG, CR2, CR3, NEF, ARW, ORF, RW2, RAF, PEF; MP3 (ID3v1/v2.2–2.4), FLAC, M4A (E56, E57, E69–E71) | `MetadataReaderTests` (28) |
+| Zeichen bereinigen, Bereich entfernen/kürzen, Erweiterung ändern, Ordnername einfügen | vier weitere Verfahren (E67, E73) | `TextRulesTests`, `ChangeExtensionRuleTests` |
+| Gruppierte Verfahrensliste | vier Gruppen (E72) | Rendering |
+| Akzentfarbe | Kreis neben der Theme-Auswahl + Menü; Pastell mit HSV-Sättigung 10–90 % (Standard 30 %), kräftig, neutral, benutzerdefiniert (max. 10), Hex-Eingabe, „Standard“, automatische Schriftfarbe, Rahmen bei geringem Kontrast; gespeichert (E79–E89) | `AccentPaletteTests`, `ProfileStoreTests` |
+| Profil zurücksetzen | Schaltfläche „Zurücksetzen“ + Menü „Profile → Profil zurücksetzen“; Rückfrage bei nicht leerer Kette; Kette und Profilfeld leer, Profile bleiben (E91) | Headless-Ablauf |
+| Sprache Englisch | Oberfläche und Meldungen Deutsch/Englisch; „Ansicht → Sprache“ (System/Deutsch/English), Wechsel ohne Neustart, gespeichert; System: Deutsch nur bei deutschem System (E92, E93); Beispielnamen ebenfalls übersetzt (E98) | `CoreTextTests`, `ProfileStoreTests`, Headless-Ablauf |
+| Eigene Vorlagen | „Speichern“ je Tab bei „Name aus Vorlage“, programmweit gespeichert, max. 10, ✕ zum Entfernen, oben in der Liste, Schaltfläche in Akzentfarbe (E106–E108) | `CustomTemplateListTests`, `ProfileStoreTests`, Headless-Ablauf |
+| Rückmeldung zur Bedienung | Drag &amp; Drop mit Abbild am Mauszeiger und Einfügelinie (E102), gerundete Segment-Außenkanten mit vollständigem Rahmen bei heller Akzentfarbe (E95, E101), Schreibweise-Auswahl auf gemeinsamer Grundlinie (E100), Karteireiter bei „Name aus Vorlage“ mit fokusabhängiger Akzentfarbe und Platzhaltern über die volle Breite (E99, E103, E105), Rahmen des Sättigungsfelds (E104), Editor-Beispiel sofort sichtbar (E97) | Headless-Ablauf mit simuliertem Ziehen |
+
+## N3. Bekannte Einschränkungen (zusätzlich zu Abschnitt 5)
+
+| ID | Einschränkung |
+|----|---------------|
+| B9 | Metadaten-Leser mit erzeugten Testdateien geprüft, nicht mit Originaldateien realer Kameras/Player |
+| B10 | Bei sehr hellen Akzentfarben im hellen Theme bleiben Checkboxen und Reglerknopf blass |
+| B11 | Beim Sprachwechsel werden Trennbalken- und Bildlaufpositionen zurückgesetzt (Fenster wird neu aufgebaut) |
+
+## N4. Abnahmeerklärung zur Erweiterung
+
+| | |
+|---|---|
+| Abnahme erteilt | ☒ ja  ☐ nein  ☐ unter Vorbehalt |
+| Vorbehalte / Restpunkte | keine (bekannte Einschränkungen siehe N3) |
+| Datum | 2026-10-30 |
 | Name, Unterschrift | |

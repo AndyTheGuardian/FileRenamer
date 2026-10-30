@@ -1,7 +1,10 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FileRenamer.App.Localization;
 using FileRenamer.App.Services;
+using FileRenamer.Core.Localization;
 using FileRenamer.Core.Profiles;
 
 namespace FileRenamer.App.ViewModels;
@@ -41,11 +44,59 @@ public sealed partial class MainWindowViewModel
     public partial ThemePreference Theme { get; set; }
 
     /// <summary>
+    /// Gewählte Sprache (E92).
+    /// </summary>
+    [ObservableProperty]
+    public partial LanguagePreference Language { get; set; }
+
+    /// <summary>
+    /// Akzentfarbwahl (E79); wird beim Start aus den Einstellungen erzeugt.
+    /// </summary>
+    [ObservableProperty]
+    public partial AccentColorViewModel Accent { get; private set; } = new(null, Core.Theming.AccentPalette.DefaultSaturation, []);
+
+    /// <summary>
+    /// Eigene Vorlagen für „Name aus Vorlage“ (E106); wird beim Start aus den Einstellungen erzeugt.
+    /// </summary>
+    public TemplateLibrary Templates { get; private set; } = new([], []);
+
+    /// <summary>
+    /// Tritt nach einem Sprachwechsel ein, wenn alle Texte des ViewModels erneuert sind;
+    /// die Anwendung baut daraufhin das Hauptfenster neu auf.
+    /// </summary>
+    public event EventHandler? LanguageChanged;
+
+    /// <summary>
     /// Setzt das Theme (Menü und Icons).
     /// </summary>
     /// <param name="theme">Die Auswahl.</param>
     [RelayCommand]
     private void SetTheme(ThemePreference theme) => Theme = theme;
+
+    /// <summary>
+    /// Setzt die Sprache (Menü „Ansicht → Sprache“).
+    /// </summary>
+    /// <param name="language">Die Auswahl.</param>
+    [RelayCommand]
+    private void SetLanguage(LanguagePreference language) => Language = language;
+
+    /// <summary>
+    /// Setzt das Profil zurück (E91): leert nach Rückfrage die Kette und das Profilfeld.
+    /// Gespeicherte Profile und „Dateierweiterung ignorieren“ bleiben unverändert.
+    /// </summary>
+    /// <returns>Ein Task.</returns>
+    [RelayCommand]
+    private async Task ResetProfileAsync()
+    {
+        if (Chain.Count > 0 &&
+            !await _dialogs.ConfirmAsync(Loc.T("Profile.ResetTitle"), Loc.F("Profile.ResetText", Chain.Count), Loc.T("Profile.Reset")))
+        {
+            return;
+        }
+
+        ClearChain();
+        SetCurrentProfile(null);
+    }
 
     /// <summary>
     /// Lädt ein Profil und ersetzt Kette und Erweiterungseinstellung.
@@ -57,7 +108,7 @@ public sealed partial class MainWindowViewModel
     {
         if (_profileStore.Load(name) is not { } profile)
         {
-            await _dialogs.ShowMessageAsync("Profil laden", $"Das Profil „{name}“ konnte nicht gelesen werden.");
+            await _dialogs.ShowMessageAsync(Loc.T("Profile.LoadTitle"), Loc.F("Profile.LoadFailed", name));
             return;
         }
 
@@ -73,16 +124,14 @@ public sealed partial class MainWindowViewModel
     private async Task SaveProfileAsync()
     {
         var suggestion = string.IsNullOrWhiteSpace(ProfileNameInput) ? CurrentProfileName ?? string.Empty : ProfileNameInput.Trim();
-        var name = await _dialogs.PromptAsync("Profil speichern", "Name", suggestion,
-            "Gespeichert werden die Verfahren, ihre Parameter, die Reihenfolge und „Dateierweiterung ignorieren“. " +
-            "Mit einem neuen Namen legen Sie ein weiteres Profil an.");
+        var name = await _dialogs.PromptAsync(Loc.T("Profile.SaveTitle"), Loc.T("Profile.Name"), suggestion, Loc.T("Profile.SaveHint"));
         if (name is null)
         {
             return;
         }
 
         if (_profileStore.Exists(name) &&
-            !await _dialogs.ConfirmAsync("Profil überschreiben", $"Das Profil „{name}“ existiert bereits. Überschreiben?", "Überschreiben"))
+            !await _dialogs.ConfirmAsync(Loc.T("Profile.OverwriteTitle"), Loc.F("Profile.OverwriteText", name), Loc.T("Profile.Overwrite")))
         {
             return;
         }
@@ -102,7 +151,7 @@ public sealed partial class MainWindowViewModel
     private async Task DeleteProfileAsync()
     {
         var name = CurrentProfileName!;
-        if (!await _dialogs.ConfirmAsync("Profil löschen", $"Das Profil „{name}“ wirklich löschen?", "Löschen"))
+        if (!await _dialogs.ConfirmAsync(Loc.T("Profile.DeleteTitle"), Loc.F("Profile.DeleteText", name), Loc.T("Profile.Delete")))
         {
             return;
         }
@@ -129,11 +178,62 @@ public sealed partial class MainWindowViewModel
     }
 
     /// <summary>
-    /// Stellt Theme und zuletzt verwendetes Profil wieder her.
+    /// Stellt die Sprache um, erneuert alle Texte des ViewModels, merkt sich die Auswahl
+    /// und meldet den Wechsel, damit das Fenster neu aufgebaut wird (E92).
+    /// </summary>
+    /// <param name="value">Die Sprache.</param>
+    partial void OnLanguageChanged(LanguagePreference value)
+    {
+        Loc.Language = CoreText.Resolve(value, CultureInfo.CurrentUICulture);
+        RefreshTexts();
+        SaveSettings();
+        LanguageChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Erzeugt die Objekte mit sprachabhängigen Texten neu: Editor (mit seinen Einstellungen),
+    /// Farbwahl (mit ihrem Zustand) und Vorschau. Die Verfahrensliste liest das neu aufgebaute Fenster selbst;
+    /// eine Änderungsmeldung an das alte Fenster würde dort die Auswahl zurücksetzen.
+    /// </summary>
+    private void RefreshTexts()
+    {
+        Accent.Changed -= OnAccentChanged;
+        Accent = new AccentColorViewModel(Accent.AccentHex, Accent.Saturation, Accent.Custom.Select(swatch => swatch.Hex).ToList());
+        Accent.Changed += OnAccentChanged;
+
+        if (Editor is { } editor)
+        {
+            SetEditor(RuleCatalog.CreateEditorFor(SelectedChainItem?.Rule ?? editor.CreateRule()));
+        }
+
+        RefreshPreview();
+    }
+
+    /// <summary>
+    /// Wendet eine geänderte Akzentfarbe an und merkt sie sich (E79, E83, E84).
+    /// </summary>
+    /// <param name="sender">Die Farbwahl.</param>
+    /// <param name="e">Leer.</param>
+    private void OnAccentChanged(object? sender, EventArgs e)
+    {
+        _themeService.ApplyAccent(Accent.AccentHex);
+        SaveSettings();
+    }
+
+    /// <summary>
+    /// Stellt Akzentfarbe, Theme und zuletzt verwendetes Profil wieder her.
     /// </summary>
     private void RestoreSettings()
     {
         var settings = _settingsStore.Load();
+        // Zuerst, weil die folgenden Schritte bereits speichern
+        Templates = new TemplateLibrary(settings.CustomPhotoTemplates, settings.CustomAudioTemplates);
+        Templates.Changed += (_, _) => SaveSettings();
+        Accent = new AccentColorViewModel(settings.AccentColor, settings.PastelSaturation, settings.CustomColors);
+        Accent.Changed += OnAccentChanged;
+        _themeService.ApplyAccent(Accent.AccentHex);
+        Language = settings.Language;
+        Loc.Language = CoreText.Resolve(settings.Language, CultureInfo.CurrentUICulture);
         Theme = settings.Theme;
         _themeService.Apply(settings.Theme);
         SyncProfileNames();
@@ -183,7 +283,7 @@ public sealed partial class MainWindowViewModel
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            await _dialogs.ShowMessageAsync("Profil speichern", $"Das Profil konnte nicht gespeichert werden: {exception.Message}");
+            await _dialogs.ShowMessageAsync(Loc.T("Profile.SaveTitle"), Loc.F("Profile.SaveFailed", exception.Message));
             return false;
         }
     }
@@ -215,7 +315,15 @@ public sealed partial class MainWindowViewModel
     {
         try
         {
-            _settingsStore.Save(new AppSettings(Theme, CurrentProfileName));
+            _settingsStore.Save(new AppSettings(Theme, CurrentProfileName)
+            {
+                AccentColor = Accent.AccentHex,
+                PastelSaturation = Accent.Saturation,
+                CustomColors = Accent.Custom.Select(swatch => swatch.Hex).ToList(),
+                Language = Language,
+                CustomPhotoTemplates = Templates.Photo,
+                CustomAudioTemplates = Templates.Audio,
+            });
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

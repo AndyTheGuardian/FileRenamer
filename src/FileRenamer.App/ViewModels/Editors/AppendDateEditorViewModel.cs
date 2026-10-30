@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using FileRenamer.Core.Rules;
 
 namespace FileRenamer.App.ViewModels.Editors;
@@ -117,7 +117,7 @@ public sealed partial class AppendDateEditorViewModel() : RuleEditorViewModel(Ru
     /// Beispiel für den Namen „bericht“ (Datum 12.10.2026, 14:30:05).
     /// </summary>
     /// <returns>Der Beispieltext.</returns>
-    protected override string? CreateExample() => ApplyToSamples("bericht")[0];
+    protected override string? CreateExample() => ApplyToSamples(Localization.Loc.T("Sample.Report"))[0];
 
     /// <summary>
     /// Übernimmt eine gewählte Datumsvorlage ins Textfeld.

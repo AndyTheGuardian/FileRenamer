@@ -1,31 +1,32 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:FileRenamer.App.Localization"
              xmlns:ed="using:FileRenamer.App.ViewModels.Editors"
              xmlns:rules="using:FileRenamer.Core.Rules"
              x:Class="FileRenamer.App.Views.Editors.AppendCounterEditorView"
              x:DataType="ed:AppendCounterEditorViewModel">
   <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="9" MaxWidth="640" HorizontalAlignment="Left">
-    <TextBlock Text="Position" VerticalAlignment="Center" />
+    <TextBlock Text="{loc:T Common.Position}" VerticalAlignment="Center" />
     <StackPanel Grid.Column="1" Orientation="Horizontal">
-      <RadioButton Classes="segment" GroupName="counterPosition" Content="Vor dem Namen"
+      <RadioButton Classes="segment" GroupName="counterPosition" Content="{loc:T Common.BeforeName}"
                    IsChecked="{Binding Position, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static rules:AffixPosition.BeforeName}}" />
-      <RadioButton Classes="segment" GroupName="counterPosition" Content="Nach dem Namen"
+      <RadioButton Classes="segment" GroupName="counterPosition" Content="{loc:T Common.AfterName}"
                    IsChecked="{Binding Position, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static rules:AffixPosition.AfterName}}" />
     </StackPanel>
 
-    <TextBlock Grid.Row="1" Text="Startwert" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="1" Text="{loc:T Counter.Start}" VerticalAlignment="Center" />
     <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Start}" Increment="1" FormatString="0" Width="140" HorizontalAlignment="Left" />
 
-    <TextBlock Grid.Row="2" Text="Schrittweite" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="2" Text="{loc:T Counter.Step}" VerticalAlignment="Center" />
     <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding Step}" Increment="1" FormatString="0" Width="140" HorizontalAlignment="Left" />
 
-    <TextBlock Grid.Row="3" Text="Stellen (führende Nullen)" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="3" Text="{loc:T Counter.Digits}" VerticalAlignment="Center" />
     <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding Digits}" Minimum="1" Maximum="18" Increment="1" FormatString="0" Width="140" HorizontalAlignment="Left" />
 
-    <TextBlock Grid.Row="4" Text="Trennzeichen" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="4" Text="{loc:T Common.Separator}" VerticalAlignment="Center" />
     <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Separator}" Width="70" HorizontalAlignment="Left" />
 
-    <TextBlock Grid.Row="5" Text="Sortieren nach" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="5" Text="{loc:T Counter.SortBy}" VerticalAlignment="Center" />
     <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Spacing="10">
       <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}" MinWidth="170">
         <ComboBox.ItemTemplate>
@@ -35,8 +36,8 @@
         </ComboBox.ItemTemplate>
       </ComboBox>
       <StackPanel Orientation="Horizontal">
-        <RadioButton Classes="segment" GroupName="counterOrder" Content="Aufsteigend" IsChecked="{Binding !Descending}" />
-        <RadioButton Classes="segment" GroupName="counterOrder" Content="Absteigend" IsChecked="{Binding Descending}" />
+        <RadioButton Classes="segment" GroupName="counterOrder" Content="{loc:T Counter.Ascending}" IsChecked="{Binding !Descending}" />
+        <RadioButton Classes="segment" GroupName="counterOrder" Content="{loc:T Counter.Descending}" IsChecked="{Binding Descending}" />
       </StackPanel>
     </StackPanel>
   </Grid>

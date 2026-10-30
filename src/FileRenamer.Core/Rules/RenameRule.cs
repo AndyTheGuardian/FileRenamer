@@ -13,6 +13,12 @@ namespace FileRenamer.Core.Rules;
 [JsonDerivedType(typeof(AppendCounterRule), "appendCounter")]
 [JsonDerivedType(typeof(ShiftDigitRangeRule), "shiftDigitRange")]
 [JsonDerivedType(typeof(InsertTextRule), "insertText")]
+[JsonDerivedType(typeof(ChangeCaseRule), "changeCase")]
+[JsonDerivedType(typeof(CleanCharactersRule), "cleanCharacters")]
+[JsonDerivedType(typeof(RemoveRangeRule), "removeRange")]
+[JsonDerivedType(typeof(TemplateRule), "template")]
+[JsonDerivedType(typeof(InsertFolderRule), "insertFolder")]
+[JsonDerivedType(typeof(ChangeExtensionRule), "changeExtension")]
 public abstract record RenameRule
 {
     /// <summary>
@@ -30,6 +36,12 @@ public abstract record RenameRule
     /// </summary>
     [JsonIgnore]
     public abstract RuleKind Kind { get; }
+
+    /// <summary>
+    /// Ob das Verfahren auf die Dateiendung statt auf den Namen wirkt (nur „Erweiterung ändern“).
+    /// </summary>
+    [JsonIgnore]
+    public virtual bool TargetsExtension => false;
 
     /// <summary>
     /// Prüft die Parameter unabhängig von konkreten Dateien.

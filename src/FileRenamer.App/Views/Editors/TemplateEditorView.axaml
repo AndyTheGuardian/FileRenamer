@@ -1,0 +1,161 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:FileRenamer.App.Localization"
+             xmlns:ed="using:FileRenamer.App.ViewModels.Editors"
+             x:Class="FileRenamer.App.Views.Editors.TemplateEditorView"
+             x:DataType="ed:TemplateEditorViewModel">
+  <UserControl.Styles>
+    <Style Selector="Button.chip">
+      <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Menlo, monospace" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Padding" Value="8,1" />
+      <Setter Property="Margin" Value="0,0,4,4" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <!-- Karteireiter wie im Mockup v10 (E99): Leiste mit Grundlinie, gewählter Reiter mit Rahmen oben/seitlich -->
+    <Style Selector="TabControl.cardTabs">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <DockPanel>
+            <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,0,1">
+              <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+            </Border>
+            <ContentPresenter Name="PART_SelectedContentHost" Margin="{TemplateBinding Padding}"
+                              Content="{TemplateBinding SelectedContent}" ContentTemplate="{TemplateBinding SelectedContentTemplate}" />
+          </DockPanel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="TabControl.cardTabs > TabItem">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <!-- Höhe wie Segment-Schaltflächen (E103) -->
+          <Border Name="tabBorder" Background="Transparent" BorderBrush="Transparent" BorderThickness="1,1,1,0"
+                  CornerRadius="6,6,0,0" Padding="14,4,14,5" Margin="0,0,2,-1">
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Header}"
+                              ContentTemplate="{TemplateBinding HeaderTemplate}" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Setter Property="FontSize" Value="14" />
+      <!-- Fluent gibt Reitern 48 px Mindesthöhe vor; die Höhe ergibt sich hier allein aus dem Inhalt -->
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="TabControl.cardTabs > TabItem:pointerover /template/ Border#tabBorder">
+      <Setter Property="Background" Value="{DynamicResource PanelBackgroundBrush}" />
+    </Style>
+    <!-- Aktiver Reiter (E103): ohne Fokus im Editor in der Auswahlfarbe der Verfahrensliste … -->
+    <Style Selector="TabControl.cardTabs > TabItem:selected /template/ Border#tabBorder">
+      <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+    </Style>
+    <Style Selector="TabControl.cardTabs > TabItem:selected">
+      <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <!-- … mit Fokus irgendwo im Editor in voller Akzentfarbe, Rahmen wie beim gewählten Segment -->
+    <Style Selector="StackPanel#EditorRoot:focus-within TabControl.cardTabs > TabItem:selected /template/ Border#tabBorder">
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentSegmentBorderBrush}" />
+    </Style>
+    <Style Selector="StackPanel#EditorRoot:focus-within TabControl.cardTabs > TabItem:selected">
+      <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
+    </Style>
+    <!-- Trennlinie der Vorlagenauswahl ist nicht wählbar und flach -->
+    <Style Selector="ComboBox.presets ComboBoxItem" x:DataType="ed:TemplatePresetEntry">
+      <Setter Property="IsEnabled" Value="{Binding IsSelectable}" />
+    </Style>
+    <Style Selector="TextBlock.example">
+      <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Menlo, monospace" />
+    </Style>
+  </UserControl.Styles>
+
+  <UserControl.DataTemplates>
+    <!-- Vorlagenauswahl (E106): eigene Vorlagen mit ✕, Trennlinie, Beispielvorlagen -->
+    <DataTemplate x:DataType="ed:TemplatePreset">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="{Binding Template}" FontFamily="Cascadia Mono, Consolas, Menlo, monospace" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Content="✕" IsVisible="{Binding IsCustom}" Click="OnRemovePresetClick"
+                Padding="6,0" Margin="8,0,0,0" MinHeight="0" Background="Transparent" BorderThickness="0"
+                ToolTip.Tip="{loc:T Template.RemoveTip}" />
+      </Grid>
+    </DataTemplate>
+    <DataTemplate x:DataType="ed:TemplatePresetSeparator">
+      <Border Height="1" Background="{DynamicResource AppBorderBrush}" />
+    </DataTemplate>
+    <!-- Bezeichnung fest links, Platzhalter brechen eingerückt um (E78) -->
+    <DataTemplate x:DataType="ed:PlaceholderGroup">
+      <Grid ColumnDefinitions="100,*">
+        <TextBlock Text="{Binding Label}" Classes="hint" Margin="0,3,0,0" />
+        <ItemsControl Grid.Column="1" ItemsSource="{Binding Tokens}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <Button Classes="chip" Content="{Binding}" Click="OnPlaceholderClick" ToolTip.Tip="{loc:T Template.InsertTip}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Grid>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <!-- Ohne Breitenbegrenzung, damit die Platzhalter die volle Breite nutzen (E105) -->
+  <StackPanel x:Name="EditorRoot" Spacing="12">
+    <TabControl x:Name="Tabs" Classes="cardTabs" Padding="0,12,0,0">
+      <TabItem Header="{loc:T Template.Photos}">
+        <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="9">
+          <TextBlock Text="{loc:T Template.PhotoTemplate}" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+            <TextBox x:Name="PhotoTemplateBox" Text="{Binding PhotoTemplate}" Width="340" FontFamily="Cascadia Mono, Consolas, Menlo, monospace" />
+            <ComboBox Classes="presets" ItemsSource="{Binding PhotoPresetItems}" SelectionChanged="OnPresetSelected" PlaceholderText="{loc:T Template.Preset}" MinWidth="200" />
+            <Button Classes="accent" Content="{loc:T Template.Save}" Command="{Binding SavePhotoTemplateCommand}" ToolTip.Tip="{loc:T Template.SaveTip}" />
+          </StackPanel>
+          <TextBlock Grid.Row="1" Text="{loc:T Template.Placeholders}" VerticalAlignment="Top" Margin="0,4,0,0" />
+          <ItemsControl Grid.Row="1" Grid.Column="1" ItemsSource="{Binding PhotoPlaceholders}" Tag="{Binding #PhotoTemplateBox}" />
+          <TextBlock Grid.Row="2" Text="{loc:T Editor.Example}" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Classes="example" Text="{Binding PhotoExample}" />
+          <TextBlock Grid.Row="3" Grid.Column="1" Classes="hint"
+                     Text="{loc:T Template.PhotoHint}" />
+        </Grid>
+      </TabItem>
+      <TabItem Header="{loc:T Template.Audio}">
+        <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="9">
+          <TextBlock Text="{loc:T Template.AudioTemplate}" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+            <TextBox x:Name="AudioTemplateBox" Text="{Binding AudioTemplate}" Width="340" FontFamily="Cascadia Mono, Consolas, Menlo, monospace" />
+            <ComboBox Classes="presets" ItemsSource="{Binding AudioPresetItems}" SelectionChanged="OnPresetSelected" PlaceholderText="{loc:T Template.Preset}" MinWidth="200" />
+            <Button Classes="accent" Content="{loc:T Template.Save}" Command="{Binding SaveAudioTemplateCommand}" ToolTip.Tip="{loc:T Template.SaveTip}" />
+          </StackPanel>
+          <TextBlock Grid.Row="1" Text="{loc:T Template.Placeholders}" VerticalAlignment="Top" Margin="0,4,0,0" />
+          <ItemsControl Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AudioPlaceholders}" Tag="{Binding #AudioTemplateBox}" />
+          <TextBlock Grid.Row="2" Text="{loc:T Template.TrackDigits}" VerticalAlignment="Center" />
+          <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="12">
+            <NumericUpDown Value="{Binding TrackDigits}" Minimum="1" Maximum="9" Increment="1" FormatString="0" Width="140" />
+            <TextBlock Classes="hint" Text="{loc:T Template.TrackDigitsHint}" VerticalAlignment="Center" />
+          </StackPanel>
+          <TextBlock Grid.Row="3" Text="{loc:T Editor.Example}" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="3" Grid.Column="1" Classes="example" Text="{Binding AudioExample}" />
+          <TextBlock Grid.Row="4" Grid.Column="1" Classes="hint" Text="{loc:T Template.AudioHint}" />
+        </Grid>
+      </TabItem>
+    </TabControl>
+
+    <Border BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
+      <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="9">
+        <TextBlock Text="{loc:T Template.Missing}" VerticalAlignment="Center" />
+        <TextBox Grid.Column="1" Text="{Binding MissingText}" Width="160" HorizontalAlignment="Left" />
+        <TextBlock Grid.Row="1" Text="{loc:T Template.Replacement}" VerticalAlignment="Center" />
+        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding InvalidCharacterReplacement}" Width="70" HorizontalAlignment="Left" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Classes="hint"
+                   Text="{loc:T Template.Hint}" />
+      </Grid>
+    </Border>
+  </StackPanel>
+</UserControl>

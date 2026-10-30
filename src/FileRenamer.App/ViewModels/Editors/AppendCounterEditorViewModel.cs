@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using FileRenamer.Core.Rules;
 
 namespace FileRenamer.App.ViewModels.Editors;
@@ -25,10 +25,10 @@ public sealed partial class AppendCounterEditorViewModel : RuleEditorViewModel
     /// </summary>
     public IReadOnlyList<SortOption> SortOptions { get; } =
     [
-        new(CounterSortCriterion.Name, "Name"),
-        new(CounterSortCriterion.CreationDate, "Erstellungsdatum"),
-        new(CounterSortCriterion.ModificationDate, "Änderungsdatum"),
-        new(CounterSortCriterion.Size, "Größe"),
+        new(CounterSortCriterion.Name, Localization.Loc.T("Sort.Name")),
+        new(CounterSortCriterion.CreationDate, Localization.Loc.T("Sort.Created")),
+        new(CounterSortCriterion.ModificationDate, Localization.Loc.T("Sort.Modified")),
+        new(CounterSortCriterion.Size, Localization.Loc.T("Sort.Size")),
     ];
 
     /// <summary>
@@ -93,7 +93,7 @@ public sealed partial class AppendCounterEditorViewModel : RuleEditorViewModel
     /// </summary>
     /// <returns>Der Beispieltext.</returns>
     protected override string? CreateExample() =>
-        string.Join(", ", ApplyToSamples("bericht", "bericht").Order(Core.Naming.NaturalStringComparer.Instance)) + ", …";
+        string.Join(", ", ApplyToSamples(Localization.Loc.T("Sample.Report"), Localization.Loc.T("Sample.Report")).Order(Core.Naming.NaturalStringComparer.Instance)) + ", …";
 
     /// <summary>
     /// Übernimmt die Parameter eines Verfahrens.

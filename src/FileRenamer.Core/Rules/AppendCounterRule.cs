@@ -1,3 +1,4 @@
+﻿using FileRenamer.Core.Localization;
 using System.Globalization;
 using FileRenamer.Core.Naming;
 using FileRenamer.Core.Validation;
@@ -59,7 +60,7 @@ public sealed record AppendCounterRule : RenameRule
     /// <returns>Fehlermeldung oder <c>null</c>.</returns>
     public override string? ValidateSettings() =>
         Digits is < 1 or > MaxDigits
-            ? $"Die Stellenanzahl muss zwischen 1 und {MaxDigits} liegen."
+            ? CoreText.DigitsRange(MaxDigits)
             : FileNameValidator.DescribeInvalidCharacter(Separator);
 
     /// <summary>
@@ -144,6 +145,6 @@ public sealed record AppendCounterRule : RenameRule
     /// <returns>Die Hinweise.</returns>
     private IReadOnlyList<RenameIssue> CreateIssues(RuleInput input) =>
         SortBy == CounterSortCriterion.CreationDate && input.File.CreationTime is null
-            ? [RenameIssue.Hint("Erstellungsdatum nicht verfügbar – für die Sortierung wurde das Änderungsdatum verwendet.", Id)]
+            ? [RenameIssue.Hint(CoreText.CreationDateSortFallback, Id)]
             : [];
 }

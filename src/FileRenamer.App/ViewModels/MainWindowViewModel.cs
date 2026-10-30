@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FileRenamer.App.Localization;
 using FileRenamer.App.Services;
 using FileRenamer.App.ViewModels.Editors;
 using FileRenamer.Core.Execution;
@@ -54,6 +55,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// Die wählbaren Verfahren.
     /// </summary>
     public IReadOnlyList<RuleKindItem> RuleKinds => RuleCatalog.All;
+
+    /// <summary>
+    /// Die gruppierte Verfahrensliste mit Überschriften (E72).
+    /// </summary>
+    public IReadOnlyList<RuleListEntry> RuleEntries => RuleCatalog.Entries;
 
     /// <summary>
     /// Die Kette der angewandten Verfahren.
@@ -193,9 +199,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         var preview = _preview;
         var confirmed = await _dialogs.ConfirmAsync(
-            "Umbenennen bestätigen",
-            $"{preview.ChangedCount} Datei(en) werden umbenannt.\n\nTritt ein Fehler auf, werden alle bereits umbenannten Dateien zurückbenannt.",
-            "Umbenennen");
+            Loc.T("Rename.ConfirmTitle"), Loc.F("Rename.ConfirmText", preview.ChangedCount), Loc.T("Rename.Confirm"));
         if (!confirmed)
         {
             return;
@@ -210,7 +214,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         RefreshPreview();
-        await _dialogs.ShowMessageAsync("Umbenennen", DescribeResult(result, "umbenannt"));
+        await _dialogs.ShowMessageAsync(Loc.T("Rename.Title"), DescribeResult(result, "Rename.Done"));
     }
 
     /// <summary>
@@ -226,9 +230,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         var confirmed = await _dialogs.ConfirmAsync(
-            "Letzte Umbenennung widerrufen",
-            $"{lastRename.RenamedCount} Datei(en) erhalten wieder ihre vorherigen Namen.",
-            "Widerrufen");
+            Loc.T("Undo.ConfirmTitle"), Loc.F("Undo.ConfirmText", lastRename.RenamedCount), Loc.T("Undo.Confirm"));
         if (!confirmed)
         {
             return;
@@ -243,11 +245,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         RefreshPreview();
-        await _dialogs.ShowMessageAsync("Widerrufen", DescribeResult(result, "zurückbenannt"));
+        await _dialogs.ShowMessageAsync(Loc.T("Undo.Title"), DescribeResult(result, "Undo.Done"));
     }
 
     /// <summary>
-    /// Verschiebt einen Ketteneintrag (Drag &amp; Drop, E13).
+    /// Verschiebt einen Ketteneintrag (Drag &amp; Drop, E13). Die Auswahl bleibt erhalten,
+    /// auch wenn die Liste beim Verschieben ihre Auswahl verwirft.
     /// </summary>
     /// <param name="fromIndex">Bisherige Position.</param>
     /// <param name="toIndex">Neue Position.</param>
@@ -258,7 +261,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        var selected = SelectedChainItem;
         Chain.Move(fromIndex, toIndex);
+        if (SelectedChainItem != selected)
+        {
+            SelectedChainItem = selected;
+        }
     }
 
     /// <summary>
@@ -307,6 +315,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (Editor is not null)
         {
             Editor.SettingsChanged -= OnEditorSettingsChanged;
+        }
+
+        if (editor is TemplateEditorViewModel template)
+        {
+            template.Library = Templates;
         }
 
         Editor = editor;
@@ -403,11 +416,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         HasFiles = _files.Count > 0;
         var selectedCount = _preview.Files.Count(file => file.IsSelected);
-        StatusText = $"{_files.Count} Dateien · {selectedCount} ausgewählt · {_preview.ChangedCount} geändert · {_preview.HintCount} Hinweise";
+        StatusText = Loc.F("Status.Summary", _files.Count, selectedCount, _preview.ChangedCount, _preview.HintCount);
         UpdateAllSelected(selectedCount);
-        BlockingText = _preview.HasBlockingIssues
-            ? $"· {_preview.ConflictCount} Konflikt(e) – Umbenennen gesperrt"
-            : string.Empty;
+        BlockingText = _preview.HasBlockingIssues ? Loc.F("Status.Blocked", _preview.ConflictCount) : string.Empty;
         CanRename = _preview.CanRename;
     }
 
@@ -431,18 +442,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// Formuliert die Ergebnismeldung einer Umbenennung oder eines Widerrufs.
     /// </summary>
     /// <param name="result">Das Ergebnis.</param>
-    /// <param name="verb">Partizip für die Erfolgsmeldung, z. B. „umbenannt“.</param>
+    /// <param name="successKey">Textschlüssel der Erfolgsmeldung, z. B. „Rename.Done“.</param>
     /// <returns>Der Meldungstext.</returns>
-    private static string DescribeResult(RenameExecutionResult result, string verb)
+    private static string DescribeResult(RenameExecutionResult result, string successKey)
     {
         if (result.Success)
         {
-            return $"{result.RenamedCount} Datei(en) wurden {verb}.";
+            return Loc.F(successKey, result.RenamedCount);
         }
 
-        var message = $"Der Vorgang ist fehlgeschlagen: {result.ErrorMessage}\n\nAlle Dateien wurden auf ihre vorherigen Namen zurückgesetzt.";
+        var message = Loc.F("Result.Failed", result.ErrorMessage ?? string.Empty);
         return result.RollbackErrors.Count == 0
             ? message
-            : message + "\n\nAchtung, nicht alle Dateien konnten zurückbenannt werden:\n" + string.Join("\n", result.RollbackErrors);
+            : message + Loc.F("Result.RollbackErrors", string.Join("\n", result.RollbackErrors));
     }
 }

@@ -10,20 +10,27 @@ zeigt jederzeit, wie die Dateien heißen werden. Erst nach Bestätigung wird tat
 
 ## Funktionen
 
-- **Fünf Verfahren**, beliebig kombinierbar und mehrfach verwendbar:
-  - **Text ersetzen** – erster, letzter oder alle Treffer; auch reguläre Ausdrücke
-  - **Datum / Zeit anfügen** – Erstellungs- oder Änderungsdatum, vor oder nach dem Namen, Format wählbar
-  - **Zähler anhängen** – Startwert, Schrittweite, führende Nullen, Sortierung nach Name, Datum oder Größe
-  - **Ziffernkette Wertebereich verschieben** – vorhandene Zahlen im Namen um einen Wert verschieben (`name-001` + 100 → `name-101`)
-  - **Text einfügen** – an einer Position vom Anfang oder vom Ende
+- **Elf Verfahren** in vier Gruppen, beliebig kombinierbar und mehrfach verwendbar:
+  - *Text:* **Text ersetzen** (auch reguläre Ausdrücke), **Text einfügen**, **Groß-/Kleinschreibung**
+    (u. a. PascalCase, camelCase, snake_case, kebab-case), **Zeichen bereinigen** (Leerzeichen, Umlaute, Akzente),
+    **Bereich entfernen / kürzen**
+  - *Datum & Zahlen:* **Datum / Zeit anfügen** (Erstellungs-, Änderungs- oder EXIF-Aufnahmedatum),
+    **Zähler anhängen**, **Ziffernkette Wertebereich verschieben** (`name-001` + 100 → `name-101`)
+  - *Metadaten & Ordner:* **Name aus Vorlage** mit EXIF- bzw. Audio-Tags
+    (`%artist% - %title%` → `Madonna - Like A Prayer`) – eigene Vorlagen lassen sich speichern –, **Ordnername einfügen**
+  - *Erweiterung:* **Erweiterung ändern** (`.JPEG` → `.jpg`)
+- **Metadaten ohne Fremdbibliothek:** JPEG, TIFF, HEIC, PNG, RAW (DNG, CR2, CR3, NEF, ARW, ORF, RW2, RAF, PEF),
+  MP3 (ID3), FLAC, M4A
 - **Kette** per Drag & Drop sortieren, Verfahren per Checkbox ein- und ausschalten
 - **Vorschau** mit Hervorhebung in der Farbe des jeweiligen Verfahrens, Hinweisen und Konflikten
 - **Dateiauswahl** per Checkbox – nur ausgewählte Dateien werden umbenannt
 - **Sicheres Umbenennen**: Konfliktprüfung (doppelte oder ungültige Namen, vorhandene Dateien),
   Alles-oder-nichts-Ausführung, Namenstausch a ↔ b, **Widerrufen** der letzten Umbenennung
 - **Dateierweiterung ignorieren** (nur die letzte Endung)
-- **Profile** zum Speichern und Laden ganzer Ketten
-- **Theme**: System, Hell oder Dunkel
+- **Profile** zum Speichern, Laden und Zurücksetzen ganzer Ketten
+- **Theme**: System, Hell oder Dunkel – dazu eine wählbare **Akzentfarbe** (Pastell mit einstellbarer Sättigung,
+  kräftige und neutrale Farben, eigene Hex-Farben)
+- **Sprache**: Deutsch oder Englisch, automatisch nach Systemsprache oder fest gewählt; Wechsel ohne Neustart
 
 ## Voraussetzungen
 
@@ -77,3 +84,4 @@ Technik: .NET 10 (LTS), Avalonia 12, CommunityToolkit.Mvvm, xUnit v3 – keine w
 - Unter Linux wird statt des Erstellungsdatums das Änderungsdatum verwendet (mit Hinweis).
 - Kein Installer und kein macOS-App-Bundle.
 - Widerrufen gilt für die letzte Umbenennung bis zum Programmende.
+- Die Metadaten-Leser sind mit erzeugten Testdateien geprüft, nicht mit Dateien realer Kameras und Player.

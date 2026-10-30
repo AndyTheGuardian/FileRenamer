@@ -1,3 +1,4 @@
+﻿using FileRenamer.Core.Localization;
 namespace FileRenamer.Core.Validation;
 
 /// <summary>
@@ -28,12 +29,12 @@ public static class FileNameValidator
     {
         if (string.IsNullOrWhiteSpace(fileName))
         {
-            return "Der Dateiname ist leer.";
+            return CoreText.FileNameEmpty;
         }
 
         if (fileName is "." or "..")
         {
-            return $"„{fileName}“ ist kein gültiger Dateiname.";
+            return CoreText.FileNameInvalid(fileName);
         }
 
         return DescribeInvalidCharacter(fileName)
@@ -53,12 +54,12 @@ public static class FileNameValidator
         {
             if (char.IsControl(character))
             {
-                return "Unzulässiges Steuerzeichen im Dateinamen.";
+                return CoreText.ControlCharacter;
             }
 
             if (ForbiddenCharacters.Contains(character))
             {
-                return $"Unzulässiges Zeichen „{character}“ (verboten: < > : \" / \\ | ? *).";
+                return CoreText.ForbiddenCharacter(character);
             }
         }
 
@@ -72,7 +73,7 @@ public static class FileNameValidator
     /// <returns>Fehlermeldung oder <c>null</c>.</returns>
     private static string? ValidateEnding(string fileName) =>
         fileName.EndsWith('.') || fileName.EndsWith(' ')
-            ? "Der Dateiname darf nicht auf Punkt oder Leerzeichen enden."
+            ? CoreText.TrailingDotOrSpace
             : null;
 
     /// <summary>
@@ -83,7 +84,7 @@ public static class FileNameValidator
     private static string? ValidateReservedName(string fileName)
     {
         var stem = fileName.Split('.')[0].TrimEnd();
-        return ReservedNames.Contains(stem) ? $"„{stem}“ ist ein reservierter Name." : null;
+        return ReservedNames.Contains(stem) ? CoreText.ReservedName(stem) : null;
     }
 
     /// <summary>
@@ -93,6 +94,6 @@ public static class FileNameValidator
     /// <returns>Fehlermeldung oder <c>null</c>.</returns>
     private static string? ValidateLength(string fileName) =>
         fileName.Length > MaxLength
-            ? $"Der Dateiname ist zu lang ({fileName.Length} von maximal {MaxLength} Zeichen)."
+            ? CoreText.FileNameTooLong(fileName.Length, MaxLength)
             : null;
 }

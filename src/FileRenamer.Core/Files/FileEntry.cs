@@ -1,3 +1,5 @@
+using FileRenamer.Core.Metadata;
+
 namespace FileRenamer.Core.Files;
 
 /// <summary>
@@ -18,4 +20,19 @@ public sealed record FileEntry(string FullPath, DateTime? CreationTime, DateTime
     /// Dateiname inklusive Erweiterung.
     /// </summary>
     public string FileName => Path.GetFileName(FullPath);
+
+    /// <summary>
+    /// Beim Einlesen einmal ermittelte Bild- bzw. Audioinformationen (E66).
+    /// </summary>
+    public FileMetadata Metadata { get; init; } = FileMetadata.None;
+
+    /// <summary>
+    /// Art der Datei laut Endung (Bild, Audio oder keine Mediendatei).
+    /// </summary>
+    public MediaKind Kind => MediaTypes.GetKind(FileName);
+
+    /// <summary>
+    /// Name des Ordners, in dem die Datei liegt.
+    /// </summary>
+    public string FolderName => Path.GetFileName(DirectoryPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 }

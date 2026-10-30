@@ -9,14 +9,16 @@ namespace FileRenamer.Core.Preview;
 /// </summary>
 /// <param name="File">Die Datei.</param>
 /// <param name="OriginalDisplayName">Ursprünglicher Name, wie er angezeigt wird (ohne ausgeblendete Erweiterung).</param>
-/// <param name="NewDisplayName">Neuer Name mit Abschnitten, wie er angezeigt wird (ohne ausgeblendete Erweiterung).</param>
-/// <param name="HiddenExtension">Ausgeblendete Erweiterung (z. B. „.jpg“) oder leer.</param>
+/// <param name="NewDisplayName">Neuer Name mit Abschnitten (ohne ausgeblendete Erweiterung).</param>
+/// <param name="NewExtension">Neue ausgeblendete Erweiterung mit Abschnitten (leer, wenn die Erweiterung nicht ignoriert wird).</param>
+/// <param name="OriginalExtension">Ursprüngliche ausgeblendete Erweiterung (z. B. „.jpg“) oder leer.</param>
 /// <param name="Issues">Hinweise und Konflikte.</param>
 public sealed record FilePreview(
     FileEntry File,
     string OriginalDisplayName,
     SegmentedName NewDisplayName,
-    string HiddenExtension,
+    SegmentedName NewExtension,
+    string OriginalExtension,
     IReadOnlyList<RenameIssue> Issues)
 {
     /// <summary>
@@ -27,7 +29,12 @@ public sealed record FilePreview(
     /// <summary>
     /// Vollständiger neuer Dateiname inklusive Erweiterung.
     /// </summary>
-    public string NewFileName => NewDisplayName.Text + HiddenExtension;
+    public string NewFileName => NewDisplayName.Text + NewExtension.Text;
+
+    /// <summary>
+    /// Ob sich die ausgeblendete Erweiterung geändert hat; sie wird dann in der Vorschau eingeblendet (E73).
+    /// </summary>
+    public bool IsExtensionChanged => !string.Equals(NewExtension.Text, OriginalExtension, StringComparison.Ordinal);
 
     /// <summary>
     /// Vollständiger neuer Pfad.

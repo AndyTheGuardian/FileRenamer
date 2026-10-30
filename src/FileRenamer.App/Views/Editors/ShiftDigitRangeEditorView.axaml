@@ -1,5 +1,6 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:FileRenamer.App.Localization"
              xmlns:ed="using:FileRenamer.App.ViewModels.Editors"
              x:Class="FileRenamer.App.Views.Editors.ShiftDigitRangeEditorView"
              x:DataType="ed:ShiftDigitRangeEditorViewModel">
@@ -9,26 +10,26 @@
     </Style>
   </UserControl.Styles>
   <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="9" MaxWidth="640" HorizontalAlignment="Left">
-    <TextBlock Text="Wert (auch negativ)" VerticalAlignment="Center" />
+    <TextBlock Text="{loc:T Digits.Offset}" VerticalAlignment="Center" />
     <NumericUpDown Grid.Column="1" Value="{Binding Offset}" Increment="1" FormatString="0" Width="140" HorizontalAlignment="Left" />
 
-    <TextBlock Grid.Row="1" Text="Ziffernkette Nr." VerticalAlignment="Center" />
+    <TextBlock Grid.Row="1" Text="{loc:T Digits.RunNumber}" VerticalAlignment="Center" />
     <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12">
       <NumericUpDown Value="{Binding RunNumber}" Minimum="1" Increment="1" FormatString="0" Width="140"
                      IsEnabled="{Binding IsRunNumberEnabled}" Classes.invalid="{Binding IsRunNumberInvalid}" />
-      <CheckBox Content="Letzte gefundene" IsChecked="{Binding UseLastRun}" />
+      <CheckBox Content="{loc:T Digits.UseLast}" IsChecked="{Binding UseLastRun}" />
     </StackPanel>
     <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding RunNumberMessage}"
                Classes="hint" Classes.error="{Binding IsRunNumberInvalid}" />
 
-    <TextBlock Grid.Row="3" Text="Mindeststellen" VerticalAlignment="Center" />
+    <TextBlock Grid.Row="3" Text="{loc:T Digits.MinDigits}" VerticalAlignment="Center" />
     <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="12">
       <NumericUpDown Value="{Binding MinDigits}" Minimum="1" Maximum="18" Increment="1" FormatString="0" Width="140"
                      IsEnabled="{Binding IsMinDigitsEnabled}" />
-      <CheckBox Content="Originalbreite beibehalten" IsChecked="{Binding KeepOriginalWidth}" />
+      <CheckBox Content="{loc:T Digits.KeepWidth}" IsChecked="{Binding KeepOriginalWidth}" />
     </StackPanel>
 
     <TextBlock Grid.Row="4" Grid.Column="1" Classes="hint"
-               Text="Position zählt ab 1 von links. Negative Ergebnisse werden als Konflikt markiert. Namen ohne Ziffernkette bleiben unverändert und erhalten einen Hinweis." />
+               Text="{loc:T Digits.Hint}" />
   </Grid>
 </UserControl>

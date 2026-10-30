@@ -1,6 +1,7 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
+using FileRenamer.App.Localization;
 
 namespace FileRenamer.App.Services;
 
@@ -12,6 +13,12 @@ namespace FileRenamer.App.Services;
 public sealed class DialogService(Window owner) : IDialogService
 {
     /// <summary>
+    /// Das Fenster, über dem die Dialoge erscheinen; wird nach einem Sprachwechsel auf das neu aufgebaute
+    /// Hauptfenster gesetzt.
+    /// </summary>
+    public Window Owner { get; set; } = owner;
+
+    /// <summary>
     /// Zeigt eine Sicherheitsabfrage mit „Abbrechen“ und Bestätigung.
     /// </summary>
     /// <param name="title">Fenstertitel.</param>
@@ -21,8 +28,8 @@ public sealed class DialogService(Window owner) : IDialogService
     public async Task<bool> ConfirmAsync(string title, string message, string confirmText)
     {
         var dialog = CreateDialog(title, CreateMessage(message));
-        AddButtons(dialog, ("Abbrechen", false), (confirmText, true));
-        return await dialog.ShowDialog<bool>(owner);
+        AddButtons(dialog, (Loc.T("Dialog.Cancel"), false), (confirmText, true));
+        return await dialog.ShowDialog<bool>(Owner);
     }
 
     /// <summary>
@@ -34,8 +41,8 @@ public sealed class DialogService(Window owner) : IDialogService
     public async Task ShowMessageAsync(string title, string message)
     {
         var dialog = CreateDialog(title, CreateMessage(message));
-        AddButtons(dialog, ("OK", true));
-        await dialog.ShowDialog<bool>(owner);
+        AddButtons(dialog, (Loc.T("Dialog.Ok"), true));
+        await dialog.ShowDialog<bool>(Owner);
     }
 
     /// <summary>
@@ -60,10 +67,10 @@ public sealed class DialogService(Window owner) : IDialogService
             },
         };
         var dialog = CreateDialog(title, content);
-        AddButtons(dialog, ("Abbrechen", false), ("Speichern", true));
+        AddButtons(dialog, (Loc.T("Dialog.Cancel"), false), (Loc.T("Dialog.Save"), true));
         dialog.Opened += (_, _) => input.Focus();
 
-        var confirmed = await dialog.ShowDialog<bool>(owner);
+        var confirmed = await dialog.ShowDialog<bool>(Owner);
         return confirmed && !string.IsNullOrWhiteSpace(input.Text) ? input.Text.Trim() : null;
     }
 
@@ -73,8 +80,8 @@ public sealed class DialogService(Window owner) : IDialogService
     /// <returns>Die lokalen Pfade.</returns>
     public async Task<IReadOnlyList<string>> PickFilesAsync()
     {
-        var files = await owner.StorageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions { Title = "Dateien hinzufügen", AllowMultiple = true });
+        var files = await Owner.StorageProvider.OpenFilePickerAsync(
+            new FilePickerOpenOptions { Title = Loc.T("Dialog.PickFiles"), AllowMultiple = true });
         return files.Select(file => file.TryGetLocalPath()).OfType<string>().ToList();
     }
 
@@ -84,8 +91,8 @@ public sealed class DialogService(Window owner) : IDialogService
     /// <returns>Der lokale Pfad oder <c>null</c>.</returns>
     public async Task<string?> PickFolderAsync()
     {
-        var folders = await owner.StorageProvider.OpenFolderPickerAsync(
-            new FolderPickerOpenOptions { Title = "Ordner hinzufügen", AllowMultiple = false });
+        var folders = await Owner.StorageProvider.OpenFolderPickerAsync(
+            new FolderPickerOpenOptions { Title = Loc.T("Dialog.PickFolder"), AllowMultiple = false });
         return folders.Count > 0 ? folders[0].TryGetLocalPath() : null;
     }
 

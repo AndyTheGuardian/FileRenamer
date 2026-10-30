@@ -142,9 +142,9 @@ public sealed partial class ShiftDigitRangeEditorViewModel() : RuleEditorViewMod
 
         IsRunNumberInvalid = !UseLastRun && MaxRunNumber is { } limit && number > limit;
         RunNumberMessage = range is null
-            ? "Keine Datei enthält an dieser Stelle eine Ziffernkette."
+            ? Localization.Loc.T("Digits.NoRun")
             : IsRunNumberInvalid
-                ? $"Ungültig: Nicht alle Dateien haben eine Ziffernkette Nr. {number}. Erlaubt: {range}."
-                : $"Erlaubt: {range} (kleinste Anzahl Ziffernketten unter den Dateien mit Ziffernketten).";
+                ? Localization.Loc.F("Digits.Invalid", number, range)
+                : Localization.Loc.F("Digits.Allowed", range);
     }
 }

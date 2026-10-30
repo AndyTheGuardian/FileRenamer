@@ -1,3 +1,4 @@
+﻿using FileRenamer.Core.Localization;
 using System.Globalization;
 
 namespace FileRenamer.Core.Validation;
@@ -28,7 +29,7 @@ public static class DateFormatValidator
     /// <param name="culture">Die Kultur, mit der später formatiert wird.</param>
     /// <returns>Fehlermeldung oder <c>null</c>, wenn das Format umsetzbar ist.</returns>
     public static string? ValidateDateFormat(string format, CultureInfo culture) =>
-        Validate(format, culture, "yMd", "Das Datumsformat enthält keinen Datumsbestandteil (y, M, d).");
+        Validate(format, culture, "yMd", CoreText.DateFormatWithoutDate);
 
     /// <summary>
     /// Prüft ein Uhrzeitformat; es muss mindestens Stunde, Minute oder Sekunde enthalten.
@@ -37,7 +38,7 @@ public static class DateFormatValidator
     /// <param name="culture">Die Kultur, mit der später formatiert wird.</param>
     /// <returns>Fehlermeldung oder <c>null</c>, wenn das Format umsetzbar ist.</returns>
     public static string? ValidateTimeFormat(string format, CultureInfo culture) =>
-        Validate(format, culture, "Hhms", "Das Uhrzeitformat enthält keinen Zeitbestandteil (H, h, m, s).");
+        Validate(format, culture, "Hhms", CoreText.TimeFormatWithoutTime);
 
     /// <summary>
     /// Gemeinsame Prüfung: nicht leer, enthält einen Pflichtbestandteil, ist formatierbar
@@ -52,7 +53,7 @@ public static class DateFormatValidator
     {
         if (string.IsNullOrWhiteSpace(format))
         {
-            return "Bitte ein Format angeben.";
+            return CoreText.FormatMissing;
         }
 
         if (format.IndexOfAny(requiredSpecifiers.ToCharArray()) < 0)
@@ -67,10 +68,10 @@ public static class DateFormatValidator
         }
         catch (FormatException)
         {
-            return "Das Format ist ungültig.";
+            return CoreText.FormatInvalid;
         }
 
         var invalidCharacter = FileNameValidator.DescribeInvalidCharacter(sample);
-        return invalidCharacter is null ? null : $"Das Format ergibt „{sample}“: {invalidCharacter}";
+        return invalidCharacter is null ? null : CoreText.FormatProduces(sample, invalidCharacter);
     }
 }

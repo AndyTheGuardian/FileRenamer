@@ -35,7 +35,11 @@ public sealed class PreviewRowViewModel
         HasConflict = preview.HasConflict;
         HasHint = preview.HasHint && !HasConflict;
         IssueText = preview.Issues.Count == 0 ? null : string.Join(Environment.NewLine, preview.Issues.Select(issue => issue.Message));
-        Spans = preview.NewDisplayName.Segments
+        // Eine geänderte, sonst ausgeblendete Endung wird eingeblendet (E73)
+        var segments = preview.IsExtensionChanged
+            ? preview.NewDisplayName.Segments.Concat(preview.NewExtension.Segments)
+            : preview.NewDisplayName.Segments;
+        Spans = segments
             .Select(segment => new HighlightSpan(segment.Text, ResolveKind(segment.GetHighlightSource(preferredRuleId), kindsById)))
             .ToList();
     }

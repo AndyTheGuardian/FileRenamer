@@ -57,4 +57,10 @@ public interface IThemeService
     /// </summary>
     /// <param name="theme">Die Auswahl.</param>
     void Apply(ThemePreference theme);
+
+    /// <summary>
+    /// Wendet eine Akzentfarbe an.
+    /// </summary>
+    /// <param name="hex">Die Farbe (<c>#RRGGBB</c>) oder <c>null</c> für den Standard.</param>
+    void ApplyAccent(string? hex);
 }

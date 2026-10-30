@@ -106,6 +106,35 @@ public sealed class RenameIntegrationTests : IDisposable
     }
 
     /// <summary>
+    /// Echte Foto- und Audiodateien: Metadaten werden beim Einlesen gelesen, „Name aus Vorlage“ und
+    /// „Erweiterung ändern“ benennen Vorschau und Platte identisch um (E56–E77).
+    /// </summary>
+    [Fact]
+    public void MetadataTemplate_PreviewMatchesDisk()
+    {
+        var directory = Path.Combine(_workDirectory, "07-metadaten");
+        Directory.CreateDirectory(directory);
+        File.WriteAllBytes(Path.Combine(directory, "IMG_0001.JPEG"), Support.MediaFiles.Jpeg(Support.MediaFiles.CameraTiff()));
+        File.WriteAllBytes(Path.Combine(directory, "DSC_4711.nef"), Support.MediaFiles.CameraTiff(littleEndian: false));
+        File.WriteAllBytes(Path.Combine(directory, "01 like a prayer.mp3"), Support.MediaFiles.Mp3(3, new Dictionary<string, string>
+        {
+            ["TPE1"] = "Madonna", ["TIT2"] = "Like A Prayer", ["TRCK"] = "1",
+        }));
+        File.WriteAllBytes(Path.Combine(directory, "Rechnung.pdf"), [1, 2, 3]);
+
+        RenameRule[] chain =
+        [
+            new TemplateRule { PhotoTemplate = "%name%_%model%_%date:yyyy-MM-dd%", AudioTemplate = "%track% %artist% - %title%" },
+            new ChangeExtensionRule { OnlyExtension = "jpeg", NewExtension = "jpg" },
+        ];
+
+        AssertPreviewAndDisk(directory, chain,
+        [
+            "01 Madonna - Like A Prayer.mp3", "DSC_4711_Canon EOS R6_2026-10-12.nef", "IMG_0001_Canon EOS R6_2026-10-12.jpg", "Rechnung.pdf",
+        ]);
+    }
+
+    /// <summary>
     /// Die letzte Umbenennung lässt sich auf der Platte vollständig widerrufen (E49).
     /// </summary>
     [Fact]

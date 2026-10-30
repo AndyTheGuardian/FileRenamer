@@ -1,3 +1,4 @@
+﻿using FileRenamer.Core.Localization;
 using FileRenamer.Core.Files;
 using FileRenamer.Core.Rules;
 using FileRenamer.Core.Validation;
@@ -47,11 +48,11 @@ public sealed class ConflictDetector(IFileSystem fileSystem)
 
         if (duplicates.Contains(target))
         {
-            issues.Add(RenameIssue.Conflict("Der Zielname kommt in der Auswahl mehrfach vor."));
+            issues.Add(RenameIssue.Conflict(CoreText.DuplicateTarget));
         }
         else if (isChanged && !sources.Contains(target) && fileSystem.Exists(target))
         {
-            issues.Add(RenameIssue.Conflict("Eine Datei oder ein Ordner mit diesem Namen existiert bereits."));
+            issues.Add(RenameIssue.Conflict(CoreText.TargetExists));
         }
 
         return issues;

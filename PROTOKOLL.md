@@ -1,6 +1,6 @@
 # FileRenamer – Protokoll
 
-Stand: 2026-10-29
+Stand: 2026-10-30
 
 Diese Datei hält Ergebnisse, gestellte Fragen mit ihren Antworten und den Fortschritt des Projekts fest.
 `SPECS.md` bleibt unverändert; Abweichungen und Präzisierungen der Spezifikation werden hier dokumentiert.
@@ -38,12 +38,40 @@ Diese Datei hält Ergebnisse, gestellte Fragen mit ihren Antworten und den Forts
 | 2026-10-29 | F21 entschieden: Icon C eingebunden (E55); Build ohne Fehler, 101 Tests bestanden, App-Start mit Icon unter Windows geprüft |
 
 | 2026-10-29 | Manueller Test durch den Anwender ohne Beanstandungen; Abschlusslauf: Build ohne Warnungen, 101/101 Tests bestanden; `ABNAHME.md` erstellt |
-
 | 2026-10-29 | Entwicklerdokumentation ergänzt: Projektbaum und Programmablaufpläne (Gesamtablauf, Vorschau-Pipeline, Umbenennen/Widerrufen) als Mermaid-Diagramme |
-
 | 2026-10-29 | `README.md` erstellt (Überblick, Funktionen, Schnellstart, Projektaufbau, Verweise); Screenshots unter `docs/images/` |
+| 2026-10-30 | Neue Anforderungen: Verfahren Groß/Kleinschreibung, EXIF-Datum als Datumsquelle, EXIF-Vorlage, ID3-Vorlage; offene Fragen F22–F31 und Vorschläge V14–V20 gestellt |
+| 2026-10-30 | F22–F31 beantwortet, V14–V20 angenommen (E56–E68); Restfragen F32–F35; Mockup v4 erstellt (`mockups/mockup-v4.html`) |
 
-Nächster Schritt: Abnahmeerklärung in `ABNAHME.md` (Abschnitt 7) durch den Anwender ausfüllen.
+| 2026-10-30 | F32–F37 beantwortet (E69–E74); Mockup v4 nicht freigegeben (Änderungswünsche E75, E76); Mockup v5 erstellt (`mockups/mockup-v5.html`); neue Frage F38 |
+
+| 2026-10-30 | F38 beantwortet (E77); Mockup v5 nicht freigegeben (Änderungswünsche E78, E79); Mockup v6 erstellt (`mockups/mockup-v6.html`); neue Fragen F39, F40 |
+
+| 2026-10-30 | F39, F40 beantwortet (E80, E81); Mockup v6 nicht freigegeben (Änderungswunsch E82); Mockup v7 erstellt (`mockups/mockup-v7.html`); neue Frage F41 |
+
+| 2026-10-30 | Mockup v7 nicht freigegeben (Änderungswünsche E83, E84); Mockup v8 erstellt (`mockups/mockup-v8.html`); neue Fragen F42, F43 |
+
+| 2026-10-30 | F41–F43 beantwortet (E85–E87); Mockup v8 nicht freigegeben (Änderungen E86, E88); Mockup v9 erstellt (`mockups/mockup-v9.html`); neue Frage F44 |
+
+| 2026-10-30 | Sättigung auf HSV-Prinzip korrigiert (E86); Mockup v10 erstellt (`mockups/mockup-v10.html`) |
+
+| 2026-10-30 | F44 beantwortet (E89); **Mockup v10 freigegeben** (E90); Umsetzung begonnen |
+
+| 2026-10-30 | Erweiterung umgesetzt: eigene Metadaten-Leser (JPEG, TIFF, HEIC, PNG, 9 RAW-Formate, MP3/ID3, FLAC, M4A), 6 neue Verfahren, EXIF-Datumsquelle, gruppierte Verfahrensliste, Akzentfarbe mit HSV-Sättigung und benutzerdefinierten Farben; Build ohne Warnungen, **181/181 Tests bestanden** (u. a. 28 Metadaten-Tests mit erzeugten Mediendateien, Integrationstest mit echten Dateien); Headless-Rendering hell/dunkel/Akzentfarbe geprüft; App-Start geprüft; Dokumentation, README und Abnahmeprotokoll aktualisiert |
+
+| 2026-10-30 | Neue Anforderungen „Profil zurücksetzen“ und „Englisch“ geklärt (E91–E93), Annahmen A8–A10 festgehalten |
+| 2026-10-30 | E91–E93 umgesetzt: Meldungen der Fachlogik zweisprachig (`CoreText`), Oberflächentexte zweisprachig (`Loc`, `Strings`, XAML-Erweiterung `{loc:T …}`), Menü „Ansicht → Sprache“ mit Fensterneuaufbau ohne Neustart, Sprachwahl gespeichert; Schaltfläche „Zurücksetzen“ und Menü „Profile → Profil zurücksetzen“. Build ohne Warnungen, **188/188 Tests bestanden**; Headless-Ablauf Deutsch → Englisch → Zurücksetzen → Deutsch geprüft (dabei gefunden und behoben: nach dem Wechsel blieb das Editor-Beispiel deutsch, weil die alte Verfahrensliste die Auswahl zurücksetzte); App-Start geprüft |
+| 2026-10-30 | Rückmeldung umgesetzt (E94–E98): Drag &amp; Drop mit Live-Verschiebung und Hervorhebung, gerundete Segment-Außenkanten, mittig ausgerichtete Schreibweise-Auswahl, übersetzte Beispielnamen; dabei gefunden und behoben: neu gewählte Editoren zeigten ihr Beispiel erst nach einer Änderung (E97), und die rote Fehlerumrandung von Ketteneinträgen griff wegen eines lokal gesetzten Rahmens nicht. Build ohne Warnungen, **188/188 Tests bestanden**; Headless-Prüfung mit simuliertem Ziehen per Maus (Reihenfolge und Vorschau ändern sich während des Ziehens, Auswahl bleibt erhalten) |
+| 2026-10-30 | A12, A13 bestätigt; zweite Rückmeldung umgesetzt (E99–E102): Karteireiter bei „Name aus Vorlage“, gemeinsame Grundlinie in der Schreibweise-Auswahl (gemessen: identisch), vollständiger Segment-Rahmen bei heller Akzentfarbe, Drag &amp; Drop mit Abbild am Mauszeiger und Einfügelinie (neue Klasse `ChainDragController`). Build ohne Warnungen, **188/188 Tests bestanden**; Headless-Prüfung mit simuliertem Ziehen nach unten und oben |
+| 2026-10-30 | Manueller Test der Rückmeldungen (E99–E102) durch den Anwender: „Funktioniert sehr gut“ |
+| 2026-10-30 | F45–F48 geklärt, E103 umgesetzt: Reiter 28 px hoch wie die Segment-Schaltflächen (Fluent-Mindesthöhe 48 px aufgehoben), aktiver Reiter mit Auswahlfarbe bzw. bei Fokus im Editor in voller Akzentfarbe. Build ohne Warnungen, **188/188 Tests bestanden**; headless beide Zustände geprüft, Höhen gemessen |
+| 2026-10-30 | E104, E105 umgesetzt: Rahmen des Sättigungsfelds vollständig, Platzhalter über die volle Breite. Build ohne Warnungen, **188/188 Tests bestanden**; headless geprüft (Rahmenstärke und Höhe gemessen, Screenshots) |
+| 2026-10-30 | F49–F52 geklärt, E106 umgesetzt: eigene Vorlagen je Tab speichern, auswählen, per ✕ entfernen; programmweit gespeichert (`AppSettings.CustomPhotoTemplates`/`CustomAudioTemplates`), Listenregeln in `CustomTemplateList` (Core). Dabei E107 behoben. Build ohne Warnungen, **198/198 Tests bestanden** (10 neue); headless geprüft: Speichern-Schaltfläche nur bei neuer Vorlage aktiv, Liste mit Trennlinie, Liste bleibt über Editorwechsel erhalten, Auswahl übernimmt und setzt zurück, Mausklick auf ✕ entfernt ohne auszuwählen, Einstellungsdatei aktualisiert |
+| 2026-10-30 | A14 bestätigt; E108 umgesetzt (Speichern-Schaltflächen in Akzentfarbe), Build und Headless-Lauf ohne Fehler |
+| 2026-10-30 | **Erweiterung vom Anwender abgenommen**; Abnahmeerklärung in `ABNAHME.md` (N4) eingetragen |
+| 2026-10-30 | Sprachwechsel vom Anwender in der laufenden App geprüft – funktioniert; Einschränkung B12 entfällt |
+
+Nächster Schritt: keiner – Grundversion (2026-10-29) und Erweiterung (2026-10-30) sind abgenommen, siehe `ABNAHME.md`.
 
 ---
 
@@ -98,6 +126,59 @@ Nächster Schritt: Abnahmeerklärung in `ABNAHME.md` (Abschnitt 7) durch den Anw
 | E53 | Dateiauswahl | Abgewählte Dateien durchlaufen die Kette nicht: kein Zählerwert (Ausgewählte werden lückenlos nummeriert), keine Berücksichtigung bei der erlaubten Ziffernketten-Nr. | 2026-10-29 |
 | E54 | Dateiauswahl | Abgewählte Dateien bleiben ausgegraut mit unverändertem Namen sichtbar; ihr Name zählt für die Konfliktprüfung weiter als belegt. | 2026-10-29 |
 | E55 | App-Icon | Entwurf C („Aa“ mit Unterstreichung in den fünf Verfahrensfarben, dunkler Grund). Eingebunden als `Assets/app.ico` (16–256 px, Programmsymbol der .exe) und `Assets/app.png` (512 px, Fenstersymbol). | 2026-10-29 |
+| E56 | Metadaten-Leser | Eigene Leser ohne neue Abhängigkeit für alle Formate aus E57 (F22). | 2026-10-30 |
+| E57 | Formate | Bilder: JPEG, TIFF, HEIC, PNG, RAW (Umfang F32). Audio: MP3 (ID3v1, ID3v2.2–2.4), FLAC (Vorbis Comments), M4A (iTunes-Atome) – gemeinsame Platzhalter (F22, F23). | 2026-10-30 |
+| E58 | Groß/Klein | Neues Verfahren „Groß-/Kleinschreibung“: kleinschreibung, GROSSSCHREIBUNG, Erster Buchstabe groß, Jedes Wort groß, PascalCase, camelCase, snake_case, kebab-case (F24). | 2026-10-30 |
+| E59 | Groß/Klein | Wortgrenzen: Leerzeichen, `_`, `-`, `.` und Wechsel klein→GROSS; Ziffern bleiben am Wort; ß bleibt ß (F25). | 2026-10-30 |
+| E60 | EXIF-Datum | Datumsquelle „EXIF-Aufnahmedatum“: DateTimeOriginal → DateTimeDigitized → DateTime; ohne EXIF-Datum Änderungsdatum mit Hinweis wie E2 (F26). | 2026-10-30 |
+| E61 | Vorlage | Die Vorlage ersetzt den Namen; `%name%` steht für den bisherigen Namen (F27). | 2026-10-30 |
+| E62 | Platzhalter | EXIF zusätzlich: Orientierung (0/90/180/270°), Brennweite, GPS-Breite/-Länge, Höhe, Bildbeschreibung, Ersteller, Copyright. ID3-Liste wie vorgeschlagen. Format je Platzhalter `%name:format%`, z. B. `%date:yyyy-MM-dd%`; `%track%` standardmäßig zweistellig, anpassbar (`%track:000%`) (F28). | 2026-10-30 |
+| E63 | Platzhalter | Fehlende Werte werden durch einen Ersatztext ersetzt (Standard „Unbekannt“, änderbar) (F29). | 2026-10-30 |
+| E64 | Platzhalter | Verbotene Zeichen in Werten werden durch ein frei wählbares Zeichen ersetzt, Standard `_` (F30). | 2026-10-30 |
+| E65 | Platzhalter | Unbekannte Platzhalter sind Fehler: Verfahren rot, Umbenennen gesperrt (F31). | 2026-10-30 |
+| E66 | Bedienung/Technik | Platzhalter als Schaltflächen, die an der Cursorposition einfügen (V14); Metadaten werden je Datei einmal gelesen und zwischengespeichert (V15). | 2026-10-30 |
+| E67 | Neue Verfahren | „Zeichen bereinigen“ (V16), „Bereich entfernen / kürzen“ (V17), „Erweiterung ändern“ (V18), „Ordnername einfügen“ (V19). | 2026-10-30 |
+| E68 | Vorlage | EXIF und ID3 werden in **einem** Verfahren „Name aus Vorlage“ mit allen Platzhaltern (Datei, Ordner, EXIF, Audio) zusammengefasst (V20). | 2026-10-30 |
+| E69 | RAW-Formate | DNG, CR2, CR3, NEF, ARW, ORF, RW2, RAF, PEF (F32). | 2026-10-30 |
+| E70 | Beschreibungsfelder | Bildbeschreibung, Ersteller, Copyright: zuerst EXIF, dann IPTC, dann XMP; der erste vorhandene Wert zählt (F33). | 2026-10-30 |
+| E71 | GPS | Dezimalgrad mit 5 Nachkommastellen und Himmelsrichtung (`48.13743N`, `11.57549E`), Höhe in ganzen Metern (`519m`) (F34). | 2026-10-30 |
+| E72 | Verfahrensliste | Gruppierung in „Text“, „Datum &amp; Zahlen“, „Metadaten &amp; Ordner“, „Erweiterung“ (F35). | 2026-10-30 |
+| E73 | Erweiterung ändern | Wirkt auch bei aktivem „Dateierweiterung ignorieren“; die geänderte Endung wird dann in der Vorschau eingeblendet (F36). | 2026-10-30 |
+| E74 | Vorlage | `%date%`/`%time%` ohne EXIF weichen auf das Änderungsdatum aus (mit Hinweis, wie E60) (F37). | 2026-10-30 |
+| E75 | Groß/Klein | Die Beispiele stehen direkt in der ComboBox (breit genug); die Tabelle aller Schreibweisen entfällt. | 2026-10-30 |
+| E76 | Vorlage | „Name aus Vorlage“ wird in die Tabs „Fotos“ und „Audio“ aufgeteilt; im Audio-Tab ist die Stellenanzahl der Tracknummer einstellbar (Standard 2). | 2026-10-30 |
+| E77 | Vorlage | Je Tab eine eigene Vorlage: Foto-Vorlage für Bilddateien, Audio-Vorlage für Audiodateien; leere Vorlage = unverändert; andere Dateitypen unverändert mit Hinweis (F38). | 2026-10-30 |
+| E78 | Vorlage | Platzhalter umbrechen eingerückt hinter der Gruppenbezeichnung (nicht am Zeilenanfang). | 2026-10-30 |
+| E79 | Akzentfarbe | Wählbare Akzentfarbe für Steuerelemente (Checkboxen, Schaltflächen, Auswahl): farbiger Kreis neben der Theme-Auswahl öffnet eine Auswahl mit 5 Pastell- und 5 kräftigen Farben sowie ein Feld für einen Hex-Code (`#25A0C3`); zusätzlich im Menü „Ansicht“; wird wie das Theme gespeichert. | 2026-10-30 |
+| E80 | Akzentfarbe | Schrift auf akzentfarbigen Flächen automatisch hell oder dunkel je nach Helligkeit der Akzentfarbe (F39). | 2026-10-30 |
+| E81 | Akzentfarbe | „Standard“ setzt auf das bisherige Blau `#2F6FDF` zurück (F40). | 2026-10-30 |
+| E82 | Akzentfarbe | Pastellfarben 20 % kräftiger (Sättigung ×1,2, Helligkeit um 20 % des Abstands zu Weiß gesenkt): `#8EBCEA`, `#A0ECD1`, `#FFD3B5`, `#E1A2C6`, `#B8C2EA`. Zusätzliche Reihe „Neutral“: 95 % Schwarz `#0D0D0D`, 95 % Weiß `#F2F2F2`. | 2026-10-30 |
+| E83 | Akzentfarbe | Die Sättigung der Pastellfarben ist in Prozent einstellbar und wird gespeichert (Bedeutung siehe F42). | 2026-10-30 |
+| E84 | Akzentfarbe | Selbst erstellte Farben erscheinen in der Liste unter „Benutzerdefiniert“ und werden gespeichert (Details siehe F43). | 2026-10-30 |
+| E85 | Akzentfarbe | Bei zu geringem Kontrast zum Hintergrund (Verhältnis &lt; 1,6) erhalten akzentfarbige Flächen automatisch einen Rahmen in Schriftfarbe (F41). | 2026-10-30 |
+| E86 | Pastell-Sättigung | Der Prozentwert ist die **absolute Sättigung nach dem HSV-Prinzip** (0 % = 0, 100 % = 255) aller Pastellfarben; Farbton (H) und Hellwert (V) bleiben. Einstellbar von 10 % bis 90 % (≙ 26–230 von 255) (F42; am 2026-10-30 von HSL auf HSV korrigiert). | 2026-10-30 |
+| E87 | Benutzerdefiniert | Per Hex-Code übernommene Farben werden automatisch aufgenommen, ohne Duplikate, höchstens 10 (älteste fällt weg), Entfernen über ✕ (F43). | 2026-10-30 |
+| E88 | Bedienung | Der Fokusring um den Sättigungsregler erscheint nur bei Bedienung per Tastatur (Tab), nicht bei Mausbedienung. | 2026-10-30 |
+| E89 | Pastell-Sättigung | Standardwert 30 % (≙ 77/255) (F44). | 2026-10-30 |
+| E90 | Gestaltung | **Mockup v10** (`mockups/mockup-v10.html`) ist freigegeben und gilt als Vorlage für die Erweiterung. | 2026-10-30 |
+| E91 | Profil zurücksetzen | Schaltfläche „Zurücksetzen“ neben „Speichern“ und Menü „Profile → Profil zurücksetzen“: entfernt alle Verfahren aus der Kette, das Profilfeld bleibt leer, gespeicherte Profile bleiben auswählbar. Enthält die Kette Verfahren, erscheint vorher eine Sicherheitsabfrage. | 2026-10-30 |
+| E92 | Sprache | Oberfläche auf Deutsch und Englisch. Auswahl unter „Ansicht → Sprache“: System, Deutsch, English; wirkt sofort ohne Neustart und wird gespeichert. | 2026-10-30 |
+| E93 | Sprache | „System“: Deutsch bei deutschem Betriebssystem, sonst Englisch. | 2026-10-30 |
+| E94 | Drag &amp; Drop | Beim Ziehen eines Ketteneintrags wandert dieser sofort an die Position unter dem Mauszeiger und ist hervorgehoben (Auswahlfarbe, Rahmen in Akzentfarbe); die Vorschau zeigt die neue Reihenfolge schon während des Ziehens. Die Auswahl des Eintrags bleibt beim Verschieben erhalten. | 2026-10-30 |
+| E95 | Segment-Schaltflächen | Die äußeren Segmente einer Auswahlgruppe erhalten außen dieselbe Rundung wie Buttons und Textfelder (4 px). | 2026-10-30 |
+| E96 | Schreibweise-Auswahl | Bezeichnung und Beispiel jeder Zeile der ComboBox „Schreibweise“ werden vertikal mittig ausgerichtet. | 2026-10-30 |
+| E97 | Editor-Beispiel | Ein neu gewählter Editor prüft seine Standardwerte sofort und zeigt das Beispiel ohne vorherige Änderung (Fehler gefunden bei der Prüfung von A11: u. a. „Ordnername einfügen“, „Erweiterung ändern“ und „Name aus Vorlage“ zeigten zunächst kein Beispiel). | 2026-10-30 |
+| E99 | Vorlage | Die Tabs „Fotos“/„Audio“ werden wie im Mockup v10 als Karteireiter gestaltet: Leiste mit Grundlinie, gewählter Reiter mit Rahmen oben und seitlich, Fensterhintergrund und fetter Schrift; nicht gewählte Reiter gedämpft. | 2026-10-30 |
+| E100 | Schreibweise-Auswahl | Statt mittiger Ausrichtung (E96) sitzen Bezeichnung und Beispiel auf derselben Grundlinie (Ursache: unterschiedliche Schriften mit verschiedenen Ober-/Unterlängen). | 2026-10-30 |
+| E101 | Segment-Schaltflächen | Das gewählte Segment wird über seinen Nachbarn gezeichnet, damit der Rahmen bei heller Akzentfarbe (E85) auf allen vier Seiten sichtbar ist. | 2026-10-30 |
+| E102 | Drag &amp; Drop | Ersetzt E94, wie im Mockup v10: Ein Abbild des Eintrags klebt am Mauszeiger, der Eintrag bleibt blass an seinem Platz, eine Linie in Akzentfarbe zeigt die Einfügestelle (über dem Ziel beim Ziehen nach oben, darunter beim Ziehen nach unten). Verschoben wird erst beim Loslassen; die Liste springt beim Ziehen nicht mehr. | 2026-10-30 |
+| E103 | Vorlage | Ergänzt E99: Reiter so hoch wie die Segment-Schaltflächen. Der aktive Reiter ist farbig hinterlegt: Liegt der Fokus irgendwo im Editor „Name aus Vorlage“, in voller Akzentfarbe mit Akzent-Schriftfarbe (Rahmen wie beim gewählten Segment); sonst in der Auswahlfarbe der Verfahrensliste. Verfahrensliste und Kette bleiben unverändert (F45–F48). | 2026-10-30 |
+| E104 | Akzentfarbe | Das Prozentfeld der Pastell-Sättigung erhält denselben Rahmen und dieselbe Höhe (32 px) wie die übrigen Textfelder. Ursache des Fehlers: Das Feld war kleiner als die Fluent-Mindestgröße seines inneren Textfelds, Rahmen rechts, oben und unten wurden abgeschnitten. | 2026-10-30 |
+| E105 | Vorlage | Der Editor „Name aus Vorlage“ ist nicht mehr auf 760 px begrenzt; die Platzhalter-Schaltflächen nutzen die volle Breite und brechen erst am rechten Rand um. | 2026-10-30 |
+| E106 | Eigene Vorlagen | Bei „Name aus Vorlage“ steht in jedem Tab neben der Vorlagenauswahl eine Schaltfläche „Speichern“: Sie nimmt die eingegebene Vorlage ohne Rückfrage in die Liste dieses Tabs auf; leere oder bereits vorhandene Vorlagen werden nicht gespeichert. Eigene Vorlagen gelten programmweit (Einstellungen, getrennt nach Fotos und Audio), erscheinen oben in der Liste (neueste zuerst), durch eine Linie von den Beispielvorlagen getrennt, und lassen sich per ✕ entfernen. Höchstens 10 je Tab; beim Speichern einer elften entfällt die älteste (F49–F52). | 2026-10-30 |
+| E107 | Vorlagenauswahl | Nach der Wahl einer Vorlage zeigt die Auswahl wieder „Vorlage wählen…“, damit dieselbe Vorlage erneut gewählt werden kann (Fehler gefunden bei E106: die Auswahl blieb stehen, mit eigenen Vorlagen sogar samt ✕ im zugeklappten Feld). | 2026-10-30 |
+| E108 | Eigene Vorlagen | Die Schaltflächen „Speichern“ bei „Name aus Vorlage“ verwenden die Akzentfarbe wie „Zur Kette hinzufügen“. | 2026-10-30 |
+| E98 | Sprache | A8–A10 bestätigt. Statt A11: Beispielnamen werden ebenfalls übersetzt, auch in der ComboBox „Schreibweise“ („mein Urlaub-Foto_2026“ → „my holiday-photo_2026“, „Urlaub 2026“ → „Holiday 2026“, „Reisen“ → „Travel“, „Musik“ → „Music“, „Foto“ → „Photo“, „Max Muster“ → „John Doe“). | 2026-10-30 |
 | E44 | Architektur | Gemeinsame Basis für alle Verfahren, Pipeline wendet die Kette an. Namen werden als Segmente mit Herkunft geführt (Grundlage der Hervorhebung). Dateisystemzugriffe über eigene Schnittstelle (testbar ohne echte Dateien). | 2026-10-29 |
 | E45 | Nach dem Umbenennen | Die Kette bleibt erhalten, die Dateiliste zeigt die neuen Namen (F19). | 2026-10-29 |
 | E46 | Änderungen verwerfen | „Änderungen verwerfen“ leert die Kette, die Dateiliste bleibt (F20). | 2026-10-29 |
@@ -119,6 +200,14 @@ _(keine)_
 
 ---
 
+## Annahmen (bitte bestätigen)
+
+| ID | Thema | Annahme |
+|----|-------|---------|
+_(keine)_
+
+---
+
 ## Bekannte Einschränkungen
 
 | ID | Einschränkung |
@@ -127,10 +216,13 @@ _(keine)_
 | B2 | Auf vielen Linux-Dateisystemen ist das Erstellungsdatum nicht verfügbar (siehe E2). |
 | B3 | Keine manuelle Änderung in der Dateiliste (siehe E12). |
 | B4 | Getestet nur unter Windows (Tests, Build, App-Start). Linux und macOS sind nicht geprüft. |
-| B5 | Interaktive Bedienung (Drag &amp; Drop, Dialoge, Dateiauswahl) wurde nicht per Klick getestet, nur gebaut und per Headless-Rendering angesehen. |
+| B5 | Interaktive Bedienung (Dialoge, Dateiauswahl) wurde nicht per Klick getestet, nur gebaut und per Headless-Rendering angesehen. Das Umsortieren der Kette ist headless und vom Anwender in der laufenden App geprüft (E102). |
 | B6 | Kein macOS-App-Bundle (`.app`, `LSMinimumSystemVersion` 14.0) und kein Installer im Projekt. |
 | B7 | Abweichungen vom Mockup v3: gestrichelte Rahmen (Ablagehinweis, Beispiel) sind in Avalonia nicht verfügbar und daher durchgezogen; „Profile verwalten…“ entfällt (E48); zusätzliche Schaltflächen „Liste leeren“ und „Letzte Umbenennung widerrufen“ (E49, E50). |
 | B8 | Widerrufen gilt nur für die letzte Umbenennung und nur bis zum Programmende. |
+| B9 | Die Metadaten-Leser sind mit von den Tests erzeugten, strukturell korrekten Dateien geprüft, nicht mit Originaldateien realer Kameras/Player. Herstellerspezifische Abweichungen (z. B. Makernotes, ungewöhnliche HEIC-Strukturen mit mehreren Extents, komprimierte ID3-Frames) werden nicht ausgewertet. |
+| B10 | Bei sehr hellen Akzentfarben (z. B. 95 % Weiß) im hellen Theme bleiben Checkboxen und der Reglerknopf trotz Rahmenlösung (E85) blass. |
+| B11 | Beim Sprachwechsel wird das Hauptfenster neu aufgebaut: Größe, Lage, Kette, Dateien, Auswahl und Editor-Einstellungen bleiben erhalten; die Position des Trennbalkens und Bildlaufpositionen werden zurückgesetzt. |
 
 ---
 
@@ -138,6 +230,17 @@ _(keine)_
 
 | ID | Frage / Vorschlag | Ergebnis | Datum |
 |----|-------------------|----------|-------|
+| B12 | Sprachwechsel in der laufenden App per Menüklick ungeprüft | vom Anwender geprüft, funktioniert | 2026-10-30 |
+| A14 | „Speichern“ nur bei gültiger Vorlage; Liste heißt „Vorlage wählen…“ | bestätigt | 2026-10-30 |
+| F49–F52 | Eigene Vorlagen: Speichern, Ort, Entfernen, Anzeige | Schaltfläche „Speichern“, programmweit, ✕ mit max. 10, oben getrennt → E106 | 2026-10-30 |
+| F45 | Farbe des aktiven Reiters | mit Fokus volle Akzentfarbe, ohne Fokus Auswahlfarbe → E103 | 2026-10-30 |
+| F46 | Bedeutung „Fokus“ | Fokus irgendwo im Editor „Name aus Vorlage“ → E103 | 2026-10-30 |
+| F47 | Fokusverhalten auch für Listen? | nein, nur Reiter → E103 | 2026-10-30 |
+| F48 | Höhe der Reiter | wie Segment-Schaltflächen → E103 | 2026-10-30 |
+| A12 | Eigennamen und „Café Müller“ bleiben unübersetzt | bestätigt | 2026-10-30 |
+| A13 | ComboBox „Style“ = Auswahl „Schreibweise“ | bestätigt | 2026-10-30 |
+| A8–A10 | Umfang der Übersetzung, Ersatztext, Zurücksetzen | bestätigt → E98 | 2026-10-30 |
+| A11 | Beispielnamen bleiben unübersetzt | abgelehnt, Beispielnamen werden übersetzt → E98 | 2026-10-30 |
 | F1 | Negative Werte bei Ziffernketten erlaubt? | Ja → E8; Folgefrage F10 | 2026-10-29 |
 | F2 | Bedeutung „Anzahl der Stellen“ | → E9 | 2026-10-29 |
 | F3 | Erweiterung ignorieren global oder pro Verfahren? | Global → E11 | 2026-10-29 |
@@ -160,6 +263,13 @@ _(keine)_
 | F17 | Bezugsbasis der Begrenzung | Namen an der Kettenposition → E41 | 2026-10-29 |
 | F18 | .NET 8 Supportende 2026-11-10 | .NET 10, macOS 14 → E1, E27, B1 | 2026-10-29 |
 | F21 | App-Icon | Entwurf C → E55 | 2026-10-29 |
+| F22–F31 | Neue Verfahren, Metadaten, Vorlagen | beantwortet → E56–E65 | 2026-10-30 |
+| V14–V20 | Vorschläge | angenommen → E66–E68 | 2026-10-30 |
+| F32–F37 | RAW, Beschreibungsfelder, GPS, Gruppierung, Erweiterung, Datum in Vorlage | beantwortet → E69–E74 | 2026-10-30 |
+| F38 | Vorlage je Tab | angenommen → E77 | 2026-10-30 |
+| F39, F40 | Schriftfarbe auf Akzent, „Standard“ | angenommen → E80, E81 | 2026-10-30 |
+| F41–F43 | Rahmen bei geringem Kontrast, Sättigung, Benutzerdefiniert | beantwortet → E85–E87 | 2026-10-30 |
+| F44 | Standard-Sättigung | 30 % → E89 | 2026-10-30 |
 | F19 | Verhalten nach dem Umbenennen | Kette bleibt → E45 | 2026-10-29 |
 | F20 | Änderungen verwerfen | Leert die Kette; zusätzlich Button „Liste leeren“ → E46, E50 | 2026-10-29 |
 | A1–A7 | Annahmen | A3 ersetzt durch E48, übrige bestätigt → E47 | 2026-10-29 |

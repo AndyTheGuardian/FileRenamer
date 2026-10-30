@@ -1,0 +1,26 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:FileRenamer.App.Localization"
+             xmlns:ed="using:FileRenamer.App.ViewModels.Editors"
+             xmlns:rules="using:FileRenamer.Core.Rules"
+             x:Class="FileRenamer.App.Views.Editors.InsertFolderEditorView"
+             x:DataType="ed:InsertFolderEditorViewModel">
+  <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="9" MaxWidth="720" HorizontalAlignment="Left">
+    <TextBlock Text="{loc:T Common.Position}" VerticalAlignment="Center" />
+    <StackPanel Grid.Column="1" Orientation="Horizontal">
+      <RadioButton Classes="segment" GroupName="folderPosition" Content="{loc:T Common.BeforeName}"
+                   IsChecked="{Binding Position, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static rules:AffixPosition.BeforeName}}" />
+      <RadioButton Classes="segment" GroupName="folderPosition" Content="{loc:T Common.AfterName}"
+                   IsChecked="{Binding Position, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static rules:AffixPosition.AfterName}}" />
+    </StackPanel>
+
+    <TextBlock Grid.Row="1" Text="{loc:T Folder.Level}" VerticalAlignment="Center" />
+    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12">
+      <NumericUpDown Value="{Binding Level}" Minimum="1" Increment="1" FormatString="0" Width="140" />
+      <TextBlock Classes="hint" Text="{loc:T Folder.LevelHint}" VerticalAlignment="Center" />
+    </StackPanel>
+
+    <TextBlock Grid.Row="2" Text="{loc:T Common.Separator}" VerticalAlignment="Center" />
+    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Separator}" Width="70" HorizontalAlignment="Left" />
+  </Grid>
+</UserControl>

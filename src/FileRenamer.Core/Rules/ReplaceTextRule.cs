@@ -1,3 +1,4 @@
+﻿using FileRenamer.Core.Localization;
 using System.Text.RegularExpressions;
 
 namespace FileRenamer.Core.Rules;
@@ -51,7 +52,7 @@ public sealed record ReplaceTextRule : PerFileRenameRule
         }
         catch (ArgumentException exception)
         {
-            return $"Ungültiger regulärer Ausdruck: {exception.Message}";
+            return CoreText.InvalidRegex(exception.Message);
         }
     }
 
@@ -76,7 +77,7 @@ public sealed record ReplaceTextRule : PerFileRenameRule
         catch (RegexMatchTimeoutException)
         {
             return RuleOutput.Unchanged(input.Name,
-                RenameIssue.Conflict("Der reguläre Ausdruck braucht zu lange (Zeitüberschreitung).", Id));
+                RenameIssue.Conflict(CoreText.RegexTimeout, Id));
         }
 
         var name = input.Name;
