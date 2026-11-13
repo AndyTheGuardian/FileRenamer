@@ -10,7 +10,7 @@ Unterstützte Systeme: Windows 10/11, Linux, macOS ab Version 14.
 
 | Bereich | Funktion |
 |---------|----------|
-| Menü und Leiste oben | Dateien/Ordner hinzufügen, Profile, Theme (System, Hell, Dunkel), Akzentfarbe (farbiger Kreis) |
+| Menü und Leiste oben | Dateien/Ordner hinzufügen, Profile, Bereich (Umbenennen / Tags), Theme (System, Hell, Dunkel), Akzentfarbe (farbiger Kreis) |
 | Oben links: **Verfahren** | Auswahl des Verfahrens, gruppiert in Text, Datum &amp; Zahlen, Metadaten &amp; Ordner, Erweiterung |
 | Oben rechts: **Optionen** | Einstellungen des gewählten Verfahrens |
 | Unten links: **Angewandte Verfahren** | Die Kette in Anwendungsreihenfolge |
@@ -161,6 +161,150 @@ Jede Zeile der Vorschau hat eine Checkbox. Umbenannt werden nur **ausgewählte**
 - Die Checkbox im Spaltenkopf wählt alle bzw. keine Datei aus. Bei teilweiser Auswahl zeigt sie einen Zwischenzustand.
 - Neu hinzugefügte Dateien sind ausgewählt.
 
+## Spalten anpassen
+
+In beiden Vorschaulisten (Umbenennen und Tags) lassen sich die Spalten anpassen; Checkbox und ⚠ bleiben vorne.
+
+- **Breite:** die rechte Kante eines Spaltenkopfs ziehen (der Mauszeiger wird zum Doppelpfeil). Ein Doppelklick auf
+  die Kante passt die Breite an den längsten sichtbaren Eintrag an.
+- **Reihenfolge:** einen Spaltenkopf an eine andere Stelle ziehen; eine Linie in der Akzentfarbe zeigt die Einfügestelle.
+- **Rechtsklick auf die Spaltenköpfe:**
+  - *Reihenfolge und Breiten speichern* – gilt auch nach einem Neustart (programmweit, je Liste).
+  - *Gespeicherte Anordnung wiederherstellen* – verwirft ungespeicherte Änderungen.
+  - *Auf Standard zurücksetzen* – Werkseinstellung; eine gespeicherte Anordnung bleibt erhalten, bis Sie erneut speichern.
+
+Ungespeicherte Änderungen gelten bis zum Programmende.
+
+Sind die Spalten zusammen breiter als die Liste (z. B. nach dem Verbreitern einer Spalte oder bei schmalem Fenster),
+lässt sich die Liste **horizontal scrollen** (Bildlaufleiste unten oder Umschalt+Mausrad); die Spaltenköpfe laufen mit.
+Flexible Spalten werden dabei nicht schmaler als ihre Mindestbreite.
+
+## Namen kopieren
+
+Die Namen in der Vorschau lassen sich in die Zwischenablage kopieren.
+
+- **Text markieren:** Mit der Maus über einen Namen ziehen (Doppelklick markiert ein Wort) und **Strg+C**
+  (macOS: Cmd+C) drücken oder per Rechtsklick *Markierten Text kopieren* wählen.
+- **Zeilen markieren:** Eine Zeile anklicken; mit **Strg** (macOS: Cmd) kommen weitere Zeilen hinzu oder fallen weg,
+  mit **Umschalt** wird ein Bereich markiert. Markierte Zeilen sind farbig hinterlegt, markierte Konfliktzeilen
+  erhalten einen Rahmen in der Akzentfarbe.
+- **Zeilen kopieren:** Rechtsklick und *Aktuelle Namen kopieren*, *Neue Namen kopieren* oder *Aktuelle und neue Namen
+  kopieren* wählen. Je Datei entsteht eine Zeile; bei beiden Namen sind sie durch einen Tabulator getrennt und lassen
+  sich so direkt in eine Tabellenkalkulation einfügen. **Strg+C** ohne markierten Text kopiert die neuen Namen.
+- Kopiert wird, was angezeigt wird: Bei *Dateierweiterung ignorieren* also ohne Endung.
+- Das Markieren einer Zeile ist unabhängig von ihrer Checkbox – es entscheidet nicht, welche Dateien umbenannt werden.
+
+## Audiodateien taggen
+
+Der Umschalter rechts in der Leiste (links neben der Theme-Auswahl) wechselt zwischen den Bereichen:
+**Umbenennen** („T“ mit Pfeil, Strg+1) und **Tags** (Etikett, Strg+2); ebenso *Ansicht → Bereich*. Ist genug Platz,
+steht neben dem Symbol auch die Beschriftung, sonst nur das Symbol mit Tooltip. Beide Bereiche nutzen dieselbe
+Dateiliste. Im Bereich Tags sind Profilfeld, „Speichern“ und „Zurücksetzen“ ausgeblendet – Profile gelten nur für das
+Umbenennen.
+
+Unterstützt werden alle Audioformate, die die Bibliothek TagLib# schreiben kann, u. a. MP3, FLAC, M4A, OGG, Opus,
+WMA, WAV und AIFF. MP3 wird als ID3v2.3 geschrieben. Andere Dateien erscheinen ausgegraut („keine Audiodatei –
+wird übersprungen“).
+
+### Aufbau
+
+| Bereich | Funktion |
+|---------|----------|
+| Oben links: **Funktionen** | Tags bearbeiten, Tags aus Dateinamen, Tracknummern vergeben, Cover, Lyrics |
+| Oben rechts: **Optionen** | Einstellungen der gewählten Funktion; daneben die ausgewählte Datei bzw. „n Dateien ausgewählt“ |
+| Unten links: **Vorgemerkte Änderungen** | Werden erst mit „Tags speichern“ geschrieben; Checkbox schaltet eine Änderung in der Vorschau aus, ✕ entfernt sie |
+| Unten rechts: **Tag-Vorschau** | Checkbox zur Dateiauswahl; Track, Titel, Interpret, Album, Albuminterpret, Jahr, Cover und Lyrics nach den Änderungen, farbig in der Farbe der Funktion |
+| Fußzeile | Zusammenfassung, „Letzte Speicherung widerrufen“, „Änderungen verwerfen“, „Tags speichern“ |
+
+### So gehen Sie vor
+
+1. **Dateien auswählen:** Wie beim Umbenennen hat jede Zeile eine Checkbox; die Funktionen arbeiten mit den
+   **ausgewählten** Dateien. Die Checkbox im Spaltenkopf wählt alle bzw. keine Audiodatei aus. Andere Dateien sind
+   ausgegraut, ihre Checkbox ist gesperrt. Beim Öffnen ist die erste Audiodatei ausgewählt.
+2. **Funktion wählen** und Einstellungen vornehmen.
+3. **Änderungen vormerken.** Die Änderung erscheint unten links, die Vorschau zeigt das Ergebnis.
+   Mit *Vorher anzeigen* sehen Sie die bisherigen Werte durchgestrichen davor; reicht der Platz nicht, wird der
+   bisherige Wert gekürzt (…), der neue bleibt vollständig sichtbar. Der Tooltip zeigt den bisherigen Wert ebenfalls.
+4. **Tags speichern** (bzw. Strg+Umschalt+S). Nach einer Sicherheitsabfrage werden die Dateien geschrieben –
+   **alles oder nichts**: Schlägt eine Datei fehl, werden die bereits geschriebenen zurückgesetzt.
+
+Dateien und Ordner nehmen Sie per Drag & Drop an einer beliebigen Stelle des Fensters an; ist die Liste leer, steht
+der Hinweis dazu in der Liste. **Liste leeren** rechts über der Tag-Vorschau entfernt alle Dateien aus der
+(gemeinsamen) Liste. Sind Tag-Änderungen vorgemerkt, fragt das
+Programm vorher nach – beim Leeren werden sie verworfen. Das gilt auch für **Liste leeren** im Bereich „Umbenennen“
+und im Menü *Datei*.
+
+**Kopieren aus der Tag-Vorschau:** Text in einer Zelle lässt sich mit der Maus markieren und mit Strg+C kopieren.
+Zeilen markieren Sie wie in der Rename-Liste per Klick (Strg/Umschalt für mehrere, Strg+A für alle) – das ist
+unabhängig von der Checkbox. Das Kontextmenü der markierten Zeilen bietet *Dateinamen kopieren*, *Tags kopieren*, *Dateinamen und Tags kopieren*
+und *Zeilen kopieren* (mit Kopfzeile). Strg+C ohne markierten Text entspricht *Zeilen kopieren*. Spalten sind durch
+Tabulatoren getrennt (passend zum Einfügen in eine Tabellenkalkulation), leere Werte bleiben leer, Cover und Lyrics
+erscheinen als „ja“. Kopiert wird immer der **gespeicherte Stand** der Dateien – vorgemerkte Änderungen nicht.
+
+Jede vorgemerkte Änderung gilt für die Dateien, für die sie vorgemerkt wurde. Spätere Änderungen haben Vorrang.
+Ein Klick auf eine vorgemerkte Änderung (nicht auf Checkbox oder ✕) wählt ihre Dateien aus (Checkboxen) und öffnet ihre Funktion – auch
+wiederholt; bearbeiten lässt sie sich
+nicht – entfernen Sie sie mit ✕ und merken Sie sie neu vor. Nach dem Speichern liest das Programm die Tags neu,
+sodass *Name aus Vorlage* beim Umbenennen sofort die neuen Werte verwendet.
+
+**Letzte Speicherung widerrufen** stellt Tags, Cover und Lyrics der zuletzt gespeicherten Dateien wieder her
+(bis zum Programmende). **Änderungen verwerfen** entfernt alle vorgemerkten Änderungen; die Dateien bleiben unverändert.
+
+### Tags bearbeiten
+
+Das Formular zeigt die Werte der ausgewählten Dateien. Haben sie unterschiedliche Werte, steht dort
+*&lt;verschiedene&gt;*; das Feld bleibt dann unverändert, solange Sie es nicht bearbeiten.
+
+- Ein geändertes Feld erhält links einen farbigen Balken; **↺** nimmt die Änderung zurück, *Felder zurücksetzen* alle.
+- Ein **geleertes** Feld löscht den Tag. Mehrere Werte (z. B. Interpreten) trennen Sie mit **;**.
+- Jahr, Track, Disc und BPM nehmen nur ganze Zahlen an.
+- **Genre:** eine Auswahl wie bei den Profilen – Sie können tippen oder mit dem Pfeil die Liste öffnen. Oben stehen Ihre eigenen Genres (neueste zuerst, höchstens 20, ✕ entfernt eines),
+  darunter die Standardgenres. Ein neues Genre wird beim Vormerken automatisch aufgenommen.
+- **Feld hinzufügen:** ein gängiges Feld aus der Liste wählen (BPM, Copyright, Herausgeber, ISRC, Dirigent,
+  Untertitel, Gruppierung, Sortiernamen …) oder einen eigenen Namen eingeben. Hinzugefügte Felder bleiben im Formular,
+  auch nach dem Neustart; **✕** blendet ein Feld aus, der Tag bleibt in den Dateien. Gängige Felder, die eine ausgewählte
+  Datei enthält, erscheinen automatisch.
+
+### Tags aus Dateinamen
+
+Liest Felder mit einer Vorlage aus dem Dateinamen, z. B. `%track% %title%`: `01 Like A Prayer.mp3` → Track 1,
+Titel „Like A Prayer“. Platzhalter: `%artist%` `%title%` `%album%` `%albumartist%` `%track%` `%disc%` `%year%`
+`%genre%` `%composer%`; `%skip%` überspringt einen Teil. Mit **/** lesen Sie Ordner mit:
+`%artist%/%album%/%track% %title%`. Optional gelten Unterstriche als Leerzeichen. Passt ein Name nicht zur Vorlage,
+bleibt die Datei unverändert (⚠).
+
+### Tracknummern vergeben
+
+Nummeriert die Dateien ab dem Startwert – in Listenreihenfolge, nach Dateiname oder nach Titel. Auf Wunsch wird
+„von“ auf die Anzahl der Dateien gesetzt (3/12) und die Discnummer mitgesetzt.
+
+### Cover
+
+Die Kacheln zeigen die Bilder der ersten ausgewählten Datei mit Bildtyp, Format, Maßen und Größe; ein Klick wählt ein Bild.
+
+- **Einfügen:** Bei der Quelle *Bilddatei* öffnet *Einfügen…* die Dateiauswahl; alternativ ein Bild auf die
+  Ablagefläche ziehen (die ganze Fläche nimmt es an). *Aus dem Ordner*
+  nimmt für jede Audiodatei `cover`, `folder` oder `front` (.jpg, .png …) aus ihrem Ordner. Wählbar sind Bildtyp
+  (Vorderseite, Rückseite, Booklet-Seite, Medium, Interpret, Band-Logo, Sonstiges) und ob ein Bild desselben Typs
+  ersetzt wird.
+- **Verkleinern:** Größere Bilder werden auf die eingestellte Pixelzahl der längsten Seite verkleinert (Standard 1000,
+  wird gemerkt). JPEG wird mit Qualität 90 % gespeichert, PNG bleibt PNG; kleinere Bilder bleiben unverändert.
+- **Gewähltes entfernen** entfernt den Bildtyp der gewählten Kachel aus den Dateien unter *Gilt für*.
+- **Extrahieren** speichert die Bilder sofort als Dateien – in den Ordner der Audiodatei oder einen gewählten Ordner.
+  Der Dateiname kann `%type%`, `%album%`, `%artist%` und `%name%` enthalten. Vorhandene Dateien werden nie
+  überschrieben (dann z. B. `cover (2).jpg`); gleiche Bilder werden auf Wunsch nur einmal gespeichert.
+
+### Lyrics
+
+- **Text:** Bei genau einer ausgewählten Datei lässt sich der Text bearbeiten und mit Sprache *vormerken*.
+- **Importieren:** aus der Datei gleichen Namens (`.lrc`, sonst `.txt`) neben jeder Audiodatei oder aus einer
+  gewählten Datei (Option *Gewählte Datei*; die Auswahl öffnet sich beim Importieren). Zeitstempel aus LRC-Dateien bleiben als Text erhalten. Dateien ohne Lyrics-Datei bleiben unverändert (⚠).
+- **Exportieren:** als `.lrc` (unverändert) oder `.txt` (ohne Zeitstempel) mit dem Namen der Audiodatei, in deren
+  Ordner oder einen gewählten Ordner (Option *Gewählter Ordner*; die Auswahl öffnet sich beim Exportieren); vorhandene Dateien nur auf Wunsch überschreiben.
+
+Extrahieren und Exportieren verwenden die Cover und Lyrics, wie sie in den Dateien stehen – noch nicht gespeicherte
+Änderungen zählen dabei nicht.
+
 ## Dateierweiterung ignorieren
 
 Ist der Haken über der Vorschau gesetzt, wirken die Verfahren nur auf den Namen ohne die **letzte**
@@ -186,7 +330,7 @@ Fahren Sie mit der Maus über das Symbol, um den Grund zu sehen.
 - **Letzte Umbenennung widerrufen** gibt den zuletzt umbenannten Dateien nach einer Sicherheitsabfrage ihre
   vorherigen Namen zurück (ebenfalls alles oder nichts). Ist ein früherer Name inzwischen belegt, wird nichts geändert.
 - **Änderungen verwerfen** leert die Kette; die Dateien bleiben in der Liste.
-- **Liste leeren** (unter der Vorschau oder *Datei → Liste leeren*) entfernt alle Dateien aus der Liste – die Dateien selbst bleiben unverändert.
+- **Liste leeren** (rechts über der Vorschau oder *Datei → Liste leeren*) entfernt alle Dateien aus der Liste – die Dateien selbst bleiben unverändert.
 
 ## Profile
 
@@ -223,10 +367,15 @@ bleibt der gespeicherte Text.
 
 Die drei Symbole oben rechts (bzw. *Ansicht*) wählen **System** (Monitor), **Hell** (Sonne) oder **Dunkel** (Mond).
 
+Dialoge (Rückfragen, Meldungen, Eingaben) heben sich in beiden Themes vom Hauptfenster ab: eigene Fläche mit Rahmen;
+das Hauptfenster wird abgedunkelt, solange ein Dialog oder eine Datei- bzw.
+Ordnerauswahl offen ist.
+
 ## Akzentfarbe
 
 Der farbige Kreis rechts neben den Theme-Symbolen (bzw. *Ansicht → Akzentfarbe…*) öffnet die Farbwahl.
-Die Akzentfarbe gilt für Schaltflächen, Checkboxen, die Theme-Auswahl und die Hervorhebung gewählter Einträge.
+Die Akzentfarbe gilt für Schaltflächen, Checkboxen, die Theme-Auswahl, die Hervorhebung gewählter Einträge und
+den Hintergrund von markiertem Text. Markierter Text erscheint auf hellen Akzentfarben dunkel, auf dunklen hell.
 
 - **Pastell:** fünf Pastellfarben; der Regler daneben stellt ihre Sättigung nach dem HSV-Prinzip ein
   (10–90 %, Standard 30 %; die Zahl daneben zeigt den Wert auf der Skala bis 255).

@@ -1,4 +1,6 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using FileRenamer.App.Localization;
@@ -6,12 +8,15 @@ using FileRenamer.App.Localization;
 namespace FileRenamer.App.Services;
 
 /// <summary>
-/// Implementiert die Dialoge als schlichte modale Fenster und nutzt den Speicheranbieter
-/// des Hauptfensters für die Datei- und Ordnerauswahl.
+/// Implementiert die Dialoge als modale Fenster, die sich mit eigener Fläche und Rahmen farblich vom Hauptfenster
+/// abheben; solange ein Dialog offen ist, wird das Hauptfenster abgedunkelt (V22, E149). Für die Datei- und
+/// Ordnerauswahl wird der Speicheranbieter des Hauptfensters genutzt.
 /// </summary>
 /// <param name="owner">Das Hauptfenster.</param>
 public sealed class DialogService(Window owner) : IDialogService
 {
+    private int _openDialogs;
+
     /// <summary>
     /// Das Fenster, über dem die Dialoge erscheinen; wird nach einem Sprachwechsel auf das neu aufgebaute
     /// Hauptfenster gesetzt.
@@ -29,7 +34,7 @@ public sealed class DialogService(Window owner) : IDialogService
     {
         var dialog = CreateDialog(title, CreateMessage(message));
         AddButtons(dialog, (Loc.T("Dialog.Cancel"), false), (confirmText, true));
-        return await dialog.ShowDialog<bool>(Owner);
+        return await ShowAsync(dialog);
     }
 
     /// <summary>
@@ -42,7 +47,7 @@ public sealed class DialogService(Window owner) : IDialogService
     {
         var dialog = CreateDialog(title, CreateMessage(message));
         AddButtons(dialog, (Loc.T("Dialog.Ok"), true));
-        await dialog.ShowDialog<bool>(Owner);
+        await ShowAsync(dialog);
     }
 
     /// <summary>
@@ -70,7 +75,7 @@ public sealed class DialogService(Window owner) : IDialogService
         AddButtons(dialog, (Loc.T("Dialog.Cancel"), false), (Loc.T("Dialog.Save"), true));
         dialog.Opened += (_, _) => input.Focus();
 
-        var confirmed = await dialog.ShowDialog<bool>(Owner);
+        var confirmed = await ShowAsync(dialog);
         return confirmed && !string.IsNullOrWhiteSpace(input.Text) ? input.Text.Trim() : null;
     }
 
@@ -80,9 +85,24 @@ public sealed class DialogService(Window owner) : IDialogService
     /// <returns>Die lokalen Pfade.</returns>
     public async Task<IReadOnlyList<string>> PickFilesAsync()
     {
-        var files = await Owner.StorageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions { Title = Loc.T("Dialog.PickFiles"), AllowMultiple = true });
+        var files = await WithShadeAsync(() => Owner.StorageProvider.OpenFilePickerAsync(
+            new FilePickerOpenOptions { Title = Loc.T("Dialog.PickFiles"), AllowMultiple = true }));
         return files.Select(file => file.TryGetLocalPath()).OfType<string>().ToList();
+    }
+
+    /// <summary>
+    /// Öffnet die Auswahl für eine einzelne Datei mit Filter.
+    /// </summary>
+    /// <param name="title">Titel des Dialogs.</param>
+    /// <param name="filterName">Bezeichnung des Filters.</param>
+    /// <param name="extensions">Erlaubte Endungen mit Punkt.</param>
+    /// <returns>Der lokale Pfad oder <c>null</c>.</returns>
+    public async Task<string?> PickFileAsync(string title, string filterName, IReadOnlyList<string> extensions)
+    {
+        var filter = new FilePickerFileType(filterName) { Patterns = extensions.Select(extension => "*" + extension).ToList() };
+        var files = await WithShadeAsync(() => Owner.StorageProvider.OpenFilePickerAsync(
+            new FilePickerOpenOptions { Title = title, AllowMultiple = false, FileTypeFilter = [filter] }));
+        return files.Count > 0 ? files[0].TryGetLocalPath() : null;
     }
 
     /// <summary>
@@ -91,17 +111,58 @@ public sealed class DialogService(Window owner) : IDialogService
     /// <returns>Der lokale Pfad oder <c>null</c>.</returns>
     public async Task<string?> PickFolderAsync()
     {
-        var folders = await Owner.StorageProvider.OpenFolderPickerAsync(
-            new FolderPickerOpenOptions { Title = Loc.T("Dialog.PickFolder"), AllowMultiple = false });
+        var folders = await WithShadeAsync(() => Owner.StorageProvider.OpenFolderPickerAsync(
+            new FolderPickerOpenOptions { Title = Loc.T("Dialog.PickFolder"), AllowMultiple = false }));
         return folders.Count > 0 ? folders[0].TryGetLocalPath() : null;
     }
 
     /// <summary>
-    /// Erzeugt das Grundgerüst eines modalen Dialogs.
+    /// Zeigt einen eigenen Dialog modal und dunkelt das Hauptfenster solange ab.
     /// </summary>
-    /// <param name="title">Fenstertitel.</param>
-    /// <param name="content">Inhalt oberhalb der Schaltflächen.</param>
-    /// <returns>Das Dialogfenster.</returns>
+    /// <param name="dialog">Der Dialog.</param>
+    /// <returns>Das Ergebnis des Dialogs.</returns>
+    private Task<bool> ShowAsync(Window dialog) => WithShadeAsync(() => dialog.ShowDialog<bool>(Owner));
+
+    /// <summary>
+    /// Dunkelt das Hauptfenster ab, solange eine modale Aktion läuft (V22, E149); verschachtelte Dialoge werden gezählt.
+    /// </summary>
+    /// <typeparam name="T">Ergebnistyp.</typeparam>
+    /// <param name="action">Die modale Aktion.</param>
+    /// <returns>Ihr Ergebnis.</returns>
+    private async Task<T> WithShadeAsync<T>(Func<Task<T>> action)
+    {
+        var shade = Owner.FindControl<Control>("DialogShade");
+        _openDialogs++;
+        SetShade(shade);
+        try
+        {
+            return await action();
+        }
+        finally
+        {
+            _openDialogs--;
+            SetShade(shade);
+        }
+    }
+
+    /// <summary>
+    /// Zeigt die Abdunkelung, solange mindestens ein Dialog offen ist.
+    /// </summary>
+    /// <param name="shade">Die Abdunkelung oder <c>null</c>, wenn das Fenster keine hat.</param>
+    private void SetShade(Control? shade)
+    {
+        if (shade is not null)
+        {
+            shade.IsVisible = _openDialogs > 0;
+        }
+    }
+
+    /// <summary>
+    /// Erzeugt einen Dialog mit eigener Fläche und Rahmen; Inhalt und Schaltflächen stehen untereinander.
+    /// </summary>
+    /// <param name="title">Titel des Dialogs (Titelleiste).</param>
+    /// <param name="content">Inhalt.</param>
+    /// <returns>Der Dialog.</returns>
     private static Window CreateDialog(string title, Control content) => new()
     {
         Title = title,
@@ -111,8 +172,22 @@ public sealed class DialogService(Window owner) : IDialogService
         WindowStartupLocation = WindowStartupLocation.CenterOwner,
         MinWidth = 380,
         MaxWidth = 560,
-        Content = new StackPanel { Margin = new Avalonia.Thickness(20), Spacing = 18, Children = { content } },
+        Background = Brush("DialogBackgroundBrush"),
+        Content = new Border
+        {
+            BorderBrush = Brush("DialogBorderBrush"),
+            BorderThickness = new Thickness(1),
+            Child = new StackPanel { Margin = new Thickness(20), Spacing = 18, Children = { content } },
+        },
     };
+
+    /// <summary>
+    /// Holt einen Pinsel aus den Ressourcen des aktuellen Themes.
+    /// </summary>
+    /// <param name="key">Ressourcenschlüssel.</param>
+    /// <returns>Der Pinsel oder <c>null</c>.</returns>
+    private static IBrush? Brush(string key) =>
+        Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var value) ? value as IBrush : null;
 
     /// <summary>
     /// Erzeugt einen umbrechenden Meldungstext.
@@ -120,7 +195,7 @@ public sealed class DialogService(Window owner) : IDialogService
     /// <param name="message">Der Text.</param>
     /// <returns>Das Steuerelement.</returns>
     private static TextBlock CreateMessage(string message) =>
-        new() { Text = message, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
+        new() { Text = message, TextWrapping = TextWrapping.Wrap };
 
     /// <summary>
     /// Fügt rechtsbündige Schaltflächen hinzu; die letzte ist die Standardschaltfläche.
@@ -140,6 +215,6 @@ public sealed class DialogService(Window owner) : IDialogService
         var primary = (Button)panel.Children[^1];
         primary.IsDefault = true;
         primary.Classes.Add("accent");
-        ((StackPanel)dialog.Content!).Children.Add(panel);
+        ((StackPanel)((Border)dialog.Content!).Child!).Children.Add(panel);
     }
 }

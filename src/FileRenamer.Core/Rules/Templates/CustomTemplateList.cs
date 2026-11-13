@@ -31,9 +31,11 @@ public static class CustomTemplateList
     /// <param name="custom">Die eigenen Vorlagen (neueste zuerst).</param>
     /// <param name="builtIn">Die Beispielvorlagen des Tabs.</param>
     /// <param name="template">Die eingegebene Vorlage.</param>
+    /// <param name="maxCount">Höchstzahl der Einträge (Standard <see cref="MaxCount"/>).</param>
     /// <returns>Die neue Liste; unverändert, wenn <see cref="CanAdd"/> nicht zutrifft.</returns>
-    public static IReadOnlyList<string> Add(IReadOnlyList<string> custom, IEnumerable<string> builtIn, string? template) =>
-        CanAdd(custom, builtIn, template) ? custom.Prepend(template!.Trim()).Take(MaxCount).ToList() : custom;
+    public static IReadOnlyList<string> Add(
+        IReadOnlyList<string> custom, IEnumerable<string> builtIn, string? template, int maxCount = MaxCount) =>
+        CanAdd(custom, builtIn, template) ? custom.Prepend(template!.Trim()).Take(maxCount).ToList() : custom;
 
     /// <summary>
     /// Entfernt eine Vorlage aus der Liste.

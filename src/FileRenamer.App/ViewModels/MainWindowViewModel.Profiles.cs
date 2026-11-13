@@ -1,7 +1,9 @@
+using FileRenamer.App.ViewModels.Tags;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FileRenamer.Core.Preview;
 using FileRenamer.App.Localization;
 using FileRenamer.App.Services;
 using FileRenamer.Core.Localization;
@@ -197,6 +199,7 @@ public sealed partial class MainWindowViewModel
     /// </summary>
     private void RefreshTexts()
     {
+        Tags?.OnLanguageChanged();
         Accent.Changed -= OnAccentChanged;
         Accent = new AccentColorViewModel(Accent.AccentHex, Accent.Saturation, Accent.Custom.Select(swatch => swatch.Hex).ToList());
         Accent.Changed += OnAccentChanged;
@@ -229,6 +232,14 @@ public sealed partial class MainWindowViewModel
         // Zuerst, weil die folgenden Schritte bereits speichern
         Templates = new TemplateLibrary(settings.CustomPhotoTemplates, settings.CustomAudioTemplates);
         Templates.Changed += (_, _) => SaveSettings();
+        TagLibrary = new TagLibrary(settings);
+        TagLibrary.Changed += (_, _) => SaveSettings();
+        foreach (var (key, columns) in settings.ColumnLayouts)
+        {
+            _savedColumns[key] = columns;
+        }
+
+        ConnectColumns(RenameColumnsKey, RenameColumns);
         Accent = new AccentColorViewModel(settings.AccentColor, settings.PastelSaturation, settings.CustomColors);
         Accent.Changed += OnAccentChanged;
         _themeService.ApplyAccent(Accent.AccentHex);
@@ -315,7 +326,7 @@ public sealed partial class MainWindowViewModel
     {
         try
         {
-            _settingsStore.Save(new AppSettings(Theme, CurrentProfileName)
+            _settingsStore.Save(TagLibrary.ApplyTo(new AppSettings(Theme, CurrentProfileName)
             {
                 AccentColor = Accent.AccentHex,
                 PastelSaturation = Accent.Saturation,
@@ -323,7 +334,8 @@ public sealed partial class MainWindowViewModel
                 Language = Language,
                 CustomPhotoTemplates = Templates.Photo,
                 CustomAudioTemplates = Templates.Audio,
-            });
+                ColumnLayouts = new Dictionary<string, IReadOnlyList<SavedColumn>>(_savedColumns),
+            }));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

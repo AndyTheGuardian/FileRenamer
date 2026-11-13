@@ -24,6 +24,11 @@ zeigt jederzeit, wie die Dateien heißen werden. Erst nach Bestätigung wird tat
 - **Kette** per Drag & Drop sortieren, Verfahren per Checkbox ein- und ausschalten
 - **Vorschau** mit Hervorhebung in der Farbe des jeweiligen Verfahrens, Hinweisen und Konflikten
 - **Dateiauswahl** per Checkbox – nur ausgewählte Dateien werden umbenannt
+- **Audiodateien taggen** (eigener Bereich, Strg+2): Tags bearbeiten – auch für viele Dateien zugleich –, Tags aus
+  Dateinamen, Tracknummern, Cover einfügen/verkleinern/entfernen/extrahieren mit mehreren Bildtypen, Lyrics bearbeiten,
+  importieren und exportieren; Tag-Vorschau vor dem Speichern, Alles-oder-nichts-Speichern und Widerrufen
+- **Kopieren** aus der Vorschau: Namen per Maus markieren oder Zeilen markieren und aktuelle, neue oder beide Namen
+  (tabulatorgetrennt) in die Zwischenablage legen
 - **Sicheres Umbenennen**: Konfliktprüfung (doppelte oder ungültige Namen, vorhandene Dateien),
   Alles-oder-nichts-Ausführung, Namenstausch a ↔ b, **Widerrufen** der letzten Umbenennung
 - **Dateierweiterung ignorieren** (nur die letzte Endung)
@@ -68,7 +73,7 @@ dotnet publish src/FileRenamer.App -c Release -r win-x64 --self-contained
 | `docs/` | Anwender- und Entwicklerdokumentation |
 | `mockups/` | Gestaltungsentwürfe |
 
-Technik: .NET 10 (LTS), Avalonia 12, CommunityToolkit.Mvvm, xUnit v3 – keine weiteren Abhängigkeiten.
+Technik: .NET 10 (LTS), Avalonia 12, CommunityToolkit.Mvvm, TagLib# (Schreiben von Audio-Tags), xUnit v3 – keine weiteren Abhängigkeiten.
 
 ## Dokumentation
 
@@ -85,3 +90,4 @@ Technik: .NET 10 (LTS), Avalonia 12, CommunityToolkit.Mvvm, xUnit v3 – keine w
 - Kein Installer und kein macOS-App-Bundle.
 - Widerrufen gilt für die letzte Umbenennung bis zum Programmende.
 - Die Metadaten-Leser sind mit erzeugten Testdateien geprüft, nicht mit Dateien realer Kameras und Player.
+- Audio-Tags: automatisch geprüft mit MP3 und FLAC; die übrigen Formate schreibt TagLib# ohne eigene Tests.

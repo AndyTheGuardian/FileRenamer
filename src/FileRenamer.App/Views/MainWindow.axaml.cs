@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using FileRenamer.App.ViewModels;
+using FileRenamer.Core.Preview;
 
 namespace FileRenamer.App.Views;
 
@@ -13,7 +14,7 @@ namespace FileRenamer.App.Views;
 public sealed partial class MainWindow : Window
 {
     /// <summary>
-    /// Initialisiert das Fenster und registriert die Drag-&amp;-Drop-Handler.
+    /// Initialisiert das Fenster, registriert die Drag-&amp;-Drop-Handler und verbindet die Hilfsklassen der Oberfläche.
     /// </summary>
     public MainWindow()
     {
@@ -21,6 +22,9 @@ public sealed partial class MainWindow : Window
         AddHandler(DragDrop.DragOverEvent, OnFileDragOver);
         AddHandler(DragDrop.DropEvent, OnFileDrop);
         _ = new ChainDragController(ChainList, DragLayer, DragGhost, DropLine, (from, to) => ViewModel?.MoveChainItem(from, to));
+        _ = new PreviewCopyController(PreviewList, CopySelectedTextItem, () => ViewModel?.CopyNamesCommand, NameColumns.New);
+        _ = new HeaderScrollSync(PreviewList, RenameHeader);
+        _ = new AreaLabelFitter(Toolbar, Toolbar.ColumnDefinitions[4], [AreaRenameLabel, AreaTagsLabel]);
     }
 
     /// <summary>

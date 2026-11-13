@@ -1,0 +1,264 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tags="using:FileRenamer.App.ViewModels.Tags"
+             xmlns:vm="using:FileRenamer.App.ViewModels"
+             xmlns:tagging="using:FileRenamer.Core.Tagging"
+             xmlns:views="using:FileRenamer.App.Views.Tags"
+             xmlns:controls="using:FileRenamer.App.Controls"
+             xmlns:loc="using:FileRenamer.App.Localization"
+             x:Class="FileRenamer.App.Views.Tags.TagAreaView"
+             x:DataType="tags:TagAreaViewModel">
+
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="tags:EditTagsEditorViewModel"><views:EditTagsView /></DataTemplate>
+    <DataTemplate DataType="tags:FromFileNameEditorViewModel"><views:FromFileNameView /></DataTemplate>
+    <DataTemplate DataType="tags:TrackNumbersEditorViewModel"><views:TrackNumbersView /></DataTemplate>
+    <DataTemplate DataType="tags:CoverEditorViewModel"><views:CoverView /></DataTemplate>
+    <DataTemplate DataType="tags:LyricsEditorViewModel"><views:LyricsView /></DataTemplate>
+    <!-- Zelle der Tag-Vorschau: geänderte Werte in der Farbe der Funktion, auf Wunsch mit vorherigem Wert davor.
+         Der neue Wert wird zuerst angeordnet (rechts angedockt), damit bei Platzmangel nur der alte Wert gekürzt wird. -->
+    <DataTemplate DataType="tags:TagCell">
+      <DockPanel HorizontalAlignment="Left" ToolTip.Tip="{Binding Tip}">
+        <Border DockPanel.Dock="Right" Classes="tagCell" controls:TagColor.Function="{Binding Source}">
+          <SelectableTextBlock Text="{Binding Text}" TextTrimming="CharacterEllipsis" />
+        </Border>
+        <Panel Classes="oldBox" Margin="0,0,4,0">
+          <TextBlock Classes="oldValue" Text="{Binding OldText}" IsVisible="{Binding HasOldText}" TextTrimming="CharacterEllipsis" />
+        </Panel>
+      </DockPanel>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <UserControl.Styles>
+    <!-- Beschriftungen oben ausgerichtet, erste Zeile auf der Grundlinie des Eingabetexts (E129, E135) -->
+    <Style Selector="TextBlock.fieldLabel">
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="Margin" Value="0,6,0,0" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="controls:BaselineAlignment.AlignToNeighbor" Value="True" />
+    </Style>
+    <Style Selector="TextBlock.oldValue">
+      <Setter Property="TextDecorations" Value="Strikethrough" />
+      <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
+    <!-- Vorherige Werte nur mit „Vorher anzeigen“; per Stil, weil ein lokaler Wert den Stil überstimmen würde -->
+    <Style Selector="Panel.oldBox">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="ListBox.tagPreview.showOld Panel.oldBox">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="ListBox.tagPreview ListBoxItem" x:DataType="tags:TagPreviewRowViewModel">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="IsSelected" Value="{Binding IsMarked, Mode=TwoWay}" />
+      <Setter Property="IsEnabled" Value="{Binding IsAudio}" />
+    </Style>
+    <Style Selector="ListBox.tagPreview ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.tagPreview ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+    </Style>
+    <Style Selector="ListBox.tagPreview TextBlock, ListBox.tagPreview SelectableTextBlock">
+      <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ListBoxItem:disabled TextBlock, ListBoxItem:disabled SelectableTextBlock">
+      <Setter Property="Opacity" Value="0.45" />
+    </Style>
+    <Style Selector="ListBox.functions ListBoxItem" x:DataType="tags:TagFunctionEntry">
+      <Setter Property="IsEnabled" Value="{Binding IsSelectable}" />
+    </Style>
+    <!-- Kästen „Einfügen / importieren“ und „Extrahieren / exportieren“ -->
+    <Style Selector="Border.box">
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="12,10" />
+    </Style>
+    <Style Selector="Border.example">
+      <Setter Property="Background" Value="{DynamicResource PanelBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="10,6" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style Selector="Border.example TextBlock">
+      <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="Border.badge">
+      <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="8,1" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+    <!-- Fußzeile -->
+    <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBackgroundBrush}"
+            BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,1,0,0" Padding="12,10">
+      <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+        <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource MutedTextBrush}" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Content="{loc:T TagFooter.Undo}" Command="{Binding UndoSaveCommand}" Margin="0,0,8,0"
+                ToolTip.Tip="{loc:T TagFooter.UndoTip}" />
+        <Button Grid.Column="2" Content="{loc:T TagFooter.Discard}" Command="{Binding DiscardCommand}" Margin="0,0,8,0"
+                ToolTip.Tip="{loc:T TagFooter.DiscardTip}" />
+        <Button Grid.Column="3" Content="{loc:T TagFooter.Save}" Classes="accent" Command="{Binding SaveCommand}" />
+      </Grid>
+    </Border>
+
+    <Grid RowDefinitions="*,Auto,*">
+      <!-- Oben: Funktionen und Optionen -->
+      <Grid ColumnDefinitions="270,*">
+        <Border Classes="pane" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,1,0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Classes="paneTitle" Text="{loc:T TagPane.Functions}" />
+            <ListBox Classes="plain functions" ItemsSource="{Binding FunctionEntries}" SelectedItem="{Binding SelectedFunction}">
+              <ListBox.DataTemplates>
+                <DataTemplate DataType="tags:TagFunctionGroup">
+                  <TextBlock Classes="paneTitle" Text="{Binding Title}" Margin="8,8,0,0" FontSize="10.5" />
+                </DataTemplate>
+                <DataTemplate DataType="tags:TagFunctionItem">
+                  <StackPanel Orientation="Horizontal" Spacing="10" Margin="8,5">
+                    <Border Classes="ruleBar" controls:TagColor.Function="{Binding Function}" />
+                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.DataTemplates>
+            </ListBox>
+          </DockPanel>
+        </Border>
+
+        <ScrollViewer Grid.Column="1">
+          <StackPanel Margin="16,12" Spacing="12" IsVisible="{Binding Editor, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Border Classes="ruleBar" controls:TagColor.Function="{Binding Editor.Function}" MinHeight="20" />
+              <TextBlock Text="{Binding Editor.Title}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+              <Border Classes="badge" IsVisible="{Binding SelectedSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding SelectedSummary}" FontSize="12" FontWeight="SemiBold" />
+              </Border>
+            </StackPanel>
+            <ContentControl Content="{Binding Editor}" />
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+
+      <GridSplitter Grid.Row="1" Height="5" ResizeDirection="Rows" Background="{DynamicResource AppBorderBrush}" />
+
+      <!-- Unten: vorgemerkte Änderungen und Tag-Vorschau -->
+      <Grid Grid.Row="2" ColumnDefinitions="270,*">
+        <Border Classes="pane" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,1,0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Classes="paneTitle" Text="{loc:T TagPane.Pending}" />
+            <TextBlock DockPanel.Dock="Top" Classes="hint" Text="{loc:T TagPane.PendingRoot}" Margin="2,0,0,6" />
+            <TextBlock DockPanel.Dock="Bottom" Classes="hint" Text="{loc:T TagPane.PendingHint}" TextWrapping="Wrap" Margin="2,8,0,0" />
+            <ListBox x:Name="PendingList" Classes="plain" ItemsSource="{Binding PendingChanges}" SelectedItem="{Binding SelectedPending}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="tags:PendingChangeViewModel">
+                  <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="4,4">
+                    <Border Classes="ruleBar" controls:TagColor.Function="{Binding Function}" Margin="0,0,6,0" />
+                    <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled}" MinWidth="0" Margin="0,0,4,0" ToolTip.Tip="{loc:T TagPane.EnableTip}" />
+                    <TextBlock Grid.Column="2" VerticalAlignment="Center" TextWrapping="Wrap" Classes.strike="{Binding !IsEnabled}">
+                      <Run Text="{Binding DisplayName}" />
+                      <Run Text="{Binding CountText}" Foreground="{DynamicResource MutedTextBrush}" FontWeight="Normal" />
+                    </TextBlock>
+                    <Button Grid.Column="3" Content="✕" Padding="6,2" Background="Transparent" BorderThickness="0" ToolTip.Tip="{loc:T TagPane.RemoveTip}"
+                            Command="{Binding $parent[UserControl].((tags:TagAreaViewModel)DataContext).RemovePendingCommand}"
+                            CommandParameter="{Binding}" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </Border>
+
+        <Border Grid.Column="1" Classes="pane">
+          <DockPanel>
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,4">
+              <TextBlock Classes="paneTitle" Text="{loc:T TagPane.Preview}" VerticalAlignment="Center" Margin="0" />
+              <CheckBox Grid.Column="1" Content="{loc:T TagPane.ShowOld}" IsChecked="{Binding ShowOldValues}" Margin="0,0,12,0" />
+              <!-- Wie bei der Rename-Liste: „Liste leeren“ über der Liste, Ablagehinweis in der leeren Liste (E152) -->
+              <Button Grid.Column="2" Classes="paneAction" Content="{loc:T Pane.ClearList}"
+                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ClearFilesCommand}" />
+            </Grid>
+            <Border BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" CornerRadius="4">
+              <DockPanel controls:ColumnRowPanel.Layout="{Binding Columns}">
+                <Border DockPanel.Dock="Top" Classes="listHeader">
+                  <!-- Spaltenköpfe: Kante ziehen = Breite, Kopf ziehen = verschieben, Rechtsklick = Menü (E146);
+                       beim horizontalen Scrollen mitgeschoben (E151) -->
+                  <Grid x:Name="TagHeader" ColumnDefinitions="32,28,*">
+                    <CheckBox Classes="fileCheck" IsChecked="{Binding AreAllSelected}" ToolTip.Tip="{loc:T TagPane.SelectAllTip}" />
+                    <controls:ColumnHeaderPanel Grid.Column="2">
+                      <TextBlock controls:ColumnRowPanel.Key="file" Classes="paneTitle" Margin="0,0,8,0" Text="{loc:T TagCol.File}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock controls:ColumnRowPanel.Key="track" Classes="paneTitle" Margin="0,0,8,0" Text="{loc:T TagCol.Track}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock controls:ColumnRowPanel.Key="title" Classes="paneTitle" Margin="0,0,8,0" Text="{loc:T TagCol.Title}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock controls:ColumnRowPanel.Key="artist" Classes="paneTitle" Margin="0,0,8,0" Text="{loc:T TagCol.Artist}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock controls:ColumnRowPanel.Key="album" Classes="paneTitle" Margin="0,0,8,0" Text="{loc:T TagCol.Album}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock controls:ColumnRowPanel.Key="albumartist" Classes="paneTitle" Margin="0,0,8,0" Text="{loc:T TagCol.AlbumArtist}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock controls:ColumnRowPanel.Key="year" Classes="paneTitle" Margin="0,0,8,0" Text="{loc:T TagCol.Year}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock controls:ColumnRowPanel.Key="cover" Classes="paneTitle" Margin="0,0,8,0" Text="{loc:T TagCol.Cover}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock controls:ColumnRowPanel.Key="lyrics" Classes="paneTitle" Margin="0,0,8,0" Text="{loc:T TagCol.Lyrics}" TextTrimming="CharacterEllipsis" />
+                    </controls:ColumnHeaderPanel>
+                  </Grid>
+                </Border>
+                <!-- Wie die Rename-Liste: Text in Zellen markierbar, Zeilen per Kontextmenü kopieren (F66, F67, E139) -->
+                <Panel>
+                  <controls:PreviewListBox x:Name="PreviewList" Classes="tagPreview" Classes.showOld="{Binding ShowOldValues}"
+                           ItemsSource="{Binding Rows}" SelectionMode="Multiple" Background="Transparent"
+                           ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                    <ListBox.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem x:Name="CopySelectedTextItem" Header="{loc:T Pane.CopySelectedText}" />
+                        <Separator IsVisible="{Binding #CopySelectedTextItem.IsVisible}" />
+                        <MenuItem Header="{loc:T TagCopy.FileNames}" Command="{Binding CopyRowsCommand}"
+                                  CommandParameter="{x:Static tagging:TagCopyColumns.FileNames}" ToolTip.Tip="{loc:T TagCopy.SavedHint}" />
+                        <MenuItem Header="{loc:T TagCopy.Tags}" Command="{Binding CopyRowsCommand}"
+                                  CommandParameter="{x:Static tagging:TagCopyColumns.Tags}" ToolTip.Tip="{loc:T TagCopy.SavedHint}" />
+                        <MenuItem Header="{loc:T TagCopy.FileNamesAndTags}" Command="{Binding CopyRowsCommand}"
+                                  CommandParameter="{x:Static tagging:TagCopyColumns.FileNamesAndTags}" ToolTip.Tip="{loc:T TagCopy.SavedHint}" />
+                        <MenuItem Header="{loc:T TagCopy.Rows}" Command="{Binding CopyRowsCommand}" InputGesture="Ctrl+C"
+                                  CommandParameter="{x:Static tagging:TagCopyColumns.Rows}" ToolTip.Tip="{loc:T TagCopy.SavedHint}" />
+                      </ContextMenu>
+                    </ListBox.ContextMenu>
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="tags:TagPreviewRowViewModel">
+                        <Grid ColumnDefinitions="32,28,*" Margin="8,2">
+                          <CheckBox Classes="fileCheck" IsChecked="{Binding IsSelected}" ToolTip.Tip="{loc:T TagPane.SelectFileTip}" />
+                          <TextBlock Grid.Column="1" Text="⚠" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding HasHint}" ToolTip.Tip="{Binding Hint}" />
+                          <!-- Spaltenmodell ausdrücklich: geerbte Werte erreichen die Listenzeilen nicht -->
+                          <controls:ColumnRowPanel Grid.Column="2" Layout="{Binding $parent[ListBox].((tags:TagAreaViewModel)DataContext).Columns}">
+                            <SelectableTextBlock controls:ColumnRowPanel.Key="file" Text="{Binding FileName}" Foreground="{DynamicResource MutedTextBrush}"
+                                                 TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Path}" Margin="0,0,8,0" />
+                            <ContentControl controls:ColumnRowPanel.Key="track" Content="{Binding Track}" IsVisible="{Binding IsAudio}" Margin="0,0,8,0" />
+                            <ContentControl controls:ColumnRowPanel.Key="title" Content="{Binding Title}" IsVisible="{Binding IsAudio}" Margin="0,0,8,0" />
+                            <ContentControl controls:ColumnRowPanel.Key="artist" Content="{Binding Artist}" IsVisible="{Binding IsAudio}" Margin="0,0,8,0" />
+                            <ContentControl controls:ColumnRowPanel.Key="album" Content="{Binding Album}" IsVisible="{Binding IsAudio}" Margin="0,0,8,0" />
+                            <ContentControl controls:ColumnRowPanel.Key="albumartist" Content="{Binding AlbumArtist}" IsVisible="{Binding IsAudio}" Margin="0,0,8,0" />
+                            <ContentControl controls:ColumnRowPanel.Key="year" Content="{Binding Year}" IsVisible="{Binding IsAudio}" Margin="0,0,8,0" />
+                            <Border controls:ColumnRowPanel.Key="cover" Classes="tagCell" controls:TagColor.Function="{Binding CoverSource}" IsVisible="{Binding IsAudio}">
+                              <Panel>
+                                <Image Source="{Binding Cover}" Width="18" Height="18" IsVisible="{Binding HasCover}" />
+                                <TextBlock Text="–" IsVisible="{Binding HasNoCover}" />
+                              </Panel>
+                            </Border>
+                            <ContentControl controls:ColumnRowPanel.Key="lyrics" Content="{Binding LyricsCell}" IsVisible="{Binding IsAudio}" Margin="0,0,8,0" />
+                            <!-- Hinweis „keine Audiodatei“: alle Spalten außer der Datei -->
+                            <TextBlock controls:ColumnRowPanel.SpanRest="file" Text="{Binding Hint}" IsVisible="{Binding !IsAudio}"
+                                       FontFamily="{DynamicResource ContentControlThemeFontFamily}" TextTrimming="CharacterEllipsis" />
+                          </controls:ColumnRowPanel>
+                        </Grid>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </controls:PreviewListBox>
+                  <TextBlock Classes="emptyHint" Text="{loc:T Pane.DropHint}"
+                             IsVisible="{Binding !$parent[Window].((vm:MainWindowViewModel)DataContext).HasFiles}" />
+                </Panel>
+              </DockPanel>
+            </Border>
+          </DockPanel>
+        </Border>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</UserControl>

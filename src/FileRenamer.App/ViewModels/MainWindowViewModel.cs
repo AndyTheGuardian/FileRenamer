@@ -10,6 +10,7 @@ using FileRenamer.Core.Execution;
 using FileRenamer.Core.Files;
 using FileRenamer.Core.Preview;
 using FileRenamer.Core.Profiles;
+using FileRenamer.Core.Tagging;
 
 namespace FileRenamer.App.ViewModels;
 
@@ -23,6 +24,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly RenamePipeline _pipeline;
     private readonly FileRenameExecutor _executor;
     private readonly IDialogService _dialogs;
+    private readonly IClipboardService _clipboard;
     private readonly List<FileEntry> _files = [];
     private PreviewResult _preview = PreviewResult.Empty;
     private RenameExecutionResult? _lastRename;
@@ -35,9 +37,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <param name="settingsStore">Einstellungsablage.</param>
     /// <param name="dialogs">Dialogdienst.</param>
     /// <param name="themeService">Theme-Dienst.</param>
+    /// <param name="clipboard">Zwischenablage (Kopieren von Namen aus der Vorschau).</param>
+    /// <param name="tagStore">Zugriff auf die Tags von Audiodateien (Bereich „Tags“).</param>
+    /// <param name="coverImages">Bildverarbeitung für Cover (Bereich „Tags“).</param>
     public MainWindowViewModel(
-        IFileSystem fileSystem, ProfileStore profileStore, AppSettingsStore settingsStore, IDialogService dialogs, IThemeService themeService)
+        IFileSystem fileSystem,
+        ProfileStore profileStore,
+        AppSettingsStore settingsStore,
+        IDialogService dialogs,
+        IThemeService themeService,
+        IClipboardService clipboard,
+        ITagStore tagStore,
+        ICoverImageProcessor coverImages)
     {
+        _clipboard = clipboard;
         _fileSystem = fileSystem;
         _pipeline = new RenamePipeline(fileSystem);
         _executor = new FileRenameExecutor(fileSystem);
@@ -49,6 +62,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Chain.CollectionChanged += OnChainChanged;
         SelectedRuleKind = RuleKinds[0];
         RestoreSettings();
+        InitializeTags(tagStore, coverImages);
     }
 
     /// <summary>
@@ -383,10 +397,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         var kindsById = rules.ToDictionary(rule => rule.Id, rule => rule.Kind);
         var preferred = SelectedChainItem?.Rule.Id;
+        PruneMarkedRows();
         PreviewRows.Clear();
         foreach (var file in _preview.Files)
         {
-            PreviewRows.Add(new PreviewRowViewModel(file, kindsById, preferred, SetFileSelected));
+            var isMarked = _markedPaths.Contains(file.File.FullPath);
+            PreviewRows.Add(new PreviewRowViewModel(file, kindsById, preferred, SetFileSelected, isMarked, SetRowMarked));
         }
 
         foreach (var item in Chain)
@@ -396,6 +412,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         UpdateEditorContext();
         UpdateStatus();
+        Tags?.OnFilesChanged();
     }
 
     /// <summary>

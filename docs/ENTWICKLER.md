@@ -4,7 +4,8 @@
 
 FileRenamer ist eine plattformübergreifende Desktopanwendung (Windows, Linux, macOS ab 14) zum
 kaskadierenden Umbenennen von Dateien. Technik: **.NET 10 (LTS)**, **Avalonia 12.1.4**,
-**CommunityToolkit.Mvvm 8.4.2**; Tests mit **xUnit v3 4.0.2**. Weitere Abhängigkeiten gibt es nicht.
+**CommunityToolkit.Mvvm 8.4.2**, **TagLib# 2.3.0** (Schreiben von Audio-Tags, E115, LGPL-2.1); Tests mit **xUnit v3 4.0.2**.
+Cover werden mit SkiaSharp verkleinert, das Avalonia bereits mitbringt. Weitere Abhängigkeiten gibt es nicht.
 
 ## Voraussetzungen und Befehle
 
@@ -78,6 +79,7 @@ FileRenamer/
 │   │   │   ├── RenamePipeline.cs        wendet die Kette an
 │   │   │   ├── ConflictDetector.cs      Konfliktprüfung
 │   │   │   ├── FilePreview.cs           Ergebnis je Datei
+│   │   │   ├── NameListFormatter.cs     Kopiertext der Vorschauzeilen (NameColumns, NamePair)
 │   │   │   └── PreviewResult.cs         Gesamtergebnis, RuleStepResult
 │   │   ├── Profiles/
 │   │   │   ├── RenameProfile.cs         Profil (Kette + Erweiterungseinstellung)
@@ -123,6 +125,23 @@ FileRenamer/
 │   │   │   ├── RenameIssue.cs           Hinweis/Konflikt
 │   │   │   ├── RuleInput.cs             RuleInput, RuleOutput
 │   │   │   └── RuleOptions.cs           Aufzählungen
+│   │   ├── Tagging/                     Bereich „Tags“ (E114–E137)
+│   │   │   ├── TagFields.cs             Feldschlüssel: Standard, weitere, benutzerdefinierte (custom:NAME)
+│   │   │   ├── AudioTags.cs             unveränderlicher Tag-Stand (Felder, Cover, Lyrics), DifferingKeys
+│   │   │   ├── CoverImage.cs            CoverType, CoverImage, ImageFormats (MIME ↔ Endung)
+│   │   │   ├── ITagStore.cs             Lesen/Schreiben, TagStoreException
+│   │   │   ├── TagLibTagStore(.Fields).cs  TagLib#-Zugriff: ID3v2.3, nur geänderte Teile, eigene Felder je Format
+│   │   │   ├── Changes/                 TagChange (Basis), SetFields, FieldsFromFileName, TrackNumber,
+│   │   │   │                            AddCover, RemoveCover, SetLyrics
+│   │   │   ├── TagPreview.cs            TagPreviewPipeline, TagFilePreview (Herkunft je Feld)
+│   │   │   ├── TagWriter.cs             Speichern alles oder nichts, Widerrufen (TagSaveResult)
+│   │   │   ├── FileNameTagParser.cs     Tags aus Dateinamen (Vorlage → regulärer Ausdruck)
+│   │   │   ├── CoverExporter.cs         Cover als Dateien, ExportResult
+│   │   │   ├── TagListFormatter.cs      Kopiertext der Tag-Vorschau (TagCopyColumns, gespeicherter Stand)
+│   │   │   ├── LyricsFiles.cs           .lrc/.txt finden, lesen, exportieren
+│   │   │   ├── SidecarFile.cs           Begleitdateien ohne Überschreiben schreiben
+│   │   │   ├── ICoverImageProcessor.cs  Verkleinern (Umsetzung in der App)
+│   │   │   └── Genres.cs                Standardgenres, Höchstzahl eigener Genres
 │   │   ├── Theming/
 │   │   │   └── AccentPalette.cs         Akzentfarben: Paletten, HSV, Kontrast, Benutzerdefiniert
 │   │   └── Validation/
@@ -137,10 +156,14 @@ FileRenamer/
 │       │   ├── app.ico                  Programmsymbol (16–256 px)
 │       │   └── app.png                  Fenstersymbol (512 px)
 │       ├── Controls/
-│       │   ├── HighlightedTextBlock.cs  farbig hervorgehobener Name
+│       │   ├── HighlightedTextBlock.cs  farbig hervorgehobener, markierbarer Name
+│       │   ├── PreviewListBox.cs        Vorschauliste: Klick auf markierbaren Text markiert die Zeile
+│       │   ├── BaselineAlignment.cs     Beschriftung auf Grundlinie der ersten Wertzeile (E135)
+│       │   ├── TagColor.cs              Farbklasse je Funktion des Bereichs „Tags“
 │       │   └── RuleColor.cs             Farbklasse je Verfahren
 │       ├── Converters/
 │       │   ├── EnumEqualsConverter.cs   RadioButtons ↔ Aufzählung
+│       │   ├── CoverTypeNameConverter.cs Bildtyp → Name
 │       │   └── HexToBrushConverter.cs   #RRGGBB → Pinsel (Farbflächen)
 │       ├── Localization/
 │       │   ├── Loc.cs                   Textzugriff (T, F) und XAML-Erweiterung {loc:T Schlüssel}
@@ -148,12 +171,19 @@ FileRenamer/
 │       ├── Services/
 │       │   ├── IDialogService.cs        IDialogService, IThemeService
 │       │   ├── DialogService.cs         Dialoge, Datei-/Ordnerauswahl
+│       │   ├── IClipboardService.cs, ClipboardService.cs  Zwischenablage
+│       │   ├── SkiaCoverImageProcessor.cs  Cover verkleinern (SkiaSharp, JPEG 90 %)
 │       │   └── ThemeService.cs          System/Hell/Dunkel, Akzentfarbe → Fluent-Ressourcen
 │       ├── ViewModels/
 │       │   ├── MainWindowViewModel.cs           Kern: Kette, Vorschau, Umbenennen, Widerrufen
 │       │   ├── MainWindowViewModel.Files.cs     Dateien hinzufügen/entfernen
 │       │   ├── MainWindowViewModel.Profiles.cs  Profile (inkl. Zurücksetzen), Theme, Sprache
 │       │   ├── MainWindowViewModel.Selection.cs Dateiauswahl per Checkbox
+│       │   ├── MainWindowViewModel.Clipboard.cs Zeilenmarkierung, Namen kopieren
+│       │   ├── MainWindowViewModel.Tags.cs      Bereichsumschaltung, Anbindung des Bereichs „Tags“
+│       │   ├── Tags/                            TagAreaViewModel (+ .Saving, .Selection, .Clipboard), TagLibrary (Genres, Felder, Verkleinern),
+│       │   │                                    TagEditorViewModel (Basis, ITagEditorContext, TagScope), je Funktion ein
+│       │   │                                    Editor, TagFieldViewModel, Zeilen (PendingChange, TagPreviewRow, TagCell)
 │       │   ├── ChainItemViewModel.cs            Eintrag der Kette
 │       │   ├── PreviewRowViewModel.cs           Zeile der Vorschau
 │       │   ├── AccentColorViewModel.cs          Akzentfarbwahl, SwatchViewModel
@@ -164,7 +194,11 @@ FileRenamer/
 │       └── Views/
 │           ├── MainWindow.axaml(.cs)            Hauptfenster
 │           ├── ChainDragController.cs           Umsortieren der Kette per Drag & Drop
+│           ├── PreviewCopyController.cs         Strg+C und Kontextmenü beider Vorschaulisten
+│           ├── HeaderScrollSync.cs              Spaltenköpfe beim horizontalen Scrollen mitschieben
 │           ├── AccentPickerView.axaml(.cs)      Farbwahl im Flyout am farbigen Kreis
+│           ├── Tags/                            TagAreaView und je Funktion eine Ansicht (EditTags, FromFileName,
+│           │                                    TrackNumbers, Cover mit Drag & Drop, Lyrics)
 │           └── Editors/                         je Verfahren eine Options-Ansicht
 ├── tests/
 │   └── FileRenamer.Core.Tests/
@@ -177,9 +211,12 @@ FileRenamer/
 │       ├── Preview/         RenamePipelineTests.cs
 │       ├── Profiles/        ProfileStoreTests.cs
 │       ├── Rules/           Testklassen der Verfahren, TemplateRuleTests, CustomTemplateListTests, ChangeExtensionRuleTests, TextRulesTests
+│       ├── Tagging/         TagLibTagStoreTests (MP3/FLAC), FileNameTagParserTests, TagPreviewPipelineTests,
+│       │                    TagWriterAndExportTests
 │       ├── Theming/         AccentPaletteTests.cs
 │       ├── Support/         InMemoryFileSystem.cs, RuleTestHelper.cs,
-│       │                    MediaFiles.cs + TiffWriter.cs (erzeugen Test-Mediendateien)
+│       │                    MediaFiles.cs + TiffWriter.cs (erzeugen Test-Mediendateien),
+│       │                    AudioFiles.cs (kleinste gültige MP3/FLAC, TempFolder)
 │       └── Validation/      FileNameValidatorTests.cs, DateFormatValidatorTests.cs
 └── testdata/
     ├── README.md
@@ -201,6 +238,7 @@ FileRenamer/
 | `Metadata` | Eigene Leser für EXIF/IPTC/XMP (JPEG, TIFF, HEIC, PNG, RAW) und Audio-Tags (ID3, FLAC, M4A) – ohne Fremdbibliothek |
 | `Rules.Templates` | Platzhalterkatalog und Zerlegung der Vorlagen für „Name aus Vorlage“ |
 | `Theming` | `AccentPalette`: Paletten, HSV-Sättigung, lesbare Schriftfarbe, Kontrastprüfung, benutzerdefinierte Farben |
+| `Tagging` | Bereich „Tags“: Tag-Modell, TagLib#-Zugriff, vorgemerkte Änderungen, Vorschau mit Herkunft, Speichern/Widerrufen, Tags aus Dateinamen, Export von Cover und Lyrics |
 | `Localization` | `CoreText`: alle Meldungen der Fachlogik auf Deutsch und Englisch; `Resolve` ermittelt die Sprache aus der Einstellung |
 
 ### App
@@ -232,6 +270,25 @@ FileRenamer/
    wird das Journal rückwärts abgearbeitet (alles oder nichts).
 6. Widerrufen: `RenameExecutionResult.CreateUndoOperations()` liefert die umgekehrten Aufträge der
    zuletzt ausgeführten Umbenennung; sie laufen durch denselben Executor (gleiche Garantien).
+
+### Bereich „Tags“
+
+1. `MainWindowViewModel.IsTagArea` schaltet die Bereiche um und setzt `TagAreaViewModel.IsActive`; erst dann liest
+   der Bereich die Tags aller unterstützten Dateien (`ITagStore.Read`, zwischengespeichert nach Änderungszeit).
+2. Editoren (`TagEditorViewModel`) erzeugen beim Vormerken eine unveränderliche `TagChange` für ihre Dateien
+   (ausgewählte oder alle Audiodateien, `TagScope`). Sie greifen über `ITagEditorContext` auf die ausgewählten Dateien
+   (`SelectedFiles`), Tags vor/nach den
+   Änderungen, Dialoge, Bildverarbeitung und `TagLibrary` zu.
+3. `TagPreviewPipeline.Create` wendet die aktiven Änderungen der Reihe nach an und vermerkt je Feld (bzw. `covers`,
+   `lyrics`), welche Änderung es zuletzt geändert hat – Grundlage der Farben in der Tag-Vorschau.
+4. „Tags speichern“: `TagWriter.Save` schreibt nur geänderte Dateien, in jeder Datei nur geänderte Bestandteile
+   (`AudioTags.DifferingKeys`). Bei einem Fehler werden bereits geschriebene Dateien zurückgeschrieben. Das Ergebnis liefert
+   die Gegenaufträge für „Letzte Speicherung widerrufen“. Danach liest das Hauptfenster die Dateieinträge neu (E126).
+5. Auswahl und Markierung (E150) wie in der Rename-Liste: `TagPreviewRowViewModel.IsSelected` ist die Checkbox
+   (Dateien für die Funktionen, `_selectedPaths`), `IsMarked` ist an `ListBoxItem.IsSelected` gebunden und dient nur dem
+   Kopieren (`_markedPaths`). Beide werden über den Pfad gemerkt und überstehen so das Neuberechnen der Vorschau; die
+   Zeile meldet Wechsel über `TagRowCallbacks`. `AreAllSelected` (Kopf-Checkbox, `TagAreaViewModel.Selection.cs`) ist
+   dreiwertig. Nicht-Audiodateien sind deaktiviert.
 
 ## Programmablaufplan
 
@@ -442,5 +499,65 @@ wenn es beteiligt ist (E5), sonst das zuletzt angewandte. Die Farben liegen als 
 - Das gewählte Segment hat `ZIndex` 1, damit sein Rahmen nicht vom überlappenden Nachbarn verdeckt wird (E101).
 - Segment-Schaltflächen (`RadioButton.segment`) erhalten ihre Außenrundung über `:nth-child(1)` und
   `:nth-last-child(1)`; jede Gruppe braucht daher ein eigenes Panel ohne weitere Elemente (E95).
+- Kopieren aus der Vorschau (E109–E113): Die Namen sind `SelectableTextBlock`s (`HighlightedTextBlock` erbt davon,
+  Stile daher mit `:is(TextBlock)`). Ihr englisches Standard-Kontextmenü ist per Style abgeschaltet, damit überall das
+  übersetzte Menü der Liste erscheint. Ein markierbarer TextBlock behandelt den Mausklick selbst, und Avalonia markiert
+  eine Zeile bei der Maus erst beim Loslassen – `PreviewListBox` merkt sich deshalb den Klick auf Text und ruft beim
+  Loslassen `UpdateSelectionFromEventSource` mit den Plattform-Modifikatoren auf. Die Zeilenmarkierung ist per Style an
+  `PreviewRowViewModel.IsMarked` gebunden; das ViewModel merkt sie sich über den Pfad (`_markedPaths`), weil die Zeilen
+  bei jeder Vorschau neu entstehen. `PreviewCopyController` überlässt Strg+C dem TextBlock, wenn Text markiert ist, und
+  merkt den markierten Text beim Öffnen des Kontextmenüs, da die Markierung beim Fokuswechsel ins Menü verloren geht.
+  Der Controller erhält den Kopierbefehl samt Parameter von außen und dient so beiden Listen: Umbenennen
+  (`CopyNamesCommand`, neue Namen) und Tags (`TagAreaViewModel.CopyRowsCommand`, `TagCopyColumns.Rows`). Die Tag-Vorschau
+  ist ebenfalls eine `PreviewListBox`; kopiert wird dort immer der gespeicherte Stand (`DiskTags`), nicht die
+  vorgemerkten Änderungen (F67). „Liste leeren“ (`ClearFilesCommand`) fragt in beiden Bereichen nach, wenn
+  Tag-Änderungen vorgemerkt sind (F68).
 - `RuleCatalog.CreateEditor` lädt die Standardwerte einmal, damit Prüfung und Beispiel sofort vorliegen (E97).
+- Einheitliche Rahmen (E142): Die Fluent-Ressourcen `TextControlBorderBrush*`, `ComboBoxBorderBrush*` und
+  `ButtonBorderBrush*` sind in `App.axaml` je Theme auf die Farbe von `AppBorderBrush` gesetzt (wie die Segmente und
+  das Mockup). Transparente Symbolschaltflächen (✕, ↺) setzen deshalb `BorderThickness="0"`. Der Fokusrahmen bleibt
+  Fluent-Standard (Akzentfarbe).
+- Dialoge (E149): `DialogService.CreateDialog` setzt Fläche und Rahmen aus den Ressourcen `DialogBackgroundBrush` und
+  `DialogBorderBrush` (je Theme in `App.axaml`).
+  `WithShadeAsync` blendet im Besitzerfenster das Element `DialogShade` (`DialogShadeBrush`) ein, solange ein Dialog
+  oder eine Auswahl offen ist; ein Zähler deckt verschachtelte Dialoge ab. Fenster ohne `DialogShade` funktionieren
+  unverändert.
+- Spalten der Vorschaulisten (E146, E148): `ColumnLayout` (Core, `Preview`) hält Reihenfolge und Breiten
+  (`null` = teilt sich den Platz), verteilt die Breite (`Arrange`) und kann speichern/wiederherstellen.
+  `ColumnRowPanel` ordnet Zellen nach `ColumnRowPanel.Key` an; `ColumnHeaderPanel` ergänzt Ziehen der Kante,
+  Verschieben mit Einfügelinie, Doppelklick-Anpassung und das Kontextmenü. Das Modell wird im Kopf geerbt, in den
+  Zeilenvorlagen aber ausdrücklich gebunden (`$parent[ListBox]…`), weil geerbte Werte die Listenzeilen nicht erreichen.
+  Ausgeblendete Zellen (z. B. Tag-Spalten bei Nicht-Audiodateien) werden nicht angeordnet; der Hinweis nutzt
+  `ColumnRowPanel.SpanRest="file"`. Gespeichert wird in `AppSettings.ColumnLayouts` („rename“, „tags“); das ViewModel
+  hält die Werte in `_savedColumns`, damit frühes Speichern beim Start nichts verliert.
+- Horizontales Scrollen (E151): Beide Listen haben `ScrollViewer.HorizontalScrollBarVisibility="Auto"`; die Zeilen
+  werden daher mit unbegrenzter Breite gemessen. `ColumnHeaderPanel` (außerhalb der Liste, begrenzte Breite) meldet
+  seine Breite als `ColumnLayout.Viewport`; `ColumnRowPanel` verteilt die Spalten in unbegrenzter Breite nach dieser
+  Breite und meldet `ColumnLayout.Extent` als Wunschbreite – passen die Mindestbreiten nicht hinein, wird die Zeile
+  breiter und die Liste scrollt. Der Kopf schneidet nicht ab (`ClipToBounds=false`), trifft per `ICustomHitTest` auch
+  Köpfe jenseits seiner Breite und wird von `HeaderScrollSync` per `TranslateTransform` um den Versatz der Liste
+  verschoben; `Border.listHeader` schneidet ab.
+- Dateilisten (E152, E153): gemeinsame Stile in `App.axaml` – `CheckBox.fileCheck` (14-px-Kästchen; der Fluent-Inhalt
+  hat feste 32 px Höhe und wird auf 16 px gesetzt), `Border.listHeader`, `TextBlock.emptyHint` (Hinweis in der leeren
+  Liste, nicht treffbar), `Button.paneAction` („Liste leeren“ in der Titelzeile).
+- Bereichsumschalter (E147): `AreaLabelFitter` blendet die Beschriftungen ein, wenn die freie Spalte der Werkzeugleiste
+  breit genug ist (mit Puffer gegen Flackern).
+- Markierter Text (E144): `ThemeService` setzt `TextControlSelectionHighlightColor` auf die Akzentfarbe und
+  `TextSelectionForegroundBrush` auf `AccentPalette.ForegroundFor` (hell/dunkel nach Helligkeit); globale Stile für
+  `TextBox` und `SelectableTextBlock` in `App.axaml` verwenden beide.
+- Vorgemerkte Änderungen (A21): Ein wiederholter Klick ändert die Auswahl der Liste nicht. `TagAreaView` wertet deshalb
+  `Tapped` und `DoubleTapped` (ein schneller zweiter Klick löst nur dieses aus) aus und ruft `ActivatePendingCommand`;
+  Klicks auf Checkbox und ✕ werden übergangen.
+- „Vorher anzeigen“: Die Sichtbarkeit von `Panel.oldBox` kommt nur aus Stilen – ein lokal gesetztes `IsVisible` würde
+  den Stil `ListBox.tagPreview.showOld` überstimmen. In der Zelle ist der neue Wert rechts angedockt und wird zuerst
+  angeordnet, damit bei Platzmangel nur der alte Wert gekürzt wird.
+- Genre-Auswahl (E141): editierbare `ComboBox` wie die Profilauswahl; `GenreOption.ToString()` liefert den Namen, den
+  die Auswahl als Text übernimmt. Beim Neuaufbau der Liste setzt die ComboBox ihren Text zurück –
+  `RebuildGenres` stellt den Feldwert deshalb wieder her.
+- Beschriftungen im Bereich „Tags“ (`TextBlock.fieldLabel`) sind oben ausgerichtet; `BaselineAlignment` misst nach
+  jedem Layout die erste Textzeile des Nachbarn (gleiche Grid-Zeile, nächste Spalte bzw. Nachbar im waagerechten
+  StackPanel) und verschiebt den oberen Rand, bis die Grundlinien übereinstimmen (E135). Feste Abstände passten je nach
+  Steuerelement und Schrift um 1–5 px nicht.
+- `Grid.ColumnSpacing` gilt auch neben unsichtbaren Spalten; Formulare mit ein- und ausblendbaren Schaltflächen
+  verwenden deshalb feste Spaltenbreiten statt `ColumnSpacing`.
 - Hinweis zum Build: Läuft die App, sind ihre DLLs gesperrt und `dotnet build` schlägt mit MSB3027 fehl – App vorher schließen.

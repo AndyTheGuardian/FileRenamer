@@ -89,6 +89,27 @@ public sealed class ProfileStoreTests : IDisposable
     }
 
     /// <summary>
+    /// Gespeicherte Spaltenanordnungen bleiben samt Reihenfolge und Breiten erhalten (E148).
+    /// </summary>
+    [Fact]
+    public void AppSettingsStore_PersistsColumnLayouts()
+    {
+        var store = new AppSettingsStore(Path.Combine(_directory, "settings.json"));
+        var settings = new AppSettings
+        {
+            ColumnLayouts = new Dictionary<string, IReadOnlyList<FileRenamer.Core.Preview.SavedColumn>>
+            {
+                ["rename"] = [new("new", 300), new("original", null)],
+            },
+        };
+
+        store.Save(settings);
+
+        Assert.Equal(settings, store.Load());
+        Assert.NotEqual(new AppSettings(), store.Load());
+    }
+
+    /// <summary>
     /// Die Sprachwahl wird gespeichert; ohne Datei gilt „System“ (E92).
     /// </summary>
     [Fact]

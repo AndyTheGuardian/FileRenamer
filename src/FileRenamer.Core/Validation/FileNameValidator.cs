@@ -44,6 +44,15 @@ public static class FileNameValidator
     }
 
     /// <summary>
+    /// Ersetzt verbotene Zeichen und Steuerzeichen durch ein Ersatzzeichen.
+    /// </summary>
+    /// <param name="text">Der Text.</param>
+    /// <param name="replacement">Das Ersatzzeichen.</param>
+    /// <returns>Der bereinigte Text.</returns>
+    public static string ReplaceInvalidCharacters(string text, char replacement) =>
+        string.Concat(text.Select(c => char.IsControl(c) || ForbiddenCharacters.Contains(c) ? replacement : c));
+
+    /// <summary>
     /// Prüft einen Textbaustein (z. B. Trennzeichen oder einzufügenden Text) auf verbotene Zeichen.
     /// </summary>
     /// <param name="text">Der zu prüfende Text.</param>

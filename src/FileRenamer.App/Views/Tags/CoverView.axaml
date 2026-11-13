@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tags="using:FileRenamer.App.ViewModels.Tags"
+             xmlns:views="using:FileRenamer.App.Views.Tags"
+             xmlns:converters="using:FileRenamer.App.Converters"
+             xmlns:loc="using:FileRenamer.App.Localization"
+             x:Class="FileRenamer.App.Views.Tags.CoverView"
+             x:DataType="tags:CoverEditorViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Button.tile">
+      <Setter Property="Width" Value="140" />
+      <Setter Property="Padding" Value="6" />
+      <Setter Property="Margin" Value="0,0,12,12" />
+      <Setter Property="Background" Value="{DynamicResource PanelBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+    <Style Selector="Button.tile.selected">
+      <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="Border.dropZone">
+      <Setter Property="Width" Value="140" />
+      <Setter Property="Height" Value="178" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <!-- Ohne Hintergrund wäre nur der Text für Drag &amp; Drop treffbar -->
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.dropZone.dragOver">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="12" MaxWidth="980" HorizontalAlignment="Left">
+    <!-- Bilder der ersten markierten Datei und Ablagefläche -->
+    <WrapPanel>
+      <ItemsControl ItemsSource="{Binding Tiles}">
+        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="tags:CoverTileViewModel">
+            <Button Classes="tile" Classes.selected="{Binding IsSelected}"
+                    Command="{Binding $parent[views:CoverView].((tags:CoverEditorViewModel)DataContext).SelectTileCommand}"
+                    CommandParameter="{Binding}">
+              <StackPanel Spacing="2">
+                <Border Height="120" CornerRadius="4" ClipToBounds="True" Background="{DynamicResource AppBorderBrush}">
+                  <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" />
+                </Border>
+                <TextBlock Text="{Binding Caption}" FontWeight="SemiBold" FontSize="12" Margin="0,4,0,0" />
+                <TextBlock Text="{Binding Meta}" FontSize="11" Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Border x:Name="DropZone" Classes="dropZone" DragDrop.AllowDrop="True">
+        <TextBlock Text="{loc:T Cover.DropHint}" TextWrapping="Wrap" TextAlignment="Center" Margin="10"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MutedTextBrush}" />
+      </Border>
+    </WrapPanel>
+
+    <Grid ColumnDefinitions="*,*" ColumnSpacing="18">
+      <!-- Einfügen / importieren -->
+      <Border Classes="box">
+        <StackPanel Spacing="10">
+          <TextBlock Text="{loc:T Cover.InsertTitle}" FontWeight="SemiBold" />
+          <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="9">
+            <TextBlock Classes="fieldLabel" Text="{loc:T Cover.Source}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="coverSource" Content="{loc:T Cover.SourceFile}"
+                           IsChecked="{Binding Source, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tags:CoverSource.File}}" />
+              <RadioButton Classes="segment" GroupName="coverSource" Content="{loc:T Cover.SourceFolder}" ToolTip.Tip="{loc:T Cover.SourceFolderTip}"
+                           IsChecked="{Binding Source, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tags:CoverSource.Folder}}" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="1" Classes="fieldLabel" Text="{loc:T Cover.Type}" />
+            <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Types}" SelectedItem="{Binding InsertType}" MinWidth="180">
+              <ComboBox.ItemTemplate>
+                <DataTemplate><TextBlock Text="{Binding Converter={x:Static converters:CoverTypeNameConverter.Instance}}" /></DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Grid.Row="2" Classes="fieldLabel" Text="{loc:T Cover.Existing}" />
+            <CheckBox Grid.Row="2" Grid.Column="1" Content="{loc:T Cover.ReplaceSameType}" IsChecked="{Binding ReplaceSameType}" />
+
+            <TextBlock Grid.Row="3" Classes="fieldLabel" Text="{loc:T Cover.Shrink}" />
+            <StackPanel Grid.Row="3" Grid.Column="1" Spacing="2">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <CheckBox Content="{loc:T Cover.ShrinkTo}" IsChecked="{Binding Shrink}" VerticalAlignment="Top" />
+                <NumericUpDown Value="{Binding MaxPixels}" Minimum="16" Maximum="10000" Increment="50" FormatString="0" Width="130"
+                               IsEnabled="{Binding Shrink}" />
+                <TextBlock Classes="fieldLabel" Text="px" />
+              </StackPanel>
+              <TextBlock Classes="hint" Text="{loc:T Cover.ShrinkHint}" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="4" Classes="fieldLabel" Text="{loc:T TagEditor.Scope}" />
+            <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="coverScope" Content="{loc:T TagEditor.ScopeSelected}"
+                           IsChecked="{Binding Scope, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tags:TagScope.Selected}}" />
+              <RadioButton Classes="segment" GroupName="coverScope" Content="{loc:T TagEditor.ScopeAll}"
+                           IsChecked="{Binding Scope, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tags:TagScope.AllAudio}}" />
+            </StackPanel>
+          </Grid>
+          <TextBlock Classes="error" Text="{Binding ValidationMessage}" IsVisible="{Binding HasValidationMessage}" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Classes="accent" Content="{loc:T Cover.Insert}" Command="{Binding InsertCommand}" />
+            <Button Content="{loc:T Cover.RemoveSelected}" Command="{Binding RemoveSelectedCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Extrahieren / exportieren -->
+      <Border Grid.Column="1" Classes="box">
+        <StackPanel Spacing="10">
+          <TextBlock Text="{loc:T Cover.ExtractTitle}" FontWeight="SemiBold" />
+          <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="9">
+            <TextBlock Classes="fieldLabel" Text="{loc:T Cover.Images}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="coverExtractTypes" Content="{loc:T Cover.ImagesSelected}" IsChecked="{Binding !ExtractAllTypes}" />
+              <RadioButton Classes="segment" GroupName="coverExtractTypes" Content="{loc:T Cover.ImagesAll}" IsChecked="{Binding ExtractAllTypes}" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="1" Classes="fieldLabel" Text="{loc:T Cover.Target}" />
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="coverTarget" Content="{loc:T Common.FileFolder}" IsChecked="{Binding !ExtractToChosenFolder}" />
+              <RadioButton Classes="segment" GroupName="coverTarget" Content="{loc:T Common.ChooseFolder}" IsChecked="{Binding ExtractToChosenFolder}" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="2" Classes="fieldLabel" Text="{loc:T Cover.FileName}" />
+            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ExtractFileName}" ToolTip.Tip="{loc:T Cover.FileNameTip}"
+                     FontFamily="Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace" />
+
+            <TextBlock Grid.Row="3" Classes="fieldLabel" Text="{loc:T Cover.Duplicates}" />
+            <CheckBox Grid.Row="3" Grid.Column="1" Content="{loc:T Cover.SkipDuplicates}" IsChecked="{Binding SkipDuplicates}" />
+
+            <TextBlock Grid.Row="4" Classes="fieldLabel" Text="{loc:T TagEditor.Example}" />
+            <Border Grid.Row="4" Grid.Column="1" Classes="example"><TextBlock Text="{Binding ExtractExample}" /></Border>
+          </Grid>
+          <Button Content="{loc:T Cover.Extract}" Command="{Binding ExtractCommand}" />
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <TextBlock Classes="hint" Text="{loc:T Cover.Hint}" TextWrapping="Wrap" />
+  </StackPanel>
+</UserControl>

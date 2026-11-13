@@ -1,6 +1,6 @@
 # FileRenamer – Protokoll
 
-Stand: 2026-10-30
+Stand: 2026-11-10
 
 Diese Datei hält Ergebnisse, gestellte Fragen mit ihren Antworten und den Fortschritt des Projekts fest.
 `SPECS.md` bleibt unverändert; Abweichungen und Präzisierungen der Spezifikation werden hier dokumentiert.
@@ -70,8 +70,25 @@ Diese Datei hält Ergebnisse, gestellte Fragen mit ihren Antworten und den Forts
 | 2026-10-30 | A14 bestätigt; E108 umgesetzt (Speichern-Schaltflächen in Akzentfarbe), Build und Headless-Lauf ohne Fehler |
 | 2026-10-30 | **Erweiterung vom Anwender abgenommen**; Abnahmeerklärung in `ABNAHME.md` (N4) eingetragen |
 | 2026-10-30 | Sprachwechsel vom Anwender in der laufenden App geprüft – funktioniert; Einschränkung B12 entfällt |
+| 2026-11-09 | Neue Anforderung „Text in der Dateiliste markieren und kopieren“; Fragen F53–F56 beantwortet (E109–E112) |
+| 2026-11-09 | E109–E113 umgesetzt: markierbare Namen (`SelectableTextBlock`), Zeilenmarkierung mit Strg/Umschalt (`PreviewListBox`), Kontextmenü und Strg+C (`PreviewCopyController`), Kopiertext aus `NameListFormatter` (Core), Zwischenablage über `IClipboardService`. Build ohne Warnungen, **203/203 Tests bestanden** (5 neue); Headless-Prüfung mit simulierter Maus und Tastatur: Klick/Strg-Klick/Umschalt-Klick auf Text markiert Zeilen (ohne Doppelumschaltung), Markierung übersteht Checkbox-Wechsel, Strg+C kopiert neue Namen bzw. markierten Text, Rechtsklick behält Textmarkierung, markierte Konfliktzeile sichtbar. Dabei gefunden und behoben: Klick auf markierbaren Text markierte die Zeile nicht (der TextBlock behandelt den Klick, Avalonia markiert erst beim Loslassen); markierte Konfliktzeilen waren vom roten Hintergrund verdeckt (E113). In der laufenden App noch nicht von Hand geprüft |
+| 2026-11-09 | Neue Anforderung „Audiodateien taggen, Cover extrahieren und einfügen“; Rückfragen beantwortet (E114–E118); Mockup v11 erstellt (`mockups/mockup-v11.html`); neue Fragen F57–F63, Vorschlag V21 |
+| 2026-11-09 | A15, A16 bestätigt; Kopierfunktion (E109–E113) vom Anwender in der laufenden App geprüft – funktioniert |
+| 2026-11-09 | Mockup v11 nicht freigegeben (Änderung E119); F57–F63, V21 beantwortet (E120–E127); Mockup v12 erstellt (`mockups/mockup-v12.html`); neue Fragen F64, F65 und Annahme A17 |
+| 2026-11-09 | Mockup v12 nicht freigegeben (Änderungen E128, E129); A17, F64, F65 geklärt (E130–E132); Mockup v13 erstellt (`mockups/mockup-v13.html`); neue Annahmen A18–A20 |
+| 2026-11-09 | **Mockup v13 freigegeben** (E133) |
+| 2026-11-09 | A19, A20 bestätigt (E134, E135); A18 geklärt: Datei-Checkboxen entfallen im Bereich „Tags“ (E136, E137) |
+| 2026-11-09 | Bereich „Tags“ nach Mockup v13 umgesetzt (E114–E137): Core `Tagging` (Tag-Modell, TagLib#-Zugriff mit ID3v2.3, vorgemerkte Änderungen, Vorschau-Pipeline mit Herkunft, Speichern alles oder nichts mit Widerrufen, Tags aus Dateinamen, Cover-/Lyrics-Export), App (Bereichsumschalter, Funktionsliste, fünf Editoren, vorgemerkte Änderungen, Tag-Vorschau, Menü „Tags“, Strg+1/Strg+2, Strg+A, Strg+Umschalt+S), Cover-Verkleinerung mit SkiaSharp (aus Avalonia, keine weitere Abhängigkeit), Beschriftungen per gemessener Grundlinie ausgerichtet (`BaselineAlignment`). Build ohne Warnungen, **236/236 Tests bestanden** (33 neue); Headless-Ablauf mit echten MP3-/FLAC-Dateien: 33 Prüfungen bestanden (Markieren, Mehrfachbearbeitung, Feld hinzufügen, eigenes Genre, Tags aus Dateinamen, Tracknummern, Cover einfügen und auf 1000 × 750 verkleinern, Lyrics-Import, Schritt ein/aus, Speichern, Cover extrahieren, Widerrufen, Grundlinien aller Beschriftungen, Sprachwechsel, Dunkel). Dabei gefunden und behoben: feste Abstände trafen die Grundlinie je nach Steuerelement und Schrift um 1–5 px nicht; Genre-Auswahl und Track/Disc ragten über den rechten Rand. Neue Annahmen A21–A30. In der laufenden App noch nicht von Hand geprüft |
+| 2026-11-09 | Tag-Vorschau: Leiste mit Ablagehinweis und „Liste leeren“ ergänzt (fehlte gegenüber Mockup v13), mit Nachfrage bei vorgemerkten Änderungen (E138). Fehler behoben: Die Cover-Ablagefläche nahm Drag & Drop nur auf dem Text an, weil der Rahmen keinen Hintergrund hatte (nicht treffbar) – jetzt transparenter Hintergrund. Build ohne Warnungen, 236/236 Tests; Headless: 37 Prüfungen bestanden (neu: Ablagefläche in der Ecke treffbar – ohne Korrektur nachweislich fehlgeschlagen –, „Liste leeren“ sichtbar, Leeren abgelehnt/bestätigt). Offen: F66–F68 (Kopieren, Strg+C, Nachfrage im Bereich „Umbenennen“) |
+| 2026-11-09 | Kopieren aus der Tag-Vorschau umgesetzt (E139): `TagListFormatter` im Core (5 neue Tests), Kopierbefehl im `TagAreaViewModel`, Tag-Vorschau als `PreviewListBox` mit markierbaren Zellen, `PreviewCopyController` für beide Listen verallgemeinert. „Liste leeren“ fragt überall nach (E140). Build ohne Warnungen, **241/241 Tests**; Headless: 42 Prüfungen bestanden (neu: Kopieren nutzt gespeicherten Stand trotz vorgemerkter Änderung, Dateinamen kopieren, vier aktive Menüeinträge, markierbare Zellen, Strg+C mit Kopfzeile, Nachfrage im Bereich „Umbenennen“). Neue Annahmen A31, A32 |
+| 2026-11-09 | A31, A32 bestätigt. Genre-Auswahl wie die Profilauswahl (E141), einheitliche Rahmen app-weit (E142), Segmente ohne „…“ (E143). Dabei gefunden und behoben: Beim Entfernen eines eigenen Genres setzte die editierbare Auswahl den eingegebenen Wert zurück. Build ohne Warnungen, 241/241 Tests; Headless: 49 Prüfungen bestanden (neu: Genre editierbar, Übernahme aus der Liste, Trennlinie nicht wählbar, Wert bleibt beim Entfernen eines Genres, Rahmenfarben von Textfeld, Auswahl und Schaltfläche) und Screenshots beider Bereiche hell/dunkel angesehen |
+| 2026-11-09 | Markierter Text kontrastabhängig (E144). Fehler behoben: (1) Ein Klick auf eine bereits ausgewählte vorgemerkte Änderung tat nichts (Auswahl unverändert), ein schneller zweiter Klick zählte als Doppelklick – jetzt wird jeder Klick ausgewertet, Checkbox und ✕ ausgenommen. (2) „Vorher anzeigen“ hatte keine Wirkung, weil ein lokal gesetztes `IsVisible=False` den Stil überstimmte; danach verdrängte ein langer alter Wert den neuen – Zelle neu angeordnet (E145). Beide Fehler headless mit echten Mausklicks bzw. Umschalten reproduziert; die Prüfungen schlagen mit dem alten Stand nachweislich fehl. Build ohne Warnungen, 241/241 Tests; Headless: 63 Prüfungen bestanden |
+| 2026-11-09 | Spalten verschieb- und verbreiterbar mit Speichern im Kontextmenü (E146, E148): `ColumnLayout` im Core (11 neue Tests, Einstellungen 1), `ColumnRowPanel`/`ColumnHeaderPanel` in der App, beide Listen umgebaut. Profil im Bereich „Tags“ ausgeblendet, Umschalter mit Beschriftung bei genug Platz (E147) – bei der Mindestbreite von 900 px passt sie in beiden Bereichen. Dabei gefunden: Das geerbte Spaltenmodell erreichte die Listenzeilen nicht (alle Zellen übereinander) – jetzt ausdrücklich gebunden. Build ohne Warnungen, **253/253 Tests**; Headless: 78 Prüfungen bestanden (neu u. a. Kopf und Zellen bündig, Kante ziehen, Kopf ziehen, Doppelklick-Anpassung, Menü Speichern/Wiederherstellen/Standard, Laden nach Neustart, Rename-Spalten tauschen, Profil ausgeblendet, Beschriftung bei 1300 und 900 px) |
+| 2026-11-09 | V22 umgesetzt (E149): Dialogfarben je Theme, Kopf/Fuß, Rahmen, Abdunkelung des Hauptfensters (auch bei Datei-/Ordnerauswahl, verschachtelte Dialoge gezählt). Headless mit dem echten `DialogService` hell und dunkel: Dialog offen, Fläche ≠ Fenster, Titel im Kopf, Abdunkelung an und nach Bestätigen wieder aus; Screenshots angesehen. Build ohne Warnungen, 253/253 Tests; 84 Headless-Prüfungen bestanden. Hinweis: Der Titel steht weiterhin auch in der Titelleiste des Systems |
+| 2026-11-09 | Kopfbereich und Fußleiste der Dialoge auf Wunsch wieder entfernt (E149 angepasst); Dialogfläche, Rahmen und Abdunkelung bleiben. Build ohne Warnungen, 253/253 Tests; 84 Headless-Prüfungen bestanden, Screenshots hell/dunkel angesehen |
+| 2026-11-10 | Beide Dateilisten vereinheitlicht (F69–F72 → E150–E153): Checkboxen auch in der Tag-Vorschau (Auswahl für die Tag-Funktionen; Zeilenmarkierung nur noch zum Kopieren), Kopf-Checkbox statt „Alle Audiodateien markieren“; Checkboxen 14 px, Zeilen 23 statt 38 px; horizontales Scrollen mit mitlaufenden Spaltenköpfen; Ablagefläche entfernt, Hinweis in der leeren Liste, „Liste leeren“ in der Titelzeile. Ursache „horizontales Scrollen geht nicht“: die Listen hatten den horizontalen Bildlauf abgeschaltet, und die Spalten wurden immer in die sichtbare Breite gezwängt. Build ohne Warnungen, **255/255 Tests** (2 neue für `ColumnLayout`); Headless: 105 Prüfungen bestanden (neu u. a. Kästchen 14 px, Zeilenhöhe beider Listen, Checkbox-Klick vs. Zeilen-Klick mit echter Maus, Kopieren der markierten Zeilen, Kopf-Checkbox, horizontales Scrollen mit bündigem Kopf in beiden Listen, gescrollte Köpfe treffbar, Hinweis in leerer Liste). Neue Annahmen A33–A35 |
 
-Nächster Schritt: keiner – Grundversion (2026-10-29) und Erweiterung (2026-10-30) sind abgenommen, siehe `ABNAHME.md`.
+Nächster Schritt: Anwendertest des Bereichs „Tags“ in der laufenden App.
 
 ---
 
@@ -178,6 +195,51 @@ Nächster Schritt: keiner – Grundversion (2026-10-29) und Erweiterung (2026-10
 | E106 | Eigene Vorlagen | Bei „Name aus Vorlage“ steht in jedem Tab neben der Vorlagenauswahl eine Schaltfläche „Speichern“: Sie nimmt die eingegebene Vorlage ohne Rückfrage in die Liste dieses Tabs auf; leere oder bereits vorhandene Vorlagen werden nicht gespeichert. Eigene Vorlagen gelten programmweit (Einstellungen, getrennt nach Fotos und Audio), erscheinen oben in der Liste (neueste zuerst), durch eine Linie von den Beispielvorlagen getrennt, und lassen sich per ✕ entfernen. Höchstens 10 je Tab; beim Speichern einer elften entfällt die älteste (F49–F52). | 2026-10-30 |
 | E107 | Vorlagenauswahl | Nach der Wahl einer Vorlage zeigt die Auswahl wieder „Vorlage wählen…“, damit dieselbe Vorlage erneut gewählt werden kann (Fehler gefunden bei E106: die Auswahl blieb stehen, mit eigenen Vorlagen sogar samt ✕ im zugeklappten Feld). | 2026-10-30 |
 | E108 | Eigene Vorlagen | Die Schaltflächen „Speichern“ bei „Name aus Vorlage“ verwenden die Akzentfarbe wie „Zur Kette hinzufügen“. | 2026-10-30 |
+| E109 | Kopieren aus der Vorschau | Beides: Namen lassen sich per Maus markieren und kopieren (Strg+C bzw. Kontextmenü „Markierten Text kopieren“), und Zeilen lassen sich markieren (Klick, Strg, Umschalt), um ihre Namen gesammelt zu kopieren (F53). | 2026-11-09 |
+| E110 | Kopieren aus der Vorschau | Kontextmenü der Vorschau: „Aktuelle Namen kopieren“, „Neue Namen kopieren“, „Aktuelle und neue Namen kopieren“ (je Zeile tabulatorgetrennt, z. B. für Tabellenkalkulationen); eine Zeile je Datei. Strg+C ohne Textmarkierung kopiert die neuen Namen der markierten Zeilen (F54). | 2026-11-09 |
+| E111 | Kopieren aus der Vorschau | Kopiert wird der angezeigte Text – bei „Dateierweiterung ignorieren“ also ohne ausgeblendete Endung, eine geänderte Endung (E73) wird mitkopiert (F55). | 2026-11-09 |
+| E112 | Kopieren aus der Vorschau | Die Zeilenmarkierung dient nur dem Kopieren und ist unabhängig von der Checkbox (Dateiauswahl, E52). Sie bleibt beim Neuberechnen der Vorschau erhalten (F56). | 2026-11-09 |
+| E113 | Kopieren aus der Vorschau | Markierte Konfliktzeilen erhalten einen Rahmen in Akzentfarbe, weil ihr roter Hintergrund die Markierungsfarbe verdeckt (siehe A15). | 2026-11-09 |
+| E114 | Audio-Tags | Taggen von Audiodateien als eigener Bereich: Umschalter „Umbenennen \| Tags“ in der Leiste, gemeinsame Dateiliste, eigener Editor und eigenes Speichern. | 2026-11-09 |
+| E115 | Audio-Tags | Geschrieben wird mit der Bibliothek **TagLib#** (neue Abhängigkeit, Abweichung von „so wenig Abhängigkeiten wie möglich“ in SPECS; vom Anwender gewählt). | 2026-11-09 |
+| E116 | Audio-Tags | Funktionsumfang: Mehrfachbearbeitung (gemeinsame Werte, sonst „&lt;verschiedene&gt;“), Tags aus Dateinamen (Vorlage), Tracknummern automatisch, Tag-Vorschau alt → neu vor dem Speichern. | 2026-11-09 |
+| E117 | Cover | Cover extrahieren, einfügen, entfernen; mehrere Bildtypen (Vorderseite, Rückseite, Medium …); Cover importieren und exportieren. | 2026-11-09 |
+| E118 | Lyrics | Lyrics bearbeiten sowie importieren und exportieren (Ergänzung des Anwenders). | 2026-11-09 |
+| E119 | Audio-Tags | Der Umschalter „Umbenennen / Tags“ besteht nur aus Icons mit Tooltip und steht rechts in der Leiste, links neben der Theme-Auswahl; das Profil für das Umbenennen bleibt links. | 2026-11-09 |
+| E120 | Audio-Tags | Die eigenen Metadaten-Leser für „Name aus Vorlage“ bleiben; TagLib# wird nur im Bereich „Tags“ verwendet (F57). | 2026-11-09 |
+| E121 | Audio-Tags | Unterstützt werden alle Formate, die TagLib# schreiben kann (F58). | 2026-11-09 |
+| E122 | Audio-Tags | MP3 wird als ID3v2.3 geschrieben (F59). | 2026-11-09 |
+| E123 | Lyrics | LRC-Zeitstempel bleiben als Text in den unsynchronisierten Lyrics (F60). | 2026-11-09 |
+| E124 | Audio-Tags | „Letzte Speicherung widerrufen“ wie beim Umbenennen: alte Tags, Cover und Lyrics bleiben bis zum Programmende im Speicher (F61). | 2026-11-09 |
+| E125 | Audio-Tags | Weitere Felder lassen sich über eine Combobox mit den gängigsten Feldern oder per freier Eingabe (benutzerdefiniertes Feld, z. B. ID3 TXXX) hinzufügen (F62). | 2026-11-09 |
+| E126 | Audio-Tags | Nach „Tags speichern“ werden die Metadaten der Dateien neu gelesen; „Name aus Vorlage“ nutzt die neuen Tags (F63). | 2026-11-09 |
+| E127 | Cover | Cover lassen sich beim Einfügen verkleinern; die Zielgröße in Pixeln ist frei wählbar (V21). | 2026-11-09 |
+| E128 | Tag-Vorschau | Über der Tag-Vorschau markiert eine Schaltfläche alle Audiodateien (Umsetzung siehe A18). | 2026-11-09 |
+| E129 | Gestaltung | Beschriftungen links von Eingaben sind oben ausgerichtet, nicht mittig (Umfang siehe A20). | 2026-11-09 |
+| E130 | Profil im Tag-Bereich | Im Bereich „Tags“ sind Profilfeld, „Speichern“ und „Zurücksetzen“ ausgegraut (A17). **Abgelöst durch E147 (ausgeblendet).** | 2026-11-09 |
+| E131 | Zusätzliche Felder | Hinzugefügte Felder bleiben programmweit im Formular; ebenso bleiben selbst eingegebene Genres in der Genre-Liste (F64, Details A19). | 2026-11-09 |
+| E132 | Cover verkleinern | Originalformat bleibt, JPEG mit Qualität 90 %, Pixelzahl gilt für die längste Seite, Zielgröße wird programmweit gespeichert (F65). | 2026-11-09 |
+| E133 | Gestaltung | **Mockup v13** (`mockups/mockup-v13.html`) ist freigegeben und gilt als Vorlage für den Bereich „Tags“. | 2026-11-09 |
+| E134 | Eigene Genres | A19 bestätigt: eigene Genres oben unter „Eigene“, neueste zuerst, ✕ entfernt, höchstens 20; aufgenommen wird ein vorgemerktes Genre, das nicht in der Standardliste steht. | 2026-11-09 |
+| E135 | Gestaltung | A20 bestätigt und ergänzt: Beschriftungen links von Eingaben sind im ganzen Bereich „Tags“ oben ausgerichtet. Die erste Zeile der Beschriftung liegt auf derselben Grundlinie wie die erste Zeile des Werts (Textfeld, mehrzeiliges Feld, Checkbox, Auswahl), auch wenn Beschriftung oder Wert mehrzeilig sind. | 2026-11-09 |
+| E136 | Tag-Vorschau | *Abgelöst durch E150.* Im Bereich „Tags“ entfallen die Datei-Checkboxen. Es gibt nur die Zeilenmarkierung (womit gearbeitet wird) und die Checkboxen der vorgemerkten Änderungen (Schritt ein/aus). Jeder Schritt gilt für die Dateien, für die er vorgemerkt wurde. Beim Umbenennen bleiben die Checkboxen (E52). Abweichung von Mockup v13. | 2026-11-09 |
+| E137 | Tag-Vorschau | *Abgelöst durch E150.* A18 bestätigt (ohne Checkbox-Bezug, E136): „Alle Audiodateien markieren“ markiert alle Audiodateien; Tastenkürzel Strg+A in der Vorschau. | 2026-11-09 |
+| E138 | Tag-Vorschau | Unter der Tag-Vorschau dieselbe Leiste wie unter der Rename-Liste (Mockup v13): Ablagehinweis „Dateien oder Ordner hierher ziehen“ und „Liste leeren“. Sind Tag-Änderungen vorgemerkt, fragt „Liste leeren“ im Bereich „Tags“ nach und verwirft sie bei Zustimmung. | 2026-11-09 |
+| E139 | Kopieren aus der Tag-Vorschau | Wie in der Rename-Liste: Text in Zellen markierbar; Kontextmenü der markierten Zeilen mit „Dateinamen kopieren“, „Tags kopieren“, „Dateinamen und Tags kopieren“ (ohne Kopfzeile) und „Zeilen kopieren“ (mit Kopfzeile). Tabulator-getrennt, leere Werte leer. Kopiert wird immer der gespeicherte Stand, auch über das Menü (F66, F67). | 2026-11-09 |
+| E140 | Liste leeren | Die Nachfrage bei vorgemerkten Tag-Änderungen gilt überall: Bereich „Umbenennen“, Bereich „Tags“ und Menü „Datei“ (F68). | 2026-11-09 |
+| E141 | Genre-Auswahl | Genre als editierbare Auswahl wie die Profilauswahl (statt Textfeld mit ▾-Flyout); eigene Genres mit ✕, Trennlinie, Standardgenres bleiben (E134). | 2026-11-09 |
+| E142 | Rahmen | App-weit (beide Bereiche, Werkzeugleiste, Dialoge) einheitliche 1-px-Rahmen wie im Mockup: Text- und Auswahlfelder sowie normale Schaltflächen in der Rahmenfarbe der Segmente (`AppBorderBrush`); Akzent-Schaltflächen und Fokusrahmen unverändert. | 2026-11-09 |
+| E143 | Segmente ohne „…“ | Segmente sind Optionen und öffnen keinen Dialog: „Bilddatei“ (statt „Bilddatei…“), „Gewählter Ordner“ (statt „Ordner wählen…“), „Gewählte Datei“ (statt „Datei wählen…“). | 2026-11-09 |
+| E144 | Markierter Text | Markierter Text in Text-, Auswahlfeldern und markierbaren Zellen: Hintergrund in der Akzentfarbe, Schrift je nach Helligkeit dunkel oder hell (wie die Schrift auf Akzent-Schaltflächen). | 2026-11-09 |
+| E145 | „Vorher anzeigen“ | Der alte Wert steht durchgestrichen vor dem neuen; bei Platzmangel wird nur der alte gekürzt (…), der neue bleibt vollständig sichtbar. Die Farbmarkierung umfasst nur den neuen Wert (wie im Mockup). | 2026-11-09 |
+| E146 | Spalten anpassen | In beiden Vorschaulisten: rechte Kante eines Spaltenkopfs ziehen = Breite, Doppelklick auf die Kante = an Inhalt anpassen, Kopf ziehen = verschieben (Einfügelinie in Akzentfarbe). Checkbox- und ⚠-Spalte bleiben fest vorne. Ungespeichert gilt die Anordnung bis Programmende. | 2026-11-09 |
+| E147 | Werkzeugleiste | Im Bereich „Tags“ sind Profilfeld, „Speichern“ und „Zurücksetzen“ ausgeblendet (ersetzt das Ausgrauen aus E130). Der Bereichsumschalter zeigt neben den Symbolen die Beschriftungen „Umbenennen“ / „Tags“, sofern genug Platz ist. | 2026-11-09 |
+| E148 | Spalten speichern | Kontextmenü der Spaltenköpfe: „Reihenfolge und Breiten speichern“ (programmweit, je Liste, gilt nach Neustart), „Gespeicherte Anordnung wiederherstellen“, „Auf Standard zurücksetzen“ (Werkseinstellung; die gespeicherte bleibt bis zum nächsten Speichern). | 2026-11-09 |
+| E150 | Tag-Vorschau | Wie die Rename-Liste (F69): Die Checkbox einer Zeile wählt die Dateien, für die die Tag-Funktionen gelten („Ausgewählte Dateien“); ein Klick auf die Zeile markiert sie nur zum Kopieren. Die Checkbox im Spaltenkopf (alle/keine/teilweise) ersetzt „Alle Audiodateien markieren“. Nicht-Audiodateien haben eine gesperrte Checkbox. Ein Klick auf eine vorgemerkte Änderung setzt die Checkboxen ihrer Dateien. Löst E136 und E137 ab. | 2026-11-10 |
+| E151 | Horizontales Scrollen | Beide Vorschaulisten scrollen horizontal, wenn die Spalten breiter sind als die Liste (F71): flexible Spalten werden nicht schmaler als ihre Mindestbreite, die Spaltenköpfe laufen mit und bleiben bedienbar. | 2026-11-10 |
+| E152 | Liste leeren / Ablage | Die Ablagefläche unter beiden Listen entfällt; ist die Liste leer, steht „Dateien oder Ordner hierher ziehen“ mittig in der Liste. „Liste leeren“ sitzt rechts in der Titelzeile der Liste (F72). Löst die Lage aus E50 ab. | 2026-11-10 |
+| E153 | Datei-Checkboxen | In beiden Dateilisten 14-px-Kästchen; Zeilenhöhe 23 px (vorher 38). Übrige Checkboxen der App bleiben unverändert (F70). | 2026-11-10 |
+| E149 | Dialoge | Eigene Dialoge heben sich ab (V22): Fläche hell etwas dunkler bzw. dunkel etwas heller als das Hauptfenster, 1-px-Rahmen; das Hauptfenster wird abgedunkelt, solange ein Dialog oder eine Datei-/Ordnerauswahl offen ist. Kopfbereich und Fußleiste waren zu viel und sind wieder entfernt (Rückmeldung 2026-11-09); der Titel steht nur in der Titelleiste. | 2026-11-09 |
 | E98 | Sprache | A8–A10 bestätigt. Statt A11: Beispielnamen werden ebenfalls übersetzt, auch in der ComboBox „Schreibweise“ („mein Urlaub-Foto_2026“ → „my holiday-photo_2026“, „Urlaub 2026“ → „Holiday 2026“, „Reisen“ → „Travel“, „Musik“ → „Music“, „Foto“ → „Photo“, „Max Muster“ → „John Doe“). | 2026-10-30 |
 | E44 | Architektur | Gemeinsame Basis für alle Verfahren, Pipeline wendet die Kette an. Namen werden als Segmente mit Herkunft geführt (Grundlage der Hervorhebung). Dateisystemzugriffe über eigene Schnittstelle (testbar ohne echte Dateien). | 2026-10-29 |
 | E45 | Nach dem Umbenennen | Die Kette bleibt erhalten, die Dateiliste zeigt die neuen Namen (F19). | 2026-10-29 |
@@ -185,7 +247,7 @@ Nächster Schritt: keiner – Grundversion (2026-10-29) und Erweiterung (2026-10
 | E47 | Annahmen | A1 (Zähler sortiert nach ursprünglichem Namen, natürlich), A2 (Kette als Liste unter „▾ Kette“), A4 (Linux: Änderungsdatum), A5 (Standardwerte), A6 (Theme/Profil merken), A7 (Ketteneintrag rot bei Konflikt) bestätigt. | 2026-10-29 |
 | E48 | Profile | Statt A3: Die Profilauswahl ist editierbar (Name eintippen). „Speichern“ öffnet immer den Dialog „Profil speichern“ (vorbelegt mit dem eingegebenen bzw. aktuellen Namen, Rückfrage beim Überschreiben) – so lassen sich beliebig viele Profile anlegen. Geladen wird ein Profil nur durch Auswahl aus der Liste. | 2026-10-29 |
 | E49 | Widerrufen | Neue Schaltfläche „Letzte Umbenennung widerrufen“: macht die zuletzt ausgeführte Umbenennung rückgängig (alles oder nichts, mit Sicherheitsabfrage). | 2026-10-29 |
-| E50 | Liste leeren | Zusätzliche Schaltfläche „Liste leeren“ unter der Vorschauliste (wie Menü „Datei → Liste leeren“). | 2026-10-29 |
+| E50 | Liste leeren | *Lage abgelöst durch E152.* Zusätzliche Schaltfläche „Liste leeren“ unter der Vorschauliste (wie Menü „Datei → Liste leeren“). | 2026-10-29 |
 | E51 | Mockup-Abgleich | Die Oberfläche wird erneut mit Mockup v3 abgeglichen und angeglichen. | 2026-10-29 |
 
 ---
@@ -194,7 +256,6 @@ Nächster Schritt: keiner – Grundversion (2026-10-29) und Erweiterung (2026-10
 
 | ID  | Thema | Frage | Status |
 |-----|-------|-------|--------|
-_(keine)_
 
 ---
 
@@ -204,7 +265,9 @@ _(keine)_
 
 | ID | Thema | Annahme |
 |----|-------|---------|
-_(keine)_
+| A33 | Tag-Auswahl beim Laden | Wie bisher ist beim Öffnen des Bereichs „Tags“ die erste Audiodatei ausgewählt, falls keine ausgewählt ist – nicht alle Dateien wie beim Umbenennen. |
+| A34 | Strg+A in der Tag-Vorschau | Strg+A markiert wie in der Rename-Liste alle Zeilen (zum Kopieren) und wählt keine Dateien mehr aus; dafür gibt es die Kopf-Checkbox. |
+| A35 | Begriffe | Für die Checkbox-Auswahl heißt es in der Oberfläche jetzt „ausgewählt“ statt „markiert“ (z. B. „Ausgewählte Dateien“ unter „Gilt für“, „3 Dateien ausgewählt“, Statuszeile); „markiert“ bleibt für die Zeilenmarkierung zum Kopieren. |
 
 ---
 
@@ -216,12 +279,15 @@ _(keine)_
 | B2 | Auf vielen Linux-Dateisystemen ist das Erstellungsdatum nicht verfügbar (siehe E2). |
 | B3 | Keine manuelle Änderung in der Dateiliste (siehe E12). |
 | B4 | Getestet nur unter Windows (Tests, Build, App-Start). Linux und macOS sind nicht geprüft. |
-| B5 | Interaktive Bedienung (Dialoge, Dateiauswahl) wurde nicht per Klick getestet, nur gebaut und per Headless-Rendering angesehen. Das Umsortieren der Kette ist headless und vom Anwender in der laufenden App geprüft (E102). |
+| B5 | Interaktive Bedienung (Dialoge, Dateiauswahl) wurde nicht per Klick getestet, nur gebaut und per Headless-Rendering angesehen. Das Umsortieren der Kette (E102) und das Kopieren aus der Vorschau (E109–E113) sind headless und vom Anwender in der laufenden App geprüft. |
 | B6 | Kein macOS-App-Bundle (`.app`, `LSMinimumSystemVersion` 14.0) und kein Installer im Projekt. |
-| B7 | Abweichungen vom Mockup v3: gestrichelte Rahmen (Ablagehinweis, Beispiel) sind in Avalonia nicht verfügbar und daher durchgezogen; „Profile verwalten…“ entfällt (E48); zusätzliche Schaltflächen „Liste leeren“ und „Letzte Umbenennung widerrufen“ (E49, E50). |
+| B7 | Abweichungen vom Mockup v3: gestrichelte Rahmen (Beispiel, Cover-Ablagefläche) sind in Avalonia nicht verfügbar und daher durchgezogen; „Profile verwalten…“ entfällt (E48); zusätzliche Schaltflächen „Liste leeren“ und „Letzte Umbenennung widerrufen“ (E49, E50). |
 | B8 | Widerrufen gilt nur für die letzte Umbenennung und nur bis zum Programmende. |
 | B9 | Die Metadaten-Leser sind mit von den Tests erzeugten, strukturell korrekten Dateien geprüft, nicht mit Originaldateien realer Kameras/Player. Herstellerspezifische Abweichungen (z. B. Makernotes, ungewöhnliche HEIC-Strukturen mit mehreren Extents, komprimierte ID3-Frames) werden nicht ausgewertet. |
 | B10 | Bei sehr hellen Akzentfarben (z. B. 95 % Weiß) im hellen Theme bleiben Checkboxen und der Reglerknopf trotz Rahmenlösung (E85) blass. |
+| B13 | Tags werden beim Öffnen des Bereichs „Tags“ und nach Änderungen der Dateiliste im Vordergrund gelesen; bei sehr vielen Dateien kann die Oberfläche kurz stocken. |
+| B14 | Automatisch getestet sind Lesen und Schreiben mit MP3 und FLAC; die übrigen Formate (M4A, OGG, Opus, WMA, WAV, AIFF …) schreibt TagLib#, sie sind nicht eigens geprüft. |
+| B15 | Widerrufen stellt Tags, Cover und Lyrics inhaltlich wieder her, nicht byte-genau; seltene Bildtypen (z. B. „Illustration“) werden beim Ändern der Cover einer Datei als „Sonstiges“ geschrieben. |
 | B11 | Beim Sprachwechsel wird das Hauptfenster neu aufgebaut: Größe, Lage, Kette, Dateien, Auswahl und Editor-Einstellungen bleiben erhalten; die Position des Trennbalkens und Bildlaufpositionen werden zurückgesetzt. |
 
 ---
@@ -230,6 +296,30 @@ _(keine)_
 
 | ID | Frage / Vorschlag | Ergebnis | Datum |
 |----|-------------------|----------|-------|
+| F69 | Tag-Vorschau mit Checkboxen: Bedeutung von Checkbox und Zeilenklick? | wie Umbenennen: Checkbox = Auswahl, Klick = Markierung zum Kopieren, Kopf-Checkbox statt Schaltfläche → E150 | 2026-11-10 |
+| F70 | Größe und Geltungsbereich der kleinen Checkboxen | 14 px, nur die beiden Dateilisten → E153 | 2026-11-10 |
+| F71 | Erwartetes horizontales Scrollen | scrollen, wenn die Spalten breiter als die Liste sind; Kopf läuft mit → E151 | 2026-11-10 |
+| F72 | Lage von „Liste leeren“ | rechts in der Titelzeile; Hinweis in der leeren Liste → E152 | 2026-11-10 |
+| V22 | Dialoge heben sich zu wenig ab | Vorschlag angenommen: alle drei Maßnahmen kombiniert → E149 | 2026-11-09 |
+| A31, A32 | Strg+C = „Zeilen kopieren“ (markierte Zeilen, Kopfzeile, gespeicherter Stand); Cover/Lyrics als „ja“, fehlend leer | bestätigt | 2026-11-09 |
+| F66 | Kontextmenü der Tag-Vorschau | alle drei Vorschläge plus „Zeilen kopieren“ → E139 | 2026-11-09 |
+| F67 | Strg+C / Werte beim Kopieren | gespeicherter Stand, auch für das Kontextmenü; leere Werte leer → E139 | 2026-11-09 |
+| F68 | Nachfrage beim Leeren | ja, auch im Bereich „Umbenennen“ → E140 | 2026-11-09 |
+| A21–A30 | Annahmen zur Umsetzung des Bereichs „Tags“ (vorgemerkte Änderung anklicken, ID3v1, englische Standardgenres, Export vom Dateistand, .txt ohne Zeitstempel, Lyrics-Sprache nur ID3, benutzerdefinierte Felder je Format, „;“ für mehrere Werte, „/“ statt %folder%, erste Audiodatei markiert) | alle bestätigt | 2026-11-09 |
+| A17 | Profil im Tag-Bereich ausgegraut | bestätigt → E130 | 2026-11-09 |
+| A18 | „Alle Audiodateien markieren“ / Checkboxen | Datei-Checkboxen entfallen im Bereich „Tags“ → E136, E137 | 2026-11-09 |
+| A19 | Eigene Genres wie eigene Vorlagen | bestätigt → E134 | 2026-11-09 |
+| A20 | Ausrichtung oben für alle Beschriftungen | bestätigt, mit gleicher Grundlinie der ersten Zeile → E135 | 2026-11-09 |
+| F64 | Zusätzliche Felder dauerhaft? | ja, programmweit, auch eigene Genres → E131 | 2026-11-09 |
+| F65 | Format/Bezug/Speichern beim Verkleinern | Vorschlag angenommen → E132 | 2026-11-09 |
+| F57–F63 | Leser, Formate, ID3-Version, Lyrics, Widerrufen, Felder, Neu lesen | beantwortet → E120–E126 | 2026-11-09 |
+| V21 | Cover beim Einfügen verkleinern | angenommen, Zielpixel frei wählbar → E127 | 2026-11-09 |
+| A15 | Markierte Konfliktzeile: roter Hintergrund bleibt, zusätzlich 2-px-Rahmen in Akzentfarbe (E113) | bestätigt | 2026-11-09 |
+| A16 | „Markierten Text kopieren“ nur bei markiertem Text; eigenes, übersetztes Menü statt „Copy“; Strg+C bei „Neue Namen kopieren“ | bestätigt | 2026-11-09 |
+| F53 | Art des Markierens/Kopierens | Beides: Textmarkierung und Zeilen kopieren → E109 | 2026-11-09 |
+| F54 | Spalten beim Zeilenkopieren | wählbar im Kontextmenü, Strg+C = neue Namen → E110 | 2026-11-09 |
+| F55 | Erweiterung beim Kopieren | wie angezeigt → E111 | 2026-11-09 |
+| F56 | Zeilenmarkierung vs. Checkbox | unabhängig → E112 | 2026-11-09 |
 | B12 | Sprachwechsel in der laufenden App per Menüklick ungeprüft | vom Anwender geprüft, funktioniert | 2026-10-30 |
 | A14 | „Speichern“ nur bei gültiger Vorlage; Liste heißt „Vorlage wählen…“ | bestätigt | 2026-10-30 |
 | F49–F52 | Eigene Vorlagen: Speichern, Ort, Entfernen, Anzeige | Schaltfläche „Speichern“, programmweit, ✕ mit max. 10, oben getrennt → E106 | 2026-10-30 |

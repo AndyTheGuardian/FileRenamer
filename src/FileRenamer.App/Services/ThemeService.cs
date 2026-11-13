@@ -79,6 +79,9 @@ public sealed class ThemeService : IThemeService
 
         resources["SelectionBrush"] = new SolidColorBrush(Mix(Color.Parse(window), accent, 0.24));
         resources["AccentForegroundBrush"] = foreground;
+        // Markierter Text: Hintergrund in Akzentfarbe, Schrift je nach Helligkeit hell oder dunkel (E144)
+        resources["TextControlSelectionHighlightColor"] = new SolidColorBrush(accent);
+        resources["TextSelectionForegroundBrush"] = foreground;
         resources["AccentOutlineBrush"] = outline;
         resources["AccentSegmentBorderBrush"] = new SolidColorBrush(needsOutline ? textColor : accent);
         foreach (var state in new[] { string.Empty, "PointerOver", "Pressed" })

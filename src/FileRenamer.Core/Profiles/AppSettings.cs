@@ -68,6 +68,37 @@ public sealed record AppSettings(ThemePreference Theme = ThemePreference.System,
     public IReadOnlyList<string> CustomAudioTemplates { get; init; } = [];
 
     /// <summary>
+    /// Eigene Genres, neueste zuerst (E134).
+    /// </summary>
+    public IReadOnlyList<string> CustomGenres { get; init; } = [];
+
+    /// <summary>
+    /// Hinzugefügte Felder im Formular „Tags bearbeiten“ (Schlüssel aus <see cref="Tagging.TagFields"/>), programmweit (E131).
+    /// </summary>
+    public IReadOnlyList<string> ExtraTagFields { get; init; } = [];
+
+    /// <summary>
+    /// Ob Cover beim Einfügen verkleinert werden (E127).
+    /// </summary>
+    public bool ShrinkCovers { get; init; } = true;
+
+    /// <summary>
+    /// Höchstmaß der längsten Seite beim Verkleinern von Covern in Pixeln (E132).
+    /// </summary>
+    public int CoverMaxPixels { get; init; } = DefaultCoverMaxPixels;
+
+    /// <summary>
+    /// Standard für <see cref="CoverMaxPixels"/>.
+    /// </summary>
+    public const int DefaultCoverMaxPixels = 1000;
+
+    /// <summary>
+    /// Gespeicherte Spaltenanordnungen je Liste (Schlüssel z. B. „rename“, „tags“), E148.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<Preview.SavedColumn>> ColumnLayouts { get; init; } =
+        new Dictionary<string, IReadOnlyList<Preview.SavedColumn>>();
+
+    /// <summary>
     /// Vergleicht auch die Listen (Farben, Vorlagen) inhaltlich.
     /// </summary>
     /// <param name="other">Die anderen Einstellungen.</param>
@@ -75,7 +106,20 @@ public sealed record AppSettings(ThemePreference Theme = ThemePreference.System,
     public bool Equals(AppSettings? other) =>
         other is not null && Theme == other.Theme && LastProfileName == other.LastProfileName && AccentColor == other.AccentColor
         && PastelSaturation == other.PastelSaturation && CustomColors.SequenceEqual(other.CustomColors) && Language == other.Language
-        && CustomPhotoTemplates.SequenceEqual(other.CustomPhotoTemplates) && CustomAudioTemplates.SequenceEqual(other.CustomAudioTemplates);
+        && CustomPhotoTemplates.SequenceEqual(other.CustomPhotoTemplates) && CustomAudioTemplates.SequenceEqual(other.CustomAudioTemplates)
+        && CustomGenres.SequenceEqual(other.CustomGenres) && ExtraTagFields.SequenceEqual(other.ExtraTagFields)
+        && ShrinkCovers == other.ShrinkCovers && CoverMaxPixels == other.CoverMaxPixels
+        && SameColumnLayouts(ColumnLayouts, other.ColumnLayouts);
+
+    /// <summary>
+    /// Vergleicht gespeicherte Spaltenanordnungen inhaltlich.
+    /// </summary>
+    /// <param name="first">Erste Anordnungen.</param>
+    /// <param name="second">Zweite Anordnungen.</param>
+    /// <returns><c>true</c> bei gleichem Inhalt.</returns>
+    private static bool SameColumnLayouts(
+        IReadOnlyDictionary<string, IReadOnlyList<Preview.SavedColumn>> first, IReadOnlyDictionary<string, IReadOnlyList<Preview.SavedColumn>> second) =>
+        first.Count == second.Count && first.All(pair => second.TryGetValue(pair.Key, out var other) && pair.Value.SequenceEqual(other));
 
     /// <summary>
     /// Hashwert passend zu <see cref="Equals(AppSettings?)"/>.

@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tags="using:FileRenamer.App.ViewModels.Tags"
+             xmlns:changes="using:FileRenamer.Core.Tagging.Changes"
+             xmlns:loc="using:FileRenamer.App.Localization"
+             x:Class="FileRenamer.App.Views.Tags.TrackNumbersView"
+             x:DataType="tags:TrackNumbersEditorViewModel">
+  <StackPanel Spacing="10">
+    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="14" RowSpacing="9" MaxWidth="820" HorizontalAlignment="Left">
+      <TextBlock Classes="fieldLabel" Text="{loc:T Tracks.Order}" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal">
+        <RadioButton Classes="segment" GroupName="trackOrder" Content="{loc:T Tracks.OrderList}"
+                     IsChecked="{Binding Order, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static changes:TrackOrder.List}}" />
+        <RadioButton Classes="segment" GroupName="trackOrder" Content="{loc:T Tracks.OrderFileName}"
+                     IsChecked="{Binding Order, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static changes:TrackOrder.FileName}}" />
+        <RadioButton Classes="segment" GroupName="trackOrder" Content="{loc:T Tracks.OrderTitle}"
+                     IsChecked="{Binding Order, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static changes:TrackOrder.Title}}" />
+      </StackPanel>
+
+      <TextBlock Grid.Row="1" Classes="fieldLabel" Text="{loc:T Tracks.Start}" />
+      <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Start}" Minimum="1" Maximum="9999" Increment="1" FormatString="0"
+                     Width="140" HorizontalAlignment="Left" />
+
+      <TextBlock Grid.Row="2" Classes="fieldLabel" Text="{loc:T Tracks.Count}" />
+      <CheckBox Grid.Row="2" Grid.Column="1" Content="{loc:T Tracks.CountOption}" IsChecked="{Binding SetTrackCount}" />
+
+      <TextBlock Grid.Row="3" Classes="fieldLabel" Text="{loc:T Tracks.Disc}" />
+      <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="6">
+        <NumericUpDown Value="{Binding Disc}" Minimum="1" Maximum="999" Increment="1" FormatString="0" Width="110" IsEnabled="{Binding SetDisc}" />
+        <TextBlock Classes="fieldLabel" Text="/" />
+        <NumericUpDown Value="{Binding DiscCount}" Minimum="1" Maximum="999" Increment="1" FormatString="0" Width="110" IsEnabled="{Binding SetDisc}" />
+        <CheckBox Content="{loc:T Tracks.SetDisc}" IsChecked="{Binding SetDisc}" Margin="6,0,0,0" VerticalAlignment="Top" />
+      </StackPanel>
+
+      <TextBlock Grid.Row="4" Classes="fieldLabel" Text="{loc:T TagEditor.Scope}" />
+      <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal">
+        <RadioButton Classes="segment" GroupName="trackScope" Content="{loc:T TagEditor.ScopeSelected}"
+                     IsChecked="{Binding Scope, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tags:TagScope.Selected}}" />
+        <RadioButton Classes="segment" GroupName="trackScope" Content="{loc:T TagEditor.ScopeAll}"
+                     IsChecked="{Binding Scope, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tags:TagScope.AllAudio}}" />
+      </StackPanel>
+
+      <TextBlock Grid.Row="5" Classes="fieldLabel" Text="{loc:T TagEditor.Example}" IsVisible="{Binding Example, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      <Border Grid.Row="5" Grid.Column="1" Classes="example" IsVisible="{Binding Example, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Text="{Binding Example}" />
+      </Border>
+    </Grid>
+    <TextBlock Classes="error" Text="{Binding ValidationMessage}" IsVisible="{Binding HasValidationMessage}" />
+    <Button Classes="accent" Content="{loc:T TagEditor.Stage}" Command="{Binding StageCommand}" />
+  </StackPanel>
+</UserControl>

@@ -16,7 +16,9 @@ public sealed record HighlightSpan(string Text, RuleKind? Kind);
 public sealed class PreviewRowViewModel
 {
     private readonly Action<string, bool> _selectionChanged;
+    private readonly Action<string, bool> _markedChanged;
     private bool _isSelected;
+    private bool _isMarked;
 
     /// <summary>
     /// Erzeugt die Zeile aus der Vorschau einer Datei.
@@ -25,11 +27,20 @@ public sealed class PreviewRowViewModel
     /// <param name="kindsById">Zuordnung Verfahrens-Id → Art (für die Farben).</param>
     /// <param name="preferredRuleId">Id des ausgewählten Verfahrens (Vorrang bei Überschneidungen, E5).</param>
     /// <param name="selectionChanged">Wird mit Dateipfad und neuem Zustand aufgerufen, wenn die Checkbox wechselt.</param>
+    /// <param name="isMarked">Ob die Zeile zum Kopieren markiert ist.</param>
+    /// <param name="markedChanged">Wird mit Dateipfad und neuem Zustand aufgerufen, wenn die Markierung wechselt.</param>
     public PreviewRowViewModel(
-        FilePreview preview, IReadOnlyDictionary<Guid, RuleKind> kindsById, Guid? preferredRuleId, Action<string, bool> selectionChanged)
+        FilePreview preview,
+        IReadOnlyDictionary<Guid, RuleKind> kindsById,
+        Guid? preferredRuleId,
+        Action<string, bool> selectionChanged,
+        bool isMarked,
+        Action<string, bool> markedChanged)
     {
         _selectionChanged = selectionChanged;
+        _markedChanged = markedChanged;
         _isSelected = preview.IsSelected;
+        _isMarked = isMarked;
         FullPath = preview.File.FullPath;
         OriginalName = preview.OriginalDisplayName;
         HasConflict = preview.HasConflict;
@@ -42,6 +53,7 @@ public sealed class PreviewRowViewModel
         Spans = segments
             .Select(segment => new HighlightSpan(segment.Text, ResolveKind(segment.GetHighlightSource(preferredRuleId), kindsById)))
             .ToList();
+        NewName = string.Concat(Spans.Select(span => span.Text));
     }
 
     /// <summary>
@@ -66,9 +78,31 @@ public sealed class PreviewRowViewModel
     }
 
     /// <summary>
+    /// Ob die Zeile zum Kopieren markiert ist (unabhängig von <see cref="IsSelected"/>). Eine Änderung wird an das
+    /// Hauptfenster-ViewModel gemeldet.
+    /// </summary>
+    public bool IsMarked
+    {
+        get => _isMarked;
+        set
+        {
+            if (value != _isMarked)
+            {
+                _isMarked = value;
+                _markedChanged(FullPath, value);
+            }
+        }
+    }
+
+    /// <summary>
     /// Ursprünglicher Name (ohne ausgeblendete Erweiterung).
     /// </summary>
     public string OriginalName { get; }
+
+    /// <summary>
+    /// Neuer Name so, wie er angezeigt wird (ohne ausgeblendete, aber mit geänderter Erweiterung, E73).
+    /// </summary>
+    public string NewName { get; }
 
     /// <summary>
     /// Abschnitte des neuen Namens.

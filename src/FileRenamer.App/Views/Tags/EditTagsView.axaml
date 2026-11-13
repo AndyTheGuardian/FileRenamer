@@ -1,0 +1,120 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tags="using:FileRenamer.App.ViewModels.Tags"
+             xmlns:views="using:FileRenamer.App.Views.Tags"
+             xmlns:loc="using:FileRenamer.App.Localization"
+             x:Class="FileRenamer.App.Views.Tags.EditTagsView"
+             x:DataType="tags:EditTagsEditorViewModel">
+
+  <UserControl.Styles>
+    <!-- Geändertes Feld: Balken links in der Farbe der Funktion (Mockup v13) -->
+    <Style Selector="TextBox.dirty">
+      <Setter Property="BorderThickness" Value="3,1,1,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource RuleColor.ReplaceText}" />
+    </Style>
+    <Style Selector="TextBox.invalid">
+      <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+    </Style>
+    <Style Selector="Button.fieldAction">
+      <Setter Property="Padding" Value="6,2" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="Margin" Value="2,4,0,0" />
+    </Style>
+    <Style Selector="ComboBox.dirty">
+      <Setter Property="BorderThickness" Value="3,1,1,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource RuleColor.ReplaceText}" />
+    </Style>
+    <Style Selector="ComboBox#GenreComboBox ComboBoxItem" x:DataType="tags:GenreEntry">
+      <Setter Property="IsEnabled" Value="{Binding IsSelectable}" />
+    </Style>
+  </UserControl.Styles>
+
+  <UserControl.DataTemplates>
+    <!-- Ein Feld: Beschriftung oben ausgerichtet, Eingabe, ↺ bei Änderung, ✕ bei hinzugefügten Feldern -->
+    <DataTemplate DataType="tags:TagFieldViewModel">
+      <Grid ColumnDefinitions="142,*,Auto,Auto">
+        <TextBlock Classes="fieldLabel" Text="{Binding Label}" />
+        <TextBox Grid.Column="1" Text="{Binding Value}" PlaceholderText="{Binding Placeholder}"
+                 Classes.dirty="{Binding IsDirty}" Classes.invalid="{Binding !IsValid}" />
+        <Button Grid.Column="2" Classes="fieldAction" Content="↺" IsVisible="{Binding IsDirty}" ToolTip.Tip="{loc:T TagEdit.RevertTip}"
+                Command="{Binding $parent[views:EditTagsView].((tags:EditTagsEditorViewModel)DataContext).RevertFieldCommand}"
+                CommandParameter="{Binding}" />
+        <Button Grid.Column="3" Classes="fieldAction" Content="✕" IsVisible="{Binding IsRemovable}" ToolTip.Tip="{loc:T TagEdit.RemoveFieldTip}"
+                Command="{Binding $parent[views:EditTagsView].((tags:EditTagsEditorViewModel)DataContext).RemoveFieldCommand}"
+                CommandParameter="{Binding}" />
+      </Grid>
+    </DataTemplate>
+    <DataTemplate DataType="tags:GenreOption">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Content="✕" IsVisible="{Binding IsCustom}" Click="OnRemoveGenreClick" Padding="6,0" Margin="8,0,0,0"
+                MinHeight="0" Background="Transparent" BorderThickness="0" ToolTip.Tip="{loc:T TagEdit.RemoveGenreTip}" />
+      </Grid>
+    </DataTemplate>
+    <DataTemplate DataType="tags:GenreSeparator">
+      <Border Height="1" Background="{DynamicResource AppBorderBrush}" />
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <StackPanel Spacing="10" MaxWidth="980" HorizontalAlignment="Left">
+    <UniformGrid Columns="2" RowSpacing="8" ColumnSpacing="20">
+      <ContentControl Content="{Binding TitleField}" />
+      <ContentControl Content="{Binding ArtistField}" />
+      <ContentControl Content="{Binding AlbumField}" />
+      <ContentControl Content="{Binding AlbumArtistField}" />
+      <ContentControl Content="{Binding ComposerField}" />
+      <!-- Genre als editierbare Auswahl wie die Profilauswahl: eigene Genres oben (✕ entfernt), Trennlinie,
+           Standardgenres (E134, E141) -->
+      <Grid ColumnDefinitions="142,*,Auto">
+        <TextBlock Classes="fieldLabel" Text="{Binding GenreField.Label}" />
+        <ComboBox x:Name="GenreComboBox" Grid.Column="1" IsEditable="True" HorizontalAlignment="Stretch" MaxDropDownHeight="300"
+                  ItemsSource="{Binding GenreEntries}" Text="{Binding GenreField.Value}" PlaceholderText="{Binding GenreField.Placeholder}"
+                  Classes.dirty="{Binding GenreField.IsDirty}" ToolTip.Tip="{loc:T TagEdit.GenreTip}" SelectionChanged="OnGenreSelected" />
+        <Button Grid.Column="2" Classes="fieldAction" Content="↺" IsVisible="{Binding GenreField.IsDirty}"
+                ToolTip.Tip="{loc:T TagEdit.RevertTip}" Command="{Binding RevertFieldCommand}" CommandParameter="{Binding GenreField}" />
+      </Grid>
+      <ContentControl Content="{Binding YearField}" />
+      <!-- Track / Disc in einer Zeile -->
+      <Grid ColumnDefinitions="142,*">
+        <TextBlock Classes="fieldLabel" Text="{loc:T TagEdit.TrackDisc}" />
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+          <TextBox Width="52" MinWidth="0" Text="{Binding TrackField.Value}" PlaceholderText="{Binding TrackField.Placeholder}"
+                   Classes.dirty="{Binding TrackField.IsDirty}" Classes.invalid="{Binding !TrackField.IsValid}" ToolTip.Tip="{Binding TrackField.Label}" />
+          <TextBlock Text="/" Classes="fieldLabel" />
+          <TextBox Width="52" MinWidth="0" Text="{Binding TrackCountField.Value}" PlaceholderText="{Binding TrackCountField.Placeholder}"
+                   Classes.dirty="{Binding TrackCountField.IsDirty}" Classes.invalid="{Binding !TrackCountField.IsValid}" ToolTip.Tip="{Binding TrackCountField.Label}" />
+          <TextBlock Text="{loc:T TagEdit.Disc}" Classes="fieldLabel" Margin="10,6,0,0" Foreground="{DynamicResource MutedTextBrush}" />
+          <TextBox Width="52" MinWidth="0" Text="{Binding DiscField.Value}" PlaceholderText="{Binding DiscField.Placeholder}"
+                   Classes.dirty="{Binding DiscField.IsDirty}" Classes.invalid="{Binding !DiscField.IsValid}" ToolTip.Tip="{Binding DiscField.Label}" />
+          <TextBlock Text="/" Classes="fieldLabel" />
+          <TextBox Width="52" MinWidth="0" Text="{Binding DiscCountField.Value}" PlaceholderText="{Binding DiscCountField.Placeholder}"
+                   Classes.dirty="{Binding DiscCountField.IsDirty}" Classes.invalid="{Binding !DiscCountField.IsValid}" ToolTip.Tip="{Binding DiscCountField.Label}" />
+        </StackPanel>
+      </Grid>
+    </UniformGrid>
+
+    <ContentControl Content="{Binding CommentField}" />
+
+    <ItemsControl ItemsSource="{Binding ExtraFields}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate><UniformGrid Columns="2" RowSpacing="8" ColumnSpacing="20" /></ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+    </ItemsControl>
+
+    <!-- Feld hinzufügen: gängige Felder oder freier Name (E125, E131) -->
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <ComboBox IsEditable="True" Width="280" ItemsSource="{Binding FieldSuggestions}" Text="{Binding NewFieldInput}"
+                PlaceholderText="{loc:T TagEdit.AddFieldPlaceholder}" />
+      <Button Content="{loc:T TagEdit.AddField}" Command="{Binding AddFieldCommand}" />
+    </StackPanel>
+
+    <TextBlock Classes="hint" Text="{loc:T TagEdit.Hint}" TextWrapping="Wrap" />
+    <TextBlock Classes="error" Text="{Binding ValidationMessage}" IsVisible="{Binding HasValidationMessage}" />
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <Button Classes="accent" Content="{loc:T TagEditor.Stage}" Command="{Binding StageCommand}" />
+      <Button Content="{loc:T TagEdit.RevertAll}" Command="{Binding RevertAllCommand}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

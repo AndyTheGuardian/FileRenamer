@@ -45,10 +45,9 @@ public sealed partial class MainWindowViewModel
     }
 
     /// <summary>
-    /// Leert die Dateiliste.
+    /// Leert die Dateiliste ohne Nachfrage (Befehl „Liste leeren“ siehe <see cref="ClearFilesAsync"/>).
     /// </summary>
-    [RelayCommand(CanExecute = nameof(HasFiles))]
-    private void ClearFiles()
+    private void ClearFileList()
     {
         _files.Clear();
         _deselectedPaths.Clear();

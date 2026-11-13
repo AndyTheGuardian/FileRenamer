@@ -41,6 +41,15 @@ public interface IDialogService
     Task<IReadOnlyList<string>> PickFilesAsync();
 
     /// <summary>
+    /// Öffnet die Auswahl für eine einzelne Datei mit Filter.
+    /// </summary>
+    /// <param name="title">Titel des Dialogs.</param>
+    /// <param name="filterName">Bezeichnung des Filters, z. B. „Bilder“.</param>
+    /// <param name="extensions">Erlaubte Endungen mit Punkt, z. B. <c>.jpg</c>.</param>
+    /// <returns>Der lokale Pfad oder <c>null</c>.</returns>
+    Task<string?> PickFileAsync(string title, string filterName, IReadOnlyList<string> extensions);
+
+    /// <summary>
     /// Öffnet die Auswahl für einen Ordner.
     /// </summary>
     /// <returns>Der lokale Pfad oder <c>null</c>.</returns>

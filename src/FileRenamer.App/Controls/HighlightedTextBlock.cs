@@ -7,10 +7,11 @@ using FileRenamer.App.ViewModels;
 namespace FileRenamer.App.Controls;
 
 /// <summary>
-/// TextBlock, der einen Namen abschnittsweise mit der Farbe des jeweiligen Verfahrens hinterlegt.
-/// Bei einem Theme-Wechsel werden die Farben neu aus den Ressourcen gelesen.
+/// Markierbarer TextBlock, der einen Namen abschnittsweise mit der Farbe des jeweiligen Verfahrens hinterlegt.
+/// Der Text lässt sich mit der Maus markieren und kopieren. Bei einem Theme-Wechsel werden die Farben neu aus
+/// den Ressourcen gelesen.
 /// </summary>
-public sealed class HighlightedTextBlock : TextBlock
+public sealed class HighlightedTextBlock : SelectableTextBlock
 {
     /// <summary>
     /// Die anzuzeigenden Abschnitte.
@@ -33,9 +34,9 @@ public sealed class HighlightedTextBlock : TextBlock
     }
 
     /// <summary>
-    /// Verwendet die Stile eines normalen TextBlocks.
+    /// Verwendet die Stile eines markierbaren TextBlocks.
     /// </summary>
-    protected override Type StyleKeyOverride => typeof(TextBlock);
+    protected override Type StyleKeyOverride => typeof(SelectableTextBlock);
 
     /// <summary>
     /// Baut die Inlines neu auf, wenn sich die Abschnitte ändern.

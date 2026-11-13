@@ -11,6 +11,7 @@ using FileRenamer.App.Views;
 using FileRenamer.Core.Files;
 using FileRenamer.Core.Localization;
 using FileRenamer.Core.Profiles;
+using FileRenamer.Core.Tagging;
 
 namespace FileRenamer.App;
 
@@ -46,7 +47,10 @@ public sealed class App : Application
                 new ProfileStore(AppDataLocator.GetProfileDirectory()),
                 settingsStore,
                 _dialogs,
-                new ThemeService(this));
+                new ThemeService(this),
+                new ClipboardService(() => _desktop?.MainWindow),
+                new TagLibTagStore(),
+                new SkiaCoverImageProcessor());
             viewModel.LanguageChanged += OnLanguageChanged;
             window.DataContext = viewModel;
             desktop.MainWindow = window;

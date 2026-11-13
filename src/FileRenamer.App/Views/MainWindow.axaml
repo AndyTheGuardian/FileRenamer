@@ -6,6 +6,9 @@
         xmlns:views1="using:FileRenamer.App.Views"
         xmlns:controls="using:FileRenamer.App.Controls"
         xmlns:profiles="using:FileRenamer.Core.Profiles"
+        xmlns:preview="using:FileRenamer.Core.Preview"
+        xmlns:changes="using:FileRenamer.Core.Tagging.Changes"
+        xmlns:tagviews="using:FileRenamer.App.Views.Tags"
         xmlns:loc="using:FileRenamer.App.Localization"
         x:Class="FileRenamer.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -15,6 +18,12 @@
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource AppBackgroundBrush}"
         DragDrop.AllowDrop="True">
+
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+D1" Command="{Binding ShowRenameAreaCommand}" />
+    <KeyBinding Gesture="Ctrl+D2" Command="{Binding ShowTagAreaCommand}" />
+    <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding Tags.SaveCommand}" />
+  </Window.KeyBindings>
 
   <Window.DataTemplates>
     <DataTemplate DataType="ed:ReplaceTextEditorViewModel"><views:ReplaceTextEditorView /></DataTemplate>
@@ -34,13 +43,13 @@
     <Style Selector="Border.pane">
       <Setter Property="Padding" Value="12,10" />
     </Style>
-    <Style Selector="TextBlock.mono">
+    <Style Selector=":is(TextBlock).mono">
       <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace" />
     </Style>
     <Style Selector="Border.previewRow.conflict">
       <Setter Property="Background" Value="{DynamicResource DangerBackgroundBrush}" />
     </Style>
-    <Style Selector="Border.previewRow.unselected TextBlock.name">
+    <Style Selector="Border.previewRow.unselected :is(TextBlock).name">
       <Setter Property="Opacity" Value="0.45" />
     </Style>
     <!-- Rahmenfarbe nur per Style, damit .error sie überschreiben kann -->
@@ -77,6 +86,27 @@
       <Setter Property="Padding" Value="0" />
       <Setter Property="MinHeight" Value="0" />
     </Style>
+    <!-- Zeilenmarkierung zum Kopieren, unabhängig von der Checkbox (Dateiauswahl) -->
+    <Style Selector="ListBox.preview ListBoxItem" x:DataType="vm:PreviewRowViewModel">
+      <Setter Property="IsSelected" Value="{Binding IsMarked, Mode=TwoWay}" />
+    </Style>
+    <Style Selector="ListBox.preview ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.preview ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+    </Style>
+    <!-- Eigenes Kontextmenü der Liste statt des englischen Standardmenüs markierbarer Texte -->
+    <!-- Rahmen ohne Layoutverschiebung (Padding um die Rahmenstärke verringert); sichtbar nur bei markierten
+         Konfliktzeilen, deren roter Hintergrund die Markierungsfarbe sonst verdecken würde -->
+    <Style Selector="Border.previewRow">
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Padding" Value="6,1" />
+    </Style>
+    <Style Selector="ListBox.preview ListBoxItem:selected Border.previewRow.conflict">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+    </Style>
+    <Style Selector="Border.previewRow SelectableTextBlock">
+      <Setter Property="ContextFlyout" Value="{x:Null}" />
+    </Style>
   </Window.Styles>
 
   <!-- Äußeres Panel: Inhalt plus Ebene für das Ziehen von Ketteneinträgen (E102) -->
@@ -99,7 +129,19 @@
           <Separator />
           <MenuItem Header="{loc:T Menu.DeleteProfile}" Command="{Binding DeleteProfileCommand}" />
         </MenuItem>
+        <MenuItem Header="{loc:T Menu.Tags}">
+          <MenuItem Header="{loc:T Menu.TagsSave}" Command="{Binding Tags.SaveCommand}" InputGesture="Ctrl+Shift+S" />
+          <MenuItem Header="{loc:T Menu.TagsDiscard}" Command="{Binding Tags.DiscardCommand}" />
+          <Separator />
+          <MenuItem Header="{loc:T Menu.TagsCover}" Command="{Binding ShowTagFunctionCommand}" CommandParameter="{x:Static changes:TagFunction.Cover}" />
+          <MenuItem Header="{loc:T Menu.TagsLyrics}" Command="{Binding ShowTagFunctionCommand}" CommandParameter="{x:Static changes:TagFunction.Lyrics}" />
+        </MenuItem>
         <MenuItem Header="{loc:T Menu.View}">
+          <MenuItem Header="{loc:T Menu.AreaRename}" ToggleType="Radio" Command="{Binding ShowRenameAreaCommand}" InputGesture="Ctrl+D1"
+                    IsChecked="{Binding IsRenameArea, Mode=OneWay}" />
+          <MenuItem Header="{loc:T Menu.AreaTags}" ToggleType="Radio" Command="{Binding ShowTagAreaCommand}" InputGesture="Ctrl+D2"
+                    IsChecked="{Binding IsTagArea, Mode=OneWay}" />
+          <Separator />
           <MenuItem Header="{loc:T Menu.ThemeSystem}" ToggleType="Radio" Command="{Binding SetThemeCommand}"
                     CommandParameter="{x:Static profiles:ThemePreference.System}"
                     IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.System}}" />
@@ -129,18 +171,35 @@
 
       <!-- Toolbar: Profil und Theme -->
       <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,1,0,1" Padding="12,8">
-        <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
-          <TextBlock Text="{loc:T Toolbar.Profile}" VerticalAlignment="Center" Margin="0,0,8,0" />
-          <ComboBox Grid.Column="1" x:Name="ProfileComboBox" MinWidth="240" IsEditable="True"
+        <Grid x:Name="Toolbar" ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+          <TextBlock Text="{loc:T Toolbar.Profile}" VerticalAlignment="Center" Margin="0,0,8,0" IsVisible="{Binding IsRenameArea}"
+                     Classes="toolbarLabel" />
+          <ComboBox Grid.Column="1" x:Name="ProfileComboBox" MinWidth="240" IsEditable="True" IsVisible="{Binding IsRenameArea}"
                     PlaceholderText="{loc:T Toolbar.ProfilePlaceholder}"
                     ToolTip.Tip="{loc:T Toolbar.ProfileTip}"
                     ItemsSource="{Binding ProfileNames}" Text="{Binding ProfileNameInput}"
                     SelectedItem="{Binding CurrentProfileName, Mode=OneWay}" DropDownClosed="OnProfileDropDownClosed" />
-          <Button Grid.Column="2" Content="{loc:T Toolbar.Save}" Margin="8,0,0,0" Command="{Binding SaveProfileCommand}"
+          <Button Grid.Column="2" Content="{loc:T Toolbar.Save}" Margin="8,0,0,0" Command="{Binding SaveProfileCommand}" IsVisible="{Binding IsRenameArea}"
                   ToolTip.Tip="{loc:T Toolbar.SaveTip}" />
-          <Button Grid.Column="3" Content="{loc:T Toolbar.Reset}" Margin="8,0,0,0" Command="{Binding ResetProfileCommand}"
+          <Button Grid.Column="3" Content="{loc:T Toolbar.Reset}" Margin="8,0,0,0" Command="{Binding ResetProfileCommand}" IsVisible="{Binding IsRenameArea}"
                   ToolTip.Tip="{loc:T Toolbar.ResetTip}" />
           <StackPanel Grid.Column="5" Orientation="Horizontal">
+            <!-- Bereich: Umbenennen / Tags, Icons mit Tooltip (E119); Beschriftung nur bei genug Platz (E147, AreaLabelFitter);
+                 eigenes Panel für die Randrundung -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+              <RadioButton Classes="segment" GroupName="area" ToolTip.Tip="{loc:T Toolbar.AreaRename}" IsChecked="{Binding IsRenameArea}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource IconRename}" Width="16" Height="16" />
+                  <TextBlock x:Name="AreaRenameLabel" Text="{loc:T Toolbar.AreaRenameLabel}" VerticalAlignment="Center" />
+                </StackPanel>
+              </RadioButton>
+              <RadioButton Classes="segment" GroupName="area" ToolTip.Tip="{loc:T Toolbar.AreaTags}" IsChecked="{Binding IsTagArea}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource IconTags}" Width="16" Height="16" />
+                  <TextBlock x:Name="AreaTagsLabel" Text="{loc:T Toolbar.AreaTagsLabel}" VerticalAlignment="Center" />
+                </StackPanel>
+              </RadioButton>
+            </StackPanel>
             <!-- Eigenes Panel, damit die Randrundung der Segmente greift -->
             <StackPanel Orientation="Horizontal">
               <RadioButton Classes="segment" GroupName="theme" ToolTip.Tip="{loc:T Toolbar.ThemeSystem}"
@@ -171,6 +230,12 @@
         </Grid>
       </Border>
 
+      <Panel>
+      <!-- Bereich „Tags“ (E114) -->
+      <tagviews:TagAreaView DataContext="{Binding Tags}" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsTagArea}" />
+
+      <!-- Bereich „Umbenennen“ -->
+      <DockPanel IsVisible="{Binding IsRenameArea}">
       <!-- Fußzeile: Status und Aktionen -->
       <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBackgroundBrush}"
               BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,1,0,0" Padding="12,10">
@@ -260,7 +325,7 @@
                         <Border Grid.Column="2" Classes="ruleBar" controls:RuleColor.Kind="{Binding Kind}" Margin="0,0,8,0" />
                         <TextBlock Grid.Column="3" Text="{Binding DisplayName}" TextWrapping="Wrap" VerticalAlignment="Center"
                                    Classes.strike="{Binding !IsEnabled}" />
-                        <Button Grid.Column="4" Content="✕" Padding="6,2" Background="Transparent" ToolTip.Tip="{loc:T Chain.RemoveTip}"
+                        <Button Grid.Column="4" Content="✕" Padding="6,2" Background="Transparent" BorderThickness="0" ToolTip.Tip="{loc:T Chain.RemoveTip}"
                                 Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).RemoveChainItemCommand}"
                                 CommandParameter="{Binding}" />
                       </Grid>
@@ -273,55 +338,74 @@
 
           <Border Grid.Column="1" Classes="pane">
             <DockPanel>
-              <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
-                <TextBlock Classes="paneTitle" Text="{loc:T Pane.Preview}" />
-                <CheckBox Grid.Column="1" Content="{loc:T Pane.IgnoreExtension}" IsChecked="{Binding IgnoreExtension}" />
-              </Grid>
-              <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
-                <Border BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1"
-                        CornerRadius="4" Padding="8" Background="{DynamicResource DropHintBrush}">
-                  <TextBlock Text="{loc:T Pane.DropHint}" HorizontalAlignment="Center" Foreground="{DynamicResource MutedTextBrush}" />
-                </Border>
-                <Button Grid.Column="1" Content="{loc:T Pane.ClearList}" Command="{Binding ClearFilesCommand}" Margin="8,0,0,0"
-                        VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
+              <!-- „Liste leeren“ über der Liste; der Ablagehinweis steht in der leeren Liste (E152) -->
+              <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,4">
+                <TextBlock Classes="paneTitle" Text="{loc:T Pane.Preview}" VerticalAlignment="Center" Margin="0" />
+                <CheckBox Grid.Column="1" Content="{loc:T Pane.IgnoreExtension}" IsChecked="{Binding IgnoreExtension}" Margin="0,0,12,0" />
+                <Button Grid.Column="2" Classes="paneAction" Content="{loc:T Pane.ClearList}" Command="{Binding ClearFilesCommand}" />
               </Grid>
               <Border BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" CornerRadius="4">
-                <DockPanel>
-                  <Border DockPanel.Dock="Top" Background="{DynamicResource PanelBackgroundBrush}" Padding="8,6"
-                          BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,0,1">
-                    <Grid ColumnDefinitions="32,28,*,*">
-                      <CheckBox IsChecked="{Binding AreAllSelected}" MinWidth="0" Padding="0" VerticalAlignment="Center"
-                                ToolTip.Tip="{loc:T Pane.SelectAllTip}" />
-                      <TextBlock Grid.Column="2" Classes="paneTitle" Margin="0" Text="{loc:T Pane.CurrentName}" VerticalAlignment="Center" />
-                      <TextBlock Grid.Column="3" Classes="paneTitle" Margin="0" Text="{loc:T Pane.NewName}" VerticalAlignment="Center" />
+                <DockPanel controls:ColumnRowPanel.Layout="{Binding RenameColumns}">
+                  <Border DockPanel.Dock="Top" Classes="listHeader">
+                    <!-- Spaltenköpfe: Kante ziehen = Breite, Kopf ziehen = verschieben, Rechtsklick = Menü (E146);
+                         beim horizontalen Scrollen mitgeschoben (E151) -->
+                    <Grid x:Name="RenameHeader" ColumnDefinitions="32,28,*">
+                      <CheckBox Classes="fileCheck" IsChecked="{Binding AreAllSelected}" ToolTip.Tip="{loc:T Pane.SelectAllTip}" />
+                      <controls:ColumnHeaderPanel Grid.Column="2">
+                        <TextBlock controls:ColumnRowPanel.Key="original" Classes="paneTitle" Margin="0,0,12,0" Text="{loc:T Pane.CurrentName}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        <TextBlock controls:ColumnRowPanel.Key="new" Classes="paneTitle" Margin="0,0,12,0" Text="{loc:T Pane.NewName}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </controls:ColumnHeaderPanel>
                     </Grid>
                   </Border>
-                  <ListBox Classes="preview" ItemsSource="{Binding PreviewRows}" Background="Transparent">
-                    <ListBox.ItemTemplate>
-                      <DataTemplate x:DataType="vm:PreviewRowViewModel">
-                        <Border Classes="previewRow" Classes.conflict="{Binding HasConflict}" Classes.unselected="{Binding !IsSelected}" Padding="8,3">
-                          <Grid ColumnDefinitions="32,28,*,*">
-                            <CheckBox IsChecked="{Binding IsSelected}" MinWidth="0" Padding="0" VerticalAlignment="Center"
-                                      ToolTip.Tip="{loc:T Pane.SelectFileTip}" />
-                            <TextBlock Grid.Column="1" Text="⚠" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding HasHint}"
-                                       ToolTip.Tip="{Binding IssueText}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="⛔" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding HasConflict}"
-                                       ToolTip.Tip="{Binding IssueText}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="2" Classes="mono name" Text="{Binding OriginalName}" TextTrimming="CharacterEllipsis"
-                                       VerticalAlignment="Center" Margin="0,0,12,0" />
-                            <controls:HighlightedTextBlock Grid.Column="3" Classes="mono name" Spans="{Binding Spans}" TextTrimming="CharacterEllipsis"
-                                                           VerticalAlignment="Center" />
-                          </Grid>
-                        </Border>
-                      </DataTemplate>
-                    </ListBox.ItemTemplate>
-                  </ListBox>
+                  <Panel>
+                    <controls:PreviewListBox x:Name="PreviewList" Classes="preview" ItemsSource="{Binding PreviewRows}"
+                                             Background="Transparent" SelectionMode="Multiple"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                      <ListBox.ContextMenu>
+                        <ContextMenu>
+                          <MenuItem x:Name="CopySelectedTextItem" Header="{loc:T Pane.CopySelectedText}" />
+                          <Separator IsVisible="{Binding #CopySelectedTextItem.IsVisible}" />
+                          <MenuItem Header="{loc:T Pane.CopyOriginalNames}" Command="{Binding CopyNamesCommand}"
+                                    CommandParameter="{x:Static preview:NameColumns.Original}" />
+                          <MenuItem Header="{loc:T Pane.CopyNewNames}" Command="{Binding CopyNamesCommand}"
+                                    CommandParameter="{x:Static preview:NameColumns.New}" InputGesture="Ctrl+C" />
+                          <MenuItem Header="{loc:T Pane.CopyBothNames}" Command="{Binding CopyNamesCommand}"
+                                    CommandParameter="{x:Static preview:NameColumns.Both}" />
+                        </ContextMenu>
+                      </ListBox.ContextMenu>
+                      <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PreviewRowViewModel">
+                          <Border Classes="previewRow" Classes.conflict="{Binding HasConflict}" Classes.unselected="{Binding !IsSelected}">
+                            <Grid ColumnDefinitions="32,28,*">
+                              <CheckBox Classes="fileCheck" IsChecked="{Binding IsSelected}" ToolTip.Tip="{loc:T Pane.SelectFileTip}" />
+                              <TextBlock Grid.Column="1" Text="⚠" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding HasHint}"
+                                         ToolTip.Tip="{Binding IssueText}" VerticalAlignment="Center" />
+                              <TextBlock Grid.Column="1" Text="⛔" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding HasConflict}"
+                                         ToolTip.Tip="{Binding IssueText}" VerticalAlignment="Center" />
+                              <!-- Spaltenmodell ausdrücklich: geerbte Werte erreichen die Listenzeilen nicht -->
+                              <controls:ColumnRowPanel Grid.Column="2" Layout="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).RenameColumns}">
+                                <SelectableTextBlock controls:ColumnRowPanel.Key="original" Classes="mono name" Text="{Binding OriginalName}"
+                                                     TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <controls:HighlightedTextBlock controls:ColumnRowPanel.Key="new" Classes="mono name" Spans="{Binding Spans}"
+                                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,12,0" />
+                              </controls:ColumnRowPanel>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </ListBox.ItemTemplate>
+                    </controls:PreviewListBox>
+                    <TextBlock Classes="emptyHint" Text="{loc:T Pane.DropHint}" IsVisible="{Binding !HasFiles}" />
+                  </Panel>
                 </DockPanel>
               </Border>
             </DockPanel>
           </Border>
         </Grid>
       </Grid>
+      </DockPanel>
+      </Panel>
     </DockPanel>
 
     <!-- Ziehebene: Abbild des gezogenen Eintrags folgt dem Mauszeiger, die Linie zeigt die Einfügestelle (E102) -->
@@ -337,5 +421,7 @@
         </Grid>
       </Border>
     </Canvas>
+    <!-- Abdunkelung, solange ein Dialog offen ist (V22, E149); fängt zugleich Klicks ab -->
+    <Border x:Name="DialogShade" Background="{DynamicResource DialogShadeBrush}" IsVisible="False" />
   </Panel>
 </Window>

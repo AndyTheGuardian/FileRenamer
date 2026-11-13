@@ -18,7 +18,7 @@ public enum UiLanguage
 /// Alle Meldungen der Fachlogik (Hinweise, Konflikte, Prüfungen) in Deutsch und Englisch. Die Sprache gilt
 /// programmweit; die Oberfläche setzt sie beim Start und bei jedem Wechsel und berechnet danach die Vorschau neu.
 /// </summary>
-public static class CoreText
+public static partial class CoreText
 {
     /// <summary>
     /// Aktuelle Sprache der Meldungen (Standard: Deutsch).

@@ -17,6 +17,9 @@
       <!-- Icons für die Theme-Auswahl: Monitor = System, Sonne = Hell, Mond = Dunkel -->
       <StreamGeometry x:Key="IconSystem">M4,5 L20,5 C20.8,5 21.5,5.7 21.5,6.5 L21.5,15.5 C21.5,16.3 20.8,17 20,17 L4,17 C3.2,17 2.5,16.3 2.5,15.5 L2.5,6.5 C2.5,5.7 3.2,5 4,5 Z M4,6.5 L4,15.5 L20,15.5 L20,6.5 Z M8,19.5 L16,19.5 L16,21 L8,21 Z M11.25,17 L12.75,17 L12.75,19.5 L11.25,19.5 Z</StreamGeometry>
       <StreamGeometry x:Key="IconLight">M12,7.5 A4.5,4.5 0 1 1 11.99,7.5 Z M11.25,1.5 L12.75,1.5 L12.75,4.5 L11.25,4.5 Z M11.25,19.5 L12.75,19.5 L12.75,22.5 L11.25,22.5 Z M1.5,11.25 L4.5,11.25 L4.5,12.75 L1.5,12.75 Z M19.5,11.25 L22.5,11.25 L22.5,12.75 L19.5,12.75 Z M4.4,5.5 L5.5,4.4 L7.6,6.5 L6.5,7.6 Z M16.4,17.5 L17.5,16.4 L19.6,18.5 L18.5,19.6 Z M4.4,18.5 L6.5,16.4 L7.6,17.5 L5.5,19.6 Z M16.4,6.5 L18.5,4.4 L19.6,5.5 L17.5,7.6 Z</StreamGeometry>
+      <!-- Bereichsumschalter (E119): „T“ mit Pfeil = Umbenennen, Etikett = Tags -->
+      <StreamGeometry x:Key="IconRename">M3,4 L16,4 L16,7.5 L14.5,7.5 L14.5,5.5 L10.25,5.5 L10.25,18.5 L12.5,18.5 L12.5,20 L6.5,20 L6.5,18.5 L8.75,18.5 L8.75,5.5 L4.5,5.5 L4.5,7.5 L3,7.5 Z M14,14.25 L19.4,14.25 L17.2,12.05 L18.25,11 L22.25,15 L18.25,19 L17.2,17.95 L19.4,15.75 L14,15.75 Z</StreamGeometry>
+      <StreamGeometry x:Key="IconTags">F1 M2,3 L11.5,3 L22,13.5 L13.5,22 L2,10.5 Z M3.5,4.5 L3.5,9.9 L13.5,19.9 L19.9,13.5 L10.9,4.5 Z M7,6.25 A1.75,1.75 0 1 0 7.01,6.25 Z</StreamGeometry>
       <StreamGeometry x:Key="IconDark">M12.5,3 A9,9 0 1 0 21,13.5 A7,7 0 1 1 12.5,3 Z</StreamGeometry>
 
       <ResourceDictionary.ThemeDictionaries>
@@ -32,6 +35,11 @@
           <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#F6E1E1" />
           <SolidColorBrush x:Key="WarnBrush" Color="#B7791F" />
           <SolidColorBrush x:Key="DropHintBrush" Color="#E1E7F2" />
+          <!-- Dialoge heben sich vom Hauptfenster ab (V22, E149): Fläche etwas dunkler, Rahmen;
+               das Hauptfenster wird abgedunkelt -->
+          <SolidColorBrush x:Key="DialogBackgroundBrush" Color="#E6E9EE" />
+          <SolidColorBrush x:Key="DialogBorderBrush" Color="#AEB6C2" />
+          <SolidColorBrush x:Key="DialogShadeBrush" Color="#59101318" />
 
           <SolidColorBrush x:Key="RuleColor.ReplaceText" Color="#2F6FDF" />
           <SolidColorBrush x:Key="RuleColor.AppendDate" Color="#1F9D55" />
@@ -64,6 +72,18 @@
           <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#F4F6F8" />
           <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#F3F4F6" />
           <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#F3F4F6" />
+          <!-- Einheitliche 1-px-Rahmen wie im Mockup: Text-/Auswahlfelder und Schaltflächen wie die Segmente (E142) -->
+          <SolidColorBrush x:Key="TextControlBorderBrush" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrushDisabled" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="ButtonBorderBrush" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#CDD2DA" />
+          <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="#CDD2DA" />
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Dark">
@@ -77,6 +97,11 @@
           <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#3A2124" />
           <SolidColorBrush x:Key="WarnBrush" Color="#E0A94A" />
           <SolidColorBrush x:Key="DropHintBrush" Color="#2A3140" />
+          <!-- Dialoge heben sich vom Hauptfenster ab (V22, E149): Fläche etwas heller, Rahmen;
+               das Hauptfenster wird abgedunkelt -->
+          <SolidColorBrush x:Key="DialogBackgroundBrush" Color="#272C36" />
+          <SolidColorBrush x:Key="DialogBorderBrush" Color="#4A5263" />
+          <SolidColorBrush x:Key="DialogShadeBrush" Color="#8C05070A" />
 
           <SolidColorBrush x:Key="RuleColor.ReplaceText" Color="#5B8FF0" />
           <SolidColorBrush x:Key="RuleColor.AppendDate" Color="#3CC47A" />
@@ -100,6 +125,19 @@
           <SolidColorBrush x:Key="RuleHighlight.RemoveRange" Color="#66D08A5C" />
           <SolidColorBrush x:Key="RuleHighlight.ChangeExtension" Color="#66B3C447" />
           <SolidColorBrush x:Key="RuleHighlight.InsertFolder" Color="#668B85F0" />
+
+          <!-- Einheitliche 1-px-Rahmen wie im Mockup: Text-/Auswahlfelder und Schaltflächen wie die Segmente (E142) -->
+          <SolidColorBrush x:Key="TextControlBorderBrush" Color="#353C4A" />
+          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#353C4A" />
+          <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="#353C4A" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#353C4A" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#353C4A" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#353C4A" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrushDisabled" Color="#353C4A" />
+          <SolidColorBrush x:Key="ButtonBorderBrush" Color="#353C4A" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#353C4A" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#353C4A" />
+          <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="#353C4A" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
@@ -126,6 +164,19 @@
     <Style Selector="Border.ruleBar.kind-ChangeExtension"><Setter Property="Background" Value="{DynamicResource RuleColor.ChangeExtension}" /></Style>
     <Style Selector="Border.ruleBar.kind-InsertFolder"><Setter Property="Background" Value="{DynamicResource RuleColor.InsertFolder}" /></Style>
 
+    <!-- Farben der Funktionen im Bereich „Tags“ (Klasse über TagColor.Function, Farben wie im Mockup v13) -->
+    <Style Selector="Border.ruleBar.fn-Edit"><Setter Property="Background" Value="{DynamicResource RuleColor.ReplaceText}" /></Style>
+    <Style Selector="Border.ruleBar.fn-FromFileName"><Setter Property="Background" Value="{DynamicResource RuleColor.Template}" /></Style>
+    <Style Selector="Border.ruleBar.fn-TrackNumbers"><Setter Property="Background" Value="{DynamicResource RuleColor.AppendCounter}" /></Style>
+    <Style Selector="Border.ruleBar.fn-Cover"><Setter Property="Background" Value="{DynamicResource RuleColor.AppendDate}" /></Style>
+    <Style Selector="Border.ruleBar.fn-Lyrics"><Setter Property="Background" Value="{DynamicResource RuleColor.InsertText}" /></Style>
+    <Style Selector="Border.tagCell"><Setter Property="CornerRadius" Value="3" /><Setter Property="Padding" Value="1,0" /><Setter Property="BorderThickness" Value="0,0,0,2" /><Setter Property="BorderBrush" Value="Transparent" /><Setter Property="HorizontalAlignment" Value="Left" /></Style>
+    <Style Selector="Border.tagCell.fn-Edit"><Setter Property="Background" Value="{DynamicResource RuleHighlight.ReplaceText}" /><Setter Property="BorderBrush" Value="{DynamicResource RuleColor.ReplaceText}" /></Style>
+    <Style Selector="Border.tagCell.fn-FromFileName"><Setter Property="Background" Value="{DynamicResource RuleHighlight.Template}" /><Setter Property="BorderBrush" Value="{DynamicResource RuleColor.Template}" /></Style>
+    <Style Selector="Border.tagCell.fn-TrackNumbers"><Setter Property="Background" Value="{DynamicResource RuleHighlight.AppendCounter}" /><Setter Property="BorderBrush" Value="{DynamicResource RuleColor.AppendCounter}" /></Style>
+    <Style Selector="Border.tagCell.fn-Cover"><Setter Property="Background" Value="{DynamicResource RuleHighlight.AppendDate}" /><Setter Property="BorderBrush" Value="{DynamicResource RuleColor.AppendDate}" /></Style>
+    <Style Selector="Border.tagCell.fn-Lyrics"><Setter Property="Background" Value="{DynamicResource RuleHighlight.InsertText}" /><Setter Property="BorderBrush" Value="{DynamicResource RuleColor.InsertText}" /></Style>
+
     <!-- Abschnittsüberschriften -->
     <Style Selector="TextBlock.paneTitle">
       <Setter Property="FontSize" Value="11" />
@@ -145,6 +196,15 @@
     </Style>
 
     <!-- Segmentierte Auswahl aus RadioButtons -->
+    <!-- Markierter Text: lesbare Schrift auf der Akzentfarbe, auch bei hellen Akzentfarben (E144) -->
+    <Style Selector="TextBox">
+      <Setter Property="SelectionBrush" Value="{DynamicResource TextControlSelectionHighlightColor}" />
+      <Setter Property="SelectionForegroundBrush" Value="{DynamicResource TextSelectionForegroundBrush}" />
+    </Style>
+    <Style Selector="SelectableTextBlock">
+      <Setter Property="SelectionBrush" Value="{DynamicResource TextControlSelectionHighlightColor}" />
+      <Setter Property="SelectionForegroundBrush" Value="{DynamicResource TextSelectionForegroundBrush}" />
+    </Style>
     <Style Selector="RadioButton.segment">
       <Setter Property="Template">
         <ControlTemplate>
@@ -180,6 +240,48 @@
     <!-- Rahmen bei zu geringem Kontrast der Akzentfarbe (E85) -->
     <Style Selector="RadioButton.segment:checked /template/ Border#segmentBorder">
       <Setter Property="BorderBrush" Value="{DynamicResource AccentSegmentBorderBrush}" />
+    </Style>
+    <!-- Dateilisten (Umbenennen und Tags) einheitlich (E150, E152): kleine Checkbox für niedrige Zeilen,
+         Spaltenkopf mit Abschneiden für horizontales Scrollen, Hinweis in der leeren Liste, kleine Schaltfläche
+         in der Titelzeile -->
+    <Style Selector="CheckBox.fileCheck">
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="CheckBox.fileCheck /template/ Border#NormalRectangle">
+      <Setter Property="Width" Value="14" />
+      <Setter Property="Height" Value="14" />
+      <Setter Property="CornerRadius" Value="3" />
+    </Style>
+    <!-- Der Fluent-Inhalt hat feste 32 px Höhe; für niedrige Zeilen auf 16 px -->
+    <Style Selector="CheckBox.fileCheck /template/ Grid#RootGrid > Grid">
+      <Setter Property="Height" Value="16" />
+    </Style>
+    <Style Selector="CheckBox.fileCheck /template/ Viewbox">
+      <Setter Property="Width" Value="10" />
+      <Setter Property="Height" Value="10" />
+    </Style>
+    <Style Selector="Border.listHeader">
+      <Setter Property="Background" Value="{DynamicResource PanelBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+    <Style Selector="TextBlock.emptyHint">
+      <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="TextAlignment" Value="Center" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Margin" Value="16" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+    <Style Selector="Button.paneAction">
+      <Setter Property="Padding" Value="10,3" />
+      <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
   </Application.Styles>
 </Application>

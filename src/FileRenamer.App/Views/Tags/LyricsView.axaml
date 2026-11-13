@@ -1,0 +1,90 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tags="using:FileRenamer.App.ViewModels.Tags"
+             xmlns:tagging="using:FileRenamer.Core.Tagging"
+             xmlns:loc="using:FileRenamer.App.Localization"
+             x:Class="FileRenamer.App.Views.Tags.LyricsView"
+             x:DataType="tags:LyricsEditorViewModel">
+  <StackPanel Spacing="12" MaxWidth="980" HorizontalAlignment="Left">
+    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="9">
+      <TextBlock Classes="fieldLabel" Text="{loc:T Lyrics.Text}" />
+      <StackPanel Grid.Column="1" Spacing="4">
+        <TextBox Text="{Binding Text}" AcceptsReturn="True" TextWrapping="Wrap" Height="150" IsEnabled="{Binding IsSingle}"
+                 PlaceholderText="{loc:T Tags.Varies}" FontFamily="Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace" />
+        <TextBlock Classes="hint" Text="{loc:T Lyrics.SingleHint}" IsVisible="{Binding !IsSingle}" TextWrapping="Wrap" />
+      </StackPanel>
+
+      <TextBlock Grid.Row="1" Classes="fieldLabel" Text="{loc:T Lyrics.Language}" />
+      <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8">
+        <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding Language}" MinWidth="180">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="tags:LyricsLanguageOption"><TextBlock Text="{Binding DisplayName}" /></DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <Button Classes="accent" Content="{loc:T Lyrics.StageText}" Command="{Binding StageCommand}" />
+      </StackPanel>
+    </Grid>
+
+    <Grid ColumnDefinitions="*,*" ColumnSpacing="18">
+      <!-- Importieren -->
+      <Border Classes="box">
+        <StackPanel Spacing="10">
+          <TextBlock Text="{loc:T Lyrics.ImportTitle}" FontWeight="SemiBold" />
+          <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="9">
+            <TextBlock Classes="fieldLabel" Text="{loc:T Cover.Source}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="lyricsSource" Content="{loc:T Lyrics.SameName}" IsChecked="{Binding !ImportFromChosenFile}" />
+              <RadioButton Classes="segment" GroupName="lyricsSource" Content="{loc:T Lyrics.ChooseFile}" IsChecked="{Binding ImportFromChosenFile}" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="1" Classes="fieldLabel" Text="{loc:T Lyrics.Formats}" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Classes="fieldLabel" Text=".lrc, .txt"
+                       FontFamily="Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace" />
+
+            <TextBlock Grid.Row="2" Classes="fieldLabel" Text="{loc:T TagEditor.Scope}" />
+            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="lyricsScope" Content="{loc:T TagEditor.ScopeSelected}"
+                           IsChecked="{Binding Scope, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tags:TagScope.Selected}}" />
+              <RadioButton Classes="segment" GroupName="lyricsScope" Content="{loc:T TagEditor.ScopeAll}"
+                           IsChecked="{Binding Scope, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tags:TagScope.AllAudio}}" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="3" Classes="fieldLabel" Text="{loc:T TagEditor.Example}" IsVisible="{Binding ImportExample, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <Border Grid.Row="3" Grid.Column="1" Classes="example" IsVisible="{Binding ImportExample, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <TextBlock Text="{Binding ImportExample}" />
+            </Border>
+          </Grid>
+          <Button Classes="accent" Content="{loc:T Lyrics.Import}" Command="{Binding ImportCommand}" />
+        </StackPanel>
+      </Border>
+
+      <!-- Exportieren -->
+      <Border Grid.Column="1" Classes="box">
+        <StackPanel Spacing="10">
+          <TextBlock Text="{loc:T Lyrics.ExportTitle}" FontWeight="SemiBold" />
+          <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="9">
+            <TextBlock Classes="fieldLabel" Text="{loc:T Lyrics.Format}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="lyricsFormat" Content=".lrc"
+                           IsChecked="{Binding ExportFormat, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tagging:LyricsFormat.Lrc}}" />
+              <RadioButton Classes="segment" GroupName="lyricsFormat" Content=".txt" ToolTip.Tip="{loc:T Lyrics.TxtTip}"
+                           IsChecked="{Binding ExportFormat, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tagging:LyricsFormat.Txt}}" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="1" Classes="fieldLabel" Text="{loc:T Cover.Target}" />
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="lyricsTarget" Content="{loc:T Common.FileFolder}" IsChecked="{Binding !ExportToChosenFolder}" />
+              <RadioButton Classes="segment" GroupName="lyricsTarget" Content="{loc:T Common.ChooseFolder}" IsChecked="{Binding ExportToChosenFolder}" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="2" Classes="fieldLabel" Text="{loc:T Lyrics.Existing}" />
+            <CheckBox Grid.Row="2" Grid.Column="1" Content="{loc:T Lyrics.Overwrite}" IsChecked="{Binding Overwrite}" />
+          </Grid>
+          <Button Content="{loc:T Lyrics.Export}" Command="{Binding ExportCommand}" />
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <TextBlock Classes="hint" Text="{loc:T Lyrics.Hint}" TextWrapping="Wrap" />
+  </StackPanel>
+</UserControl>
