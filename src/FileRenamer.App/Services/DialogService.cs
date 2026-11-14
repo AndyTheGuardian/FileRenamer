@@ -56,9 +56,10 @@ public sealed class DialogService(Window owner) : IDialogService
     /// <param name="title">Fenstertitel.</param>
     /// <param name="label">Beschriftung des Eingabefelds.</param>
     /// <param name="initialValue">Vorbelegung.</param>
-    /// <param name="hint">Erläuterung unter dem Feld.</param>
+    /// <param name="hint">Erläuterung unter dem Feld; leer = keine.</param>
+    /// <param name="confirmText">Beschriftung der Bestätigung; <c>null</c> = „Speichern“.</param>
     /// <returns>Der eingegebene Text oder <c>null</c>.</returns>
-    public async Task<string?> PromptAsync(string title, string label, string initialValue, string hint)
+    public async Task<string?> PromptAsync(string title, string label, string initialValue, string hint, string? confirmText = null)
     {
         var input = new TextBox { Text = initialValue, MinWidth = 280 };
         var content = new StackPanel
@@ -68,15 +69,80 @@ public sealed class DialogService(Window owner) : IDialogService
             {
                 new TextBlock { Text = label },
                 input,
-                new TextBlock { Text = hint, Classes = { "hint" } },
+                new TextBlock { Text = hint, Classes = { "hint" }, IsVisible = hint.Length > 0 },
             },
         };
         var dialog = CreateDialog(title, content);
-        AddButtons(dialog, (Loc.T("Dialog.Cancel"), false), (Loc.T("Dialog.Save"), true));
+        AddButtons(dialog, (Loc.T("Dialog.Cancel"), false), (confirmText ?? Loc.T("Dialog.Save"), true));
         dialog.Opened += (_, _) => input.Focus();
 
         var confirmed = await ShowAsync(dialog);
         return confirmed && !string.IsNullOrWhiteSpace(input.Text) ? input.Text.Trim() : null;
+    }
+
+    /// <summary>
+    /// Bietet mehrere Möglichkeiten und „Abbrechen“ zur Wahl; die erste Möglichkeit ist hervorgehoben.
+    /// </summary>
+    /// <param name="title">Fenstertitel.</param>
+    /// <param name="message">Die Frage.</param>
+    /// <param name="choices">Die Möglichkeiten.</param>
+    /// <returns>Position der Wahl oder <c>null</c> bei Abbruch.</returns>
+    public async Task<int?> ChooseAsync(string title, string message, IReadOnlyList<string> choices)
+    {
+        var dialog = CreateDialog(title, CreateMessage(message));
+        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right };
+        panel.Children.Add(ChoiceButton(dialog, Loc.T("Dialog.Cancel"), null));
+        for (var index = choices.Count - 1; index >= 0; index--)
+        {
+            panel.Children.Add(ChoiceButton(dialog, choices[index], index));
+        }
+
+        var primary = (Button)panel.Children[^1];
+        primary.IsDefault = true;
+        primary.Classes.Add("accent");
+        ((StackPanel)((Border)dialog.Content!).Child!).Children.Add(panel);
+        return await WithShadeAsync(() => dialog.ShowDialog<int?>(Owner));
+    }
+
+    /// <summary>
+    /// Öffnet die Auswahl zum Speichern einer Datei; überschreiben fragt nach.
+    /// </summary>
+    /// <param name="title">Fenstertitel.</param>
+    /// <param name="suggestedName">Vorgeschlagener Dateiname.</param>
+    /// <param name="filterName">Name des Dateityps.</param>
+    /// <param name="extension">Endung des Dateityps.</param>
+    /// <returns>Der lokale Pfad oder <c>null</c>.</returns>
+    public async Task<string?> PickSaveFileAsync(string title, string suggestedName, string filterName, string extension)
+    {
+        var filter = new FilePickerFileType(filterName) { Patterns = ["*" + extension] };
+        var file = await WithShadeAsync(() => Owner.StorageProvider.SaveFilePickerAsync(
+            new FilePickerSaveOptions { Title = title, SuggestedFileName = suggestedName, FileTypeChoices = [filter], ShowOverwritePrompt = true }));
+        return file?.TryGetLocalPath();
+    }
+
+    /// <summary>
+    /// Zeigt die Einstellungen modal (E155). Wechselt der Anwender die Sprache, schließt sich der Dialog ohne Ergebnis;
+    /// nach dem Neuaufbau des Hauptfensters öffnet er sich mit demselben ViewModel, gleicher Größe und Lage wieder.
+    /// </summary>
+    /// <param name="viewModel">Das ViewModel der Einstellungen.</param>
+    /// <returns><c>true</c> bei „Übernehmen“.</returns>
+    public async Task<bool> ShowSettingsAsync(ViewModels.Settings.SettingsViewModel viewModel)
+    {
+        Views.SettingsWindow? previous = null;
+        while (true)
+        {
+            var window = new Views.SettingsWindow { DataContext = viewModel };
+            previous?.PlaceLike(window);
+            var result = await WithShadeAsync(() => window.ShowDialog<bool?>(Owner));
+            if (!window.ReopenRequested)
+            {
+                return result == true;
+            }
+
+            previous = window;
+            // Erst den eingereihten Neuaufbau des Hauptfensters abwarten, dann über dem neuen Fenster öffnen
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => { }, Avalonia.Threading.DispatcherPriority.Background);
+        }
     }
 
     /// <summary>
@@ -188,6 +254,20 @@ public sealed class DialogService(Window owner) : IDialogService
     /// <returns>Der Pinsel oder <c>null</c>.</returns>
     private static IBrush? Brush(string key) =>
         Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var value) ? value as IBrush : null;
+
+    /// <summary>
+    /// Erzeugt eine Schaltfläche, die den Dialog mit einem Ergebnis schließt.
+    /// </summary>
+    /// <param name="dialog">Der Dialog.</param>
+    /// <param name="text">Beschriftung.</param>
+    /// <param name="result">Ergebnis; <c>null</c> = Abbrechen.</param>
+    /// <returns>Die Schaltfläche.</returns>
+    private static Button ChoiceButton(Window dialog, string text, int? result)
+    {
+        var button = new Button { Content = text, MinWidth = 90, HorizontalContentAlignment = HorizontalAlignment.Center };
+        button.Click += (_, _) => dialog.Close(result);
+        return button;
+    }
 
     /// <summary>
     /// Erzeugt einen umbrechenden Meldungstext.

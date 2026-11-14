@@ -10,7 +10,7 @@ Unterstützte Systeme: Windows 10/11, Linux, macOS ab Version 14.
 
 | Bereich | Funktion |
 |---------|----------|
-| Menü und Leiste oben | Dateien/Ordner hinzufügen, Profile, Bereich (Umbenennen / Tags), Theme (System, Hell, Dunkel), Akzentfarbe (farbiger Kreis) |
+| Menü und Leiste oben | Dateien/Ordner hinzufügen, Profile, Bereich (Umbenennen / Tags), Theme (System, Hell, Dunkel), Zahnrad **Einstellungen** |
 | Oben links: **Verfahren** | Auswahl des Verfahrens, gruppiert in Text, Datum &amp; Zahlen, Metadaten &amp; Ordner, Erweiterung |
 | Oben rechts: **Optionen** | Einstellungen des gewählten Verfahrens |
 | Unten links: **Angewandte Verfahren** | Die Kette in Anwendungsreihenfolge |
@@ -287,8 +287,9 @@ Die Kacheln zeigen die Bilder der ersten ausgewählten Datei mit Bildtyp, Format
   nimmt für jede Audiodatei `cover`, `folder` oder `front` (.jpg, .png …) aus ihrem Ordner. Wählbar sind Bildtyp
   (Vorderseite, Rückseite, Booklet-Seite, Medium, Interpret, Band-Logo, Sonstiges) und ob ein Bild desselben Typs
   ersetzt wird.
-- **Verkleinern:** Größere Bilder werden auf die eingestellte Pixelzahl der längsten Seite verkleinert (Standard 1000,
-  wird gemerkt). JPEG wird mit Qualität 90 % gespeichert, PNG bleibt PNG; kleinere Bilder bleiben unverändert.
+- **Verkleinern:** Größere Bilder werden beim Einfügen auf die Pixelzahl der längsten Seite verkleinert (Standard 1000).
+  Ein- und ausgeschaltet und eingestellt wird das in den **Einstellungen** unter *Allgemein → Cover*. JPEG wird mit
+  Qualität 90 % gespeichert, PNG bleibt PNG; kleinere Bilder bleiben unverändert.
 - **Gewähltes entfernen** entfernt den Bildtyp der gewählten Kachel aus den Dateien unter *Gilt für*.
 - **Extrahieren** speichert die Bilder sofort als Dateien – in den Ordner der Audiodatei oder einen gewählten Ordner.
   Der Dateiname kann `%type%`, `%album%`, `%artist%` und `%name%` enthalten. Vorhandene Dateien werden nie
@@ -347,11 +348,11 @@ Ein Profil speichert die Kette mit allen Einstellungen und der Reihenfolge sowie
   Gespeicherte Profile bleiben in der Liste und können weiter gewählt werden; Dateiliste und
   „Dateierweiterung ignorieren“ bleiben unverändert.
 
-Das zuletzt verwendete Profil, das Theme, die Akzentfarbe und die Sprache werden beim nächsten Start wiederhergestellt.
+Das zuletzt verwendete Profil, das Theme, die Farben, Farbprofile und die Sprache werden beim nächsten Start wiederhergestellt.
 
 ## Sprache
 
-Unter *Ansicht → Sprache* (*View → Language*) wählen Sie:
+Unter *Ansicht → Sprache* (*View → Language*) oder in den **Einstellungen** wählen Sie:
 
 - **System:** Deutsch, wenn das Betriebssystem auf Deutsch eingestellt ist, sonst Englisch (Standard).
 - **Deutsch** bzw. **English:** feste Sprache.
@@ -365,27 +366,53 @@ bleibt der gespeicherte Text.
 
 ## Theme
 
-Die drei Symbole oben rechts (bzw. *Ansicht*) wählen **System** (Monitor), **Hell** (Sonne) oder **Dunkel** (Mond).
+Die drei Symbole oben rechts (bzw. *Ansicht* oder die **Einstellungen**) wählen **System** (Monitor), **Hell** (Sonne)
+oder **Dunkel** (Mond).
 
 Dialoge (Rückfragen, Meldungen, Eingaben) heben sich in beiden Themes vom Hauptfenster ab: eigene Fläche mit Rahmen;
 das Hauptfenster wird abgedunkelt, solange ein Dialog oder eine Datei- bzw.
 Ordnerauswahl offen ist.
 
-## Akzentfarbe
+## Einstellungen
 
-Der farbige Kreis rechts neben den Theme-Symbolen (bzw. *Ansicht → Akzentfarbe…*) öffnet die Farbwahl.
-Die Akzentfarbe gilt für Schaltflächen, Checkboxen, die Theme-Auswahl, die Hervorhebung gewählter Einträge und
-den Hintergrund von markiertem Text. Markierter Text erscheint auf hellen Akzentfarben dunkel, auf dunklen hell.
+Das **Zahnrad** oben rechts, *Datei → Einstellungen…* oder *Ansicht → Akzentfarbe…* öffnet die Einstellungen
+(wie in PDF Utopia). Änderungen an Design, Sprache und Farben wirken sofort als Vorschau; **Übernehmen** speichert,
+**Abbrechen** stellt den vorherigen Zustand wieder her. Das Fenster lässt sich größer und kleiner ziehen; bei wenig
+Höhe scrollt der Inhalt, die Schaltflächen bleiben unten.
 
-- **Pastell:** fünf Pastellfarben; der Regler daneben stellt ihre Sättigung nach dem HSV-Prinzip ein
-  (10–90 %, Standard 30 %; die Zahl daneben zeigt den Wert auf der Skala bis 255).
-- **Kräftig:** Blau (Standard), Grün, Orange, Rot, Violett.
-- **Neutral:** 95 % Schwarz, 95 % Weiß.
-- **Eigene Farbe:** Hex-Code im Format `#25A0C3` eingeben und „Übernehmen“. Die Farbe erscheint unter
-  **Benutzerdefiniert** (höchstens 10; bei mehr fällt die älteste weg). Beim Überfahren entfernt ✕ eine Farbe.
-- **Standard** setzt auf das bisherige Blau zurück.
+| Einstellung | Bedeutung |
+|---|---|
+| Design | Umschalter System (Monitor), Hell (Sonne), Dunkel (Mond) |
+| Sprache | Umschalter System, Deutsch, English – wirkt sofort, das Fenster wird in der neuen Sprache neu aufgebaut |
+| Farbprofil | gespeicherte Kombination aus Akzentfarbe, Pastell-Sättigung, Farbstich und Helligkeit (siehe unten) |
+| Akzentfarbe | Farbreihen Pastell, Kräftig, Neutral und eigene Farben |
+| Farbe anpassen | Umschalter **Akzentfarbe**/**Hintergrund**, Farbkreis, **Zurücksetzen** und Regler mit Zahlenfeld |
+| Hex-Feld | Akzentfarbe bzw. Farbstich als `#RRGGBB`; **Übernehmen** setzt die Farbe |
+| Allgemein → Cover | „Beim Einfügen verkleinern auf … Pixel“ (längste Seite, Standard 1000) |
 
-Die Schrift auf akzentfarbigen Flächen wird automatisch hell oder dunkel gewählt. Hebt sich die Farbe kaum
-vom Hintergrund ab (z. B. 95 % Weiß im hellen Theme), erhalten Schaltflächen einen Rahmen.
+**Farben je Design:** Hell und Dunkel haben je eigene Akzentfarbe, Pastell-Sättigung und einen eigenen
+**Hintergrund** (Farbstich und Helligkeit). Die Einstellungen bearbeiten die Farben des gerade gewählten Designs;
+bei „System“ die des Designs, das das Betriebssystem zeigt. Flächen, Rahmen und Nebentext bekommen Farbstich und
+Helligkeit. Ihre bisherige Akzentfarbe wird beim ersten Start in beide Designs übernommen.
 
-![Akzentfarbe wählen](images/screenshot-akzentfarbe.png)
+**Akzentfarbe:** Sie gilt für Schaltflächen, Checkboxen, Umschalter, die Hervorhebung gewählter Einträge und den
+Hintergrund von markiertem Text. Die Schrift darauf wird automatisch hell oder dunkel gewählt; hebt sich die Farbe kaum
+vom Hintergrund ab (z. B. 95 % Weiß im hellen Design), erhalten Schaltflächen einen satteren Rahmen.
+
+- **Pastell:** sieben Pastellfarben, **Kräftig:** Indigo, Blau (Standard), Grün, Gelb, Orange, Rot, Violett,
+  **Neutral:** 95 % Schwarz, 95 % Weiß, **Eigene Farben:** über das Hex-Feld (höchstens 10, ✕ entfernt eine).
+- **Farbe anpassen:** Bei der Akzentfarbe stellen die Regler Farbton (0–359°), Sättigung und Helligkeit (0–100 %) ein;
+  ist eine Pastellfarbe gewählt, verschiebt die Sättigung die ganze Pastell-Reihe (10–90 %). Beim Hintergrund
+  stellen sie Farbton, Stärke des Farbstichs (0–100 %) und Helligkeit (−25 bis +25) ein.
+- **Zurücksetzen** stellt die Farben des zuletzt gewählten Profils wieder her (ohne Profil die beim Öffnen).
+
+**Farbprofile:** Mitgeliefert sind je Design **Standard** (die bisherigen Farben von FileRenamer), **Neutral** und fünf
+abgestimmte Profile (Hell: Salbei, Sand & Terrakotta, Fjord, Lavendel & Pflaume, Graphit & Koralle; Dunkel: Salbei,
+Mitternacht, Bernstein, Aubergine, Petrol & Kupfer). Mitgelieferte Profile sind schreibgeschützt. Eigene Profile
+(höchstens 50) entstehen mit **Speichern unter …** und lassen sich **umbenennen**; über **⋯** gibt es **Löschen**,
+**Dieses Profil exportieren**, **Alle eigenen Profile exportieren**, **Alle Profile exportieren** und **Profile
+importieren**. Die Datei (`*.colorprofiles.json`) hat dasselbe Format wie in PDF Utopia und im AI Asset Manager;
+Profile lassen sich zwischen den Programmen austauschen. Beim Import werden unveränderte mitgelieferte Profile
+übersprungen; gibt es ein eigenes Profil gleichen Namens, fragt FileRenamer „Überschreiben“ oder „Beide behalten“.
+
+![Einstellungen](images/einstellungen.png)

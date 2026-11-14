@@ -10,6 +10,7 @@ Cover werden mit SkiaSharp verkleinert, das Avalonia bereits mitbringt. Weitere 
 ## Voraussetzungen und Befehle
 
 - .NET SDK 10.0 (siehe `global.json`, dort ist auch die Microsoft Testing Platform für `dotnet test` aktiviert)
+- Alle Pfade in den Befehlen gelten vom Projektordner `FileRenamer` aus (dort liegt `FileRenamer.slnx`).
 
 ```bash
 dotnet build
@@ -17,6 +18,10 @@ dotnet build
 
 ```bash
 dotnet test --project tests/FileRenamer.Core.Tests
+```
+
+```bash
+dotnet test --project tests/FileRenamer.App.Tests
 ```
 
 ```bash
@@ -32,6 +37,47 @@ dotnet publish src/FileRenamer.App -c Release -r win-x64 --self-contained
 Für Linux `-r linux-x64`, für macOS `-r osx-arm64` bzw. `-r osx-x64`. Ein macOS-App-Bundle
 (`.app` mit `Info.plist`, `LSMinimumSystemVersion` = `14.0`) ist noch nicht Teil des Projekts.
 
+### Oberflächenprüfungen (Headless)
+
+`tests/FileRenamer.HeadlessChecks` prüft die Oberfläche im echten Hauptfenster, aber ohne Bildschirm (Avalonia
+Headless, echte Mausklicks und Tastendrücke, E159). Es ist ein Konsolenprogramm, kein Testframework – `dotnet test`
+führt es daher **nicht** aus. Ein Lauf dauert etwa eine Minute.
+
+Aus dem Projektordner:
+
+```bash
+dotnet run --project tests/FileRenamer.HeadlessChecks -- /tmp/fr-headless
+```
+
+Von einem beliebigen Ordner aus (absoluter Pfad zum Projekt):
+
+```bash
+dotnet run --project /home/andy/Claude/FileRenamer/tests/FileRenamer.HeadlessChecks -- /tmp/fr-headless
+```
+
+Nach einem vorherigen `dotnet build` ohne erneutes Bauen:
+
+```bash
+dotnet run --no-build --project tests/FileRenamer.HeadlessChecks -- /tmp/fr-headless
+```
+
+Nur die fehlgeschlagenen Prüfungen und das Ergebnis anzeigen:
+
+```bash
+dotnet run --project tests/FileRenamer.HeadlessChecks -- /tmp/fr-headless | grep -v "^OK"
+```
+
+- **Argument:** Ordner für die Screenshots (wird angelegt; ohne Angabe der aktuelle Ordner). Ein Lauf schreibt
+  28 PNG-Dateien, z. B. `tags-01-start.png`, `tags-17-hscroll.png`, `dialog-Dark.png`, `settings-light.png`.
+- **Ausgabe:** je Prüfung eine Zeile `OK` bzw. `FAIL` mit Name und Zusatzinformation, am Ende
+  „ALLE n PRÜFUNGEN BESTANDEN“ bzw. „x VON n FEHLGESCHLAGEN“.
+- **Rückgabewert (Exit-Code):** Anzahl der fehlgeschlagenen Prüfungen; 0 = alles bestanden (für Skripte und CI).
+- **Testdaten:** Jeder Lauf legt eigene Dateien unter dem temporären Ordner des Systems an (`fr-tagcheck-…`,
+  `fr-settings-…`) und löscht sie am Ende; Einstellungen und Profile des Anwenders bleiben unberührt.
+- **Inhalt:** `TagAreaChecks` (Bereich „Tags“, Dateilisten, Spalten, Kopieren, Liste leeren, Werkzeugleiste,
+  Dialoge) und `SettingsChecks` (Einstellungen, Farbprofile, Abbrechen/Übernehmen, Auswahl aller Audiodateien).
+  Neue Prüfungen kommen als eigene Methode in die passende Teilklasse und werden in `Run()` eingereiht.
+
 ## Projektstruktur
 
 | Pfad | Inhalt |
@@ -39,6 +85,8 @@ Für Linux `-r linux-x64`, für macOS `-r osx-arm64` bzw. `-r osx-x64`. Ein macO
 | `src/FileRenamer.Core` | Gesamte Fachlogik ohne Oberflächenabhängigkeit |
 | `src/FileRenamer.App` | Avalonia-Oberfläche (Views, ViewModels, Dienste) |
 | `tests/FileRenamer.Core.Tests` | Unit- und Integrationstests |
+| `tests/FileRenamer.App.Tests` | Tests der Einstellungen (`SettingsViewModel`, Farbprofile) mit Test-Dialogen und -Theme |
+| `tests/FileRenamer.HeadlessChecks` | Oberflächenprüfungen im echten Hauptfenster ohne Bildschirm (Bereich „Tags“, Dateilisten, Spalten, Dialoge, Einstellungen) |
 | `testdata/` | Testdateien je Verfahren (siehe `testdata/README.md`) |
 | `mockups/` | HTML-Mockups; `mockup-v3.html` ist abgenommen |
 | `PROTOKOLL.md` | Entscheidungen, Fragen, Fortschritt |
@@ -84,7 +132,7 @@ FileRenamer/
 │   │   ├── Profiles/
 │   │   │   ├── RenameProfile.cs         Profil (Kette + Erweiterungseinstellung)
 │   │   │   ├── ProfileStore.cs          Profile als JSON
-│   │   │   ├── AppSettings.cs           Theme, letztes Profil, Akzentfarbe, Sprache, AppSettingsStore
+│   │   │   ├── AppSettings.cs           Theme, letztes Profil, Farben je Design, Farbprofile, Sprache, AppSettingsStore
 │   │   │   ├── AppDataLocator.cs        Ablageorte je Plattform
 │   │   │   └── JsonFileStore.cs         gemeinsame JSON-Hilfen
 │   │   ├── Localization/
@@ -143,7 +191,11 @@ FileRenamer/
 │   │   │   ├── ICoverImageProcessor.cs  Verkleinern (Umsetzung in der App)
 │   │   │   └── Genres.cs                Standardgenres, Höchstzahl eigener Genres
 │   │   ├── Theming/
-│   │   │   └── AccentPalette.cs         Akzentfarben: Paletten, HSV, Kontrast, Benutzerdefiniert
+│   │   │   ├── AccentPalette.cs         Akzentfarben: Paletten, HSV, Kontrast, Rahmenfarbe, eigene Farben
+│   │   │   ├── ThemePalette.cs          ThemeTint, ThemeColors: Flächen mit Farbstich und Helligkeit
+│   │   │   ├── ThemeColorSettings.cs    Farben eines Designs (Akzent, Pastell, Farbstich, Helligkeit)
+│   │   │   ├── ColorProfile.cs          Farbprofil, BuiltInColorProfiles
+│   │   │   └── ColorProfileFile.cs      Austauschformat *.colorprofiles.json (wie PDF Utopia)
 │   │   └── Validation/
 │   │       ├── FileNameValidator.cs     gültige Dateinamen
 │   │       └── DateFormatValidator.cs   Datums-/Uhrzeitformate
@@ -173,7 +225,7 @@ FileRenamer/
 │       │   ├── DialogService.cs         Dialoge, Datei-/Ordnerauswahl
 │       │   ├── IClipboardService.cs, ClipboardService.cs  Zwischenablage
 │       │   ├── SkiaCoverImageProcessor.cs  Cover verkleinern (SkiaSharp, JPEG 90 %)
-│       │   └── ThemeService.cs          System/Hell/Dunkel, Akzentfarbe → Fluent-Ressourcen
+│       │   └── ThemeService.cs          Design und Farben je Design → eigene und Fluent-Ressourcen
 │       ├── ViewModels/
 │       │   ├── MainWindowViewModel.cs           Kern: Kette, Vorschau, Umbenennen, Widerrufen
 │       │   ├── MainWindowViewModel.Files.cs     Dateien hinzufügen/entfernen
@@ -186,7 +238,7 @@ FileRenamer/
 │       │   │                                    Editor, TagFieldViewModel, Zeilen (PendingChange, TagPreviewRow, TagCell)
 │       │   ├── ChainItemViewModel.cs            Eintrag der Kette
 │       │   ├── PreviewRowViewModel.cs           Zeile der Vorschau
-│       │   ├── AccentColorViewModel.cs          Akzentfarbwahl, SwatchViewModel
+│       │   ├── Settings/                        SettingsViewModel (+ .Colors, .Profiles), SettingsOptions
 │       │   ├── TemplateLibrary.cs               eigene Vorlagen (Fotos/Audio), programmweit
 │       │   ├── RuleCatalog.cs                   gruppierte Verfahrensliste ↔ Name ↔ Editor
 │       │   └── Editors/                         je Verfahren ein Editor + RuleEditorViewModel
@@ -196,11 +248,14 @@ FileRenamer/
 │           ├── ChainDragController.cs           Umsortieren der Kette per Drag & Drop
 │           ├── PreviewCopyController.cs         Strg+C und Kontextmenü beider Vorschaulisten
 │           ├── HeaderScrollSync.cs              Spaltenköpfe beim horizontalen Scrollen mitschieben
-│           ├── AccentPickerView.axaml(.cs)      Farbwahl im Flyout am farbigen Kreis
+│           ├── SettingsWindow.axaml(.cs)        Einstellungen (Zahnrad, Datei → Einstellungen…)
 │           ├── Tags/                            TagAreaView und je Funktion eine Ansicht (EditTags, FromFileName,
 │           │                                    TrackNumbers, Cover mit Drag & Drop, Lyrics)
 │           └── Editors/                         je Verfahren eine Options-Ansicht
 ├── tests/
+│   ├── FileRenamer.App.Tests/   SettingsViewModelTests, ColorProfileSettingsTests, Fakes (Dialoge, Theme)
+│   ├── FileRenamer.HeadlessChecks/  Program, CheckRunner, TestFiles, Fakes, TagAreaChecks (+ .Saving, .Columns,
+│   │                                .Lists, .Window), SettingsChecks – echte Mausklicks und Tastendrücke, Screenshots
 │   └── FileRenamer.Core.Tests/
 │       ├── FileRenamer.Core.Tests.csproj
 │       ├── Execution/       FileRenameExecutorTests.cs
@@ -213,7 +268,7 @@ FileRenamer/
 │       ├── Rules/           Testklassen der Verfahren, TemplateRuleTests, CustomTemplateListTests, ChangeExtensionRuleTests, TextRulesTests
 │       ├── Tagging/         TagLibTagStoreTests (MP3/FLAC), FileNameTagParserTests, TagPreviewPipelineTests,
 │       │                    TagWriterAndExportTests
-│       ├── Theming/         AccentPaletteTests.cs
+│       ├── Theming/         AccentPaletteTests, ThemePaletteTests, ColorProfileTests, ThemeColorSettingsTests
 │       ├── Support/         InMemoryFileSystem.cs, RuleTestHelper.cs,
 │       │                    MediaFiles.cs + TiffWriter.cs (erzeugen Test-Mediendateien),
 │       │                    AudioFiles.cs (kleinste gültige MP3/FLAC, TempFolder)
@@ -234,10 +289,10 @@ FileRenamer/
 | `Validation` | `FileNameValidator` (plattformübergreifend strengste Regeln), `DateFormatValidator` |
 | `Execution` | `FileRenameExecutor` – zweiphasiges Umbenennen mit Rücknahme |
 | `Files` | `IFileSystem` und `PhysicalFileSystem` |
-| `Profiles` | Profile und Einstellungen als JSON (inkl. Akzentfarbe), plattformübliche Ablageorte |
+| `Profiles` | Profile und Einstellungen als JSON (inkl. Farben je Design und eigener Farbprofile), plattformübliche Ablageorte |
 | `Metadata` | Eigene Leser für EXIF/IPTC/XMP (JPEG, TIFF, HEIC, PNG, RAW) und Audio-Tags (ID3, FLAC, M4A) – ohne Fremdbibliothek |
 | `Rules.Templates` | Platzhalterkatalog und Zerlegung der Vorlagen für „Name aus Vorlage“ |
-| `Theming` | `AccentPalette`: Paletten, HSV-Sättigung, lesbare Schriftfarbe, Kontrastprüfung, benutzerdefinierte Farben |
+| `Theming` | `AccentPalette` (Paletten, HSV, Kontrast), `ThemePalette` (Farbstich und Helligkeit), `ThemeColorSettings`, `ColorProfile`, `ColorProfileFile` – übernommen aus PDF Utopia (E158) |
 | `Tagging` | Bereich „Tags“: Tag-Modell, TagLib#-Zugriff, vorgemerkte Änderungen, Vorschau mit Herkunft, Speichern/Widerrufen, Tags aus Dateinamen, Export von Cover und Lyrics |
 | `Localization` | `CoreText`: alle Meldungen der Fachlogik auf Deutsch und Englisch; `Resolve` ermittelt die Sprache aus der Einstellung |
 
@@ -299,7 +354,7 @@ Die Diagramme sind in Mermaid notiert und werden u. a. von GitHub, GitLab und VS
 
 ```mermaid
 flowchart TD
-    Start([Programmstart]) --> Settings[Einstellungen laden:<br/>Sprache, Theme, Akzentfarbe, letztes Profil]
+    Start([Programmstart]) --> Settings[Einstellungen laden:<br/>Sprache, Theme, Farben, letztes Profil]
     Settings --> Idle{{Warten auf Eingabe}}
 
     Idle -->|Dateien / Ordner hinzufügen<br/>Menü oder Drag & Drop| AddFiles[Dateien einlesen<br/>Ordner ohne Unterordner,<br/>Duplikate überspringen]
@@ -405,14 +460,33 @@ Endung inklusive Punkt – die ausgeblendete Endung bzw. bei eingeblendeter Endu
 Namens (`RenamePipeline.WorkingNames`). Eine geänderte ausgeblendete Endung zeigt die Vorschau an
 (`FilePreview.IsExtensionChanged`, E73).
 
-### Akzentfarbe
+### Einstellungen und Farben (E155–E158)
 
-`AccentPalette` (Core, getestet) berechnet Farben; `ThemeService` schreibt die Akzentfarbe in die
-Fluent-Ressourcen (`SystemAccentColor` samt Abstufungen, `AccentButtonForeground*`, `AccentButtonBorderBrush*`,
-`CheckBoxCheckGlyphForegroundChecked*`) sowie in eigene Ressourcen (`SelectionBrush`, `AccentForegroundBrush`,
-`AccentSegmentBorderBrush`). Bei jedem Theme-Wechsel werden sie neu berechnet, weil Auswahlhintergrund und
-Rahmen bei geringem Kontrast vom Fensterhintergrund abhängen. Der Fokusring erscheint in Avalonia nur bei
-Tastaturbedienung (E88).
+Der Einstellungsdialog ist aus PDF Utopia übernommen und angepasst (E158); beide Projekte bleiben unabhängig.
+
+- **Core:** `ThemeColorSettings` hält die Farben eines Designs, `AppSettings.LightColors`/`DarkColors` je Design;
+  fehlen sie, übernimmt `AppSettings.ColorsFor` die frühere gemeinsame `AccentColor`/`PastelSaturation`.
+  `ThemePalette.For` berechnet aus `ThemeTint` (Farbstich, Helligkeit) die Flächen (`ThemeColors`: Fenster, Leisten,
+  Eingabe, Rahmen, Text, Nebentext, Hover, Ablage, Dialog, Dialograhmen); ohne Farbstich gelten die bisherigen
+  FileRenamer-Farben. `BuiltInColorProfiles` liefert je Design sieben Profile (Texte unter `ColorProfile.*`);
+  `ColorProfileFile` liest/schreibt das gemeinsame Austauschformat.
+- **ThemeService:** `Apply(AppSettings)` setzt Design und Farben beider Designs und schreibt die Werte des
+  angezeigten Designs als Ressourcen der Anwendung (vor den `ThemeDictionaries` in `App.axaml`, die nur noch als
+  Ausgangswerte dienen): eigene (`AppBackgroundBrush`, `PanelBackgroundBrush`, `InputBackgroundBrush`, `AppBorderBrush`,
+  `MutedTextBrush`, `DropHintBrush`, `Dialog*`, `SelectionBrush`, `AccentForegroundBrush`, `AccentTextBrush`,
+  `AccentOutlineBrush`, `AccentSegmentBorderBrush`) und Fluent (`SystemAccentColor*`, `TextControl*`, `ComboBox*`,
+  `Button*Border*`, `AccentButton*`, `CheckBoxCheckGlyphForegroundChecked*`, Markierung). Die Haupttextfarbe bleibt
+  Fluent-Standard. Bei jedem Wechsel des Designs wird neu berechnet.
+- **SettingsViewModel** (`ViewModels/Settings`): Hauptteil (Design, Sprache, Allgemein, `ToSettings`, `Revert`,
+  Vorschau über `IThemeService`), `.Colors` (Farbreihen, Regler, Hex-Feld), `.Profiles` (Profile, Import/Export).
+  `MainWindowViewModel.OpenSettingsAsync` öffnet den Dialog über `IDialogService.ShowSettingsAsync`, übernimmt bei
+  „Übernehmen“ mit `ApplySettings` und stellt bei „Abbrechen“ Farben und Sprache zurück.
+- **Sprache im Dialog:** `PreviewLanguage` setzt `MainWindowViewModel.Language` (Neuaufbau des Hauptfensters, E92);
+  `LanguageApplied` schließt das `SettingsWindow` mit `ReopenRequested`, `DialogService.ShowSettingsAsync` öffnet es
+  nach dem Neuaufbau mit demselben ViewModel an gleicher Stelle wieder.
+- **Cover verkleinern** (E157) steht unter „Allgemein“; der Cover-Editor liest `TagLibrary.ShrinkCovers`/`CoverMaxPixels`.
+
+Der Fokusring erscheint in Avalonia nur bei Tastaturbedienung (E88).
 
 ### Sprache
 
@@ -537,6 +611,11 @@ wenn es beteiligt ist (E5), sonst das zuletzt angewandte. Die Farben liegen als 
   breiter und die Liste scrollt. Der Kopf schneidet nicht ab (`ClipToBounds=false`), trifft per `ICustomHitTest` auch
   Köpfe jenseits seiner Breite und wird von `HeaderScrollSync` per `TranslateTransform` um den Versatz der Liste
   verschoben; `Border.listHeader` schneidet ab.
+- Einheitliche Höhe (E160): `ControlHeight` (33 px) in `App.axaml` gilt für Schaltflächen (Fluent-Standard), Text-,
+  Zahlen- und Auswahlfelder (`MinHeight`), `RadioButton.segment` (`Height`, Inhalt mittig), Zahnrad und die
+  Segment-ListBoxen der Einstellungen (Feldhöhe 31 + 2 px Rand). Kleine Elemente (`Button.chip`, `Button.swatch`,
+  rahmenlose ✕/↺, Checkboxen) sind ausgenommen. Gewählte Umschalter erhalten nur die Akzentfläche, keine fette Schrift.
+  `SettingsChecks.Controls.cs` prüft beides in jeder Ansicht.
 - Dateilisten (E152, E153): gemeinsame Stile in `App.axaml` – `CheckBox.fileCheck` (14-px-Kästchen; der Fluent-Inhalt
   hat feste 32 px Höhe und wird auf 16 px gesetzt), `Border.listHeader`, `TextBlock.emptyHint` (Hinweis in der leeren
   Liste, nicht treffbar), `Button.paneAction` („Liste leeren“ in der Titelzeile).

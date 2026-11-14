@@ -4,20 +4,24 @@ using System.Text.RegularExpressions;
 namespace FileRenamer.Core.Theming;
 
 /// <summary>
-/// Eine wählbare Farbe der Akzentauswahl.
+/// Eine wählbare Farbe der Farbwahl.
 /// </summary>
 /// <param name="Hex">Farbwert im Format <c>#RRGGBB</c>.</param>
-/// <param name="Name">Anzeigename.</param>
-public sealed record AccentSwatch(string Hex, string Name);
+/// <param name="NameKey">Schlüssel des Anzeigenamens; die Oberfläche übersetzt ihn (z. B. „Color.Blue“).</param>
+public sealed record ColorSwatch(string Hex, string NameKey);
 
 /// <summary>
-/// Farben und Farbberechnungen der Akzentfarbe (E79–E89): Paletten, HSV-Sättigung der Pastellfarben,
-/// lesbare Schriftfarbe, Kontrastprüfung und die Liste benutzerdefinierter Farben.
+/// Farben und Farbberechnungen der Akzentfarbe (E79–E89, E155): Paletten, HSV-Sättigung der Pastellfarben, HSV-Zerlegung
+/// für die Regler, lesbare Schriftfarbe, Kontrastprüfung, sattere Rahmenfarbe und die Liste eigener Farben.
+/// Abgeglichen mit PDF Utopia (E158); der Standard-Akzent bleibt das bisherige Blau.
 /// </summary>
 public static partial class AccentPalette
 {
-    /// <summary>Standard-Akzentfarbe (bisheriges Blau).</summary>
+    /// <summary>Standard-Akzentfarbe im hellen Theme (das bisherige Blau).</summary>
     public const string DefaultAccent = "#2F6FDF";
+
+    /// <summary>Standard-Akzentfarbe im Dark Theme (wie bisher dasselbe Blau).</summary>
+    public const string DefaultAccentDark = DefaultAccent;
 
     /// <summary>Kleinste einstellbare Pastell-Sättigung in Prozent.</summary>
     public const int MinSaturation = 10;
@@ -25,57 +29,57 @@ public static partial class AccentPalette
     /// <summary>Größte einstellbare Pastell-Sättigung in Prozent.</summary>
     public const int MaxSaturation = 90;
 
-    /// <summary>Standard-Sättigung der Pastellfarben in Prozent (E89).</summary>
+    /// <summary>Standard-Sättigung der Pastellfarben in Prozent.</summary>
     public const int DefaultSaturation = 30;
 
-    /// <summary>Höchstzahl benutzerdefinierter Farben (E87).</summary>
+    /// <summary>Höchstzahl benutzerdefinierter Farben.</summary>
     public const int MaxCustomColors = 10;
 
-    /// <summary>Unterhalb dieses Kontrastverhältnisses erhalten Akzentflächen einen Rahmen (E85).</summary>
+    /// <summary>Unterhalb dieses Kontrastverhältnisses erhalten Akzentflächen einen Rahmen.</summary>
     public const double MinContrastRatio = 1.6;
+
+    /// <summary>Kontrast, den eine sattere Rahmenfarbe zum Hintergrund mindestens erreichen soll.</summary>
+    public const double OutlineContrastRatio = 2;
+
+    /// <summary>Unter dieser HSV-Sättigung gilt eine Farbe als neutral; ihr Rahmen nimmt die Textfarbe.</summary>
+    public const double NeutralSaturation = 0.15;
 
     private const string DarkText = "#1D2330";
     private const string LightText = "#F4F7FC";
+    private const double MixStep = 0.05;
 
     /// <summary>
     /// Grundfarben der Pastell-Reihe (Farbton und Hellwert bleiben, die Sättigung wird eingestellt).
     /// </summary>
-    public static IReadOnlyList<AccentSwatch> PastelBase =>
+    public static IReadOnlyList<ColorSwatch> PastelBase { get; } =
     [
-        new("#A7C7E7", Name("Pastellblau", "Pastel blue")), new("#B5EAD7", "Mint"), new("#FFDAC1", Name("Pfirsich", "Peach")),
-        new("#E2B6CF", Name("Rosé", "Rose")), new("#C7CEEA", Name("Lavendel", "Lavender")),
+        new("#A7C7E7", "Color.PastelBlue"), new("#B5EAD7", "Color.Mint"), new("#FFE599", "Color.PastelYellow"),
+        new("#FFDAC1", "Color.Peach"), new("#E2B6CF", "Color.Rose"), new("#C7CEEA", "Color.Lavender"),
+        // Pastell zu Violett, damit es zu jeder kräftigen Farbe eine Pastellfarbe gibt (wie in PDF Utopia)
+        new("#C4A4EB", "Color.Lilac"),
     ];
 
     /// <summary>
     /// Kräftige Farben.
     /// </summary>
-    public static IReadOnlyList<AccentSwatch> Strong =>
+    public static IReadOnlyList<ColorSwatch> Strong { get; } =
     [
-        new(DefaultAccent, Name("Blau (Standard)", "Blue (default)")), new("#1F9D55", Name("Grün", "Green")), new("#E8740C", "Orange"),
-        new("#C93434", Name("Rot", "Red")), new("#8B4FD6", Name("Violett", "Violet")),
+        new("#4F46E5", "Color.Indigo"), new(DefaultAccent, "Color.Blue"), new("#1F9D55", "Color.Green"),
+        new("#FACC15", "Color.Yellow"), new("#E8740C", "Color.Orange"), new("#C93434", "Color.Red"), new("#8B4FD6", "Color.Violet"),
     ];
 
     /// <summary>
     /// Neutrale Farben (95 % Schwarz, 95 % Weiß).
     /// </summary>
-    public static IReadOnlyList<AccentSwatch> Neutral =>
-        [new("#0D0D0D", Name("95 % Schwarz", "95 % black")), new("#F2F2F2", Name("95 % Weiß", "95 % white"))];
-
-    /// <summary>
-    /// Farbname in der aktuellen Sprache.
-    /// </summary>
-    /// <param name="german">Deutscher Name.</param>
-    /// <param name="english">Englischer Name.</param>
-    /// <returns>Der Name.</returns>
-    private static string Name(string german, string english) =>
-        Localization.CoreText.Language == Localization.UiLanguage.German ? german : english;
+    public static IReadOnlyList<ColorSwatch> Neutral { get; } =
+        [new("#0D0D0D", "Color.Black95"), new("#F2F2F2", "Color.White95")];
 
     /// <summary>
     /// Liefert die Pastellfarben für eine Sättigung.
     /// </summary>
     /// <param name="saturationPercent">Sättigung in Prozent (wird auf 10–90 begrenzt).</param>
     /// <returns>Die Pastellfarben.</returns>
-    public static IReadOnlyList<AccentSwatch> Pastel(int saturationPercent) =>
+    public static IReadOnlyList<ColorSwatch> Pastel(int saturationPercent) =>
         PastelBase.Select(swatch => swatch with { Hex = WithHsvSaturation(swatch.Hex, ClampSaturation(saturationPercent)) }).ToList();
 
     /// <summary>
@@ -86,8 +90,7 @@ public static partial class AccentPalette
     public static int ClampSaturation(int saturationPercent) => Math.Clamp(saturationPercent, MinSaturation, MaxSaturation);
 
     /// <summary>
-    /// Setzt die Sättigung nach dem HSV-Prinzip (S = (max − min) / max; 0 % = 0, 100 % = 255).
-    /// Farbton und Hellwert V (größter Kanal) bleiben erhalten.
+    /// Setzt die Sättigung nach dem HSV-Prinzip (S = (max − min) / max). Farbton und Hellwert V bleiben erhalten.
     /// </summary>
     /// <param name="hex">Ausgangsfarbe.</param>
     /// <param name="saturationPercent">Gewünschte Sättigung in Prozent.</param>
@@ -102,6 +105,65 @@ public static partial class AccentPalette
     }
 
     /// <summary>
+    /// HSV-Sättigung einer Farbe.
+    /// </summary>
+    /// <param name="hex">Die Farbe.</param>
+    /// <returns>Sättigung 0–1.</returns>
+    public static double HsvSaturation(string hex)
+    {
+        var rgb = ToRgb(hex);
+        double max = rgb.Max();
+        return max == 0 ? 0 : (max - rgb.Min()) / max;
+    }
+
+    /// <summary>
+    /// Zerlegt eine Farbe in Farbton, Sättigung und Hellwert (HSV/HSB), für die Regler der Akzentfarbe (E155).
+    /// </summary>
+    /// <param name="hex">Die Farbe.</param>
+    /// <returns>Farbton in Grad (0–360), Sättigung und Hellwert (0–1).</returns>
+    public static (double Hue, double Saturation, double Value) ToHsv(string hex)
+    {
+        var rgb = ToRgb(hex).Select(channel => channel / 255.0).ToArray();
+        double max = rgb.Max(), min = rgb.Min(), delta = max - min;
+        double hue = 0;
+        if (delta > 0)
+        {
+            hue = max == rgb[0] ? 60 * (((rgb[1] - rgb[2]) / delta) % 6)
+                : max == rgb[1] ? 60 * (((rgb[2] - rgb[0]) / delta) + 2)
+                : 60 * (((rgb[0] - rgb[1]) / delta) + 4);
+        }
+
+        return ((hue + 360) % 360, max == 0 ? 0 : delta / max, max);
+    }
+
+    /// <summary>
+    /// Setzt eine Farbe aus Farbton, Sättigung und Hellwert (HSV/HSB) zusammen.
+    /// </summary>
+    /// <param name="hue">Farbton in Grad.</param>
+    /// <param name="saturation">Sättigung (0–1).</param>
+    /// <param name="value">Hellwert (0–1).</param>
+    /// <returns>Die Farbe als <c>#RRGGBB</c>.</returns>
+    public static string FromHsv(double hue, double saturation, double value)
+    {
+        var h = ((hue % 360) + 360) % 360;
+        var s = Math.Clamp(saturation, 0, 1);
+        var v = Math.Clamp(value, 0, 1);
+        var chroma = v * s;
+        var x = chroma * (1 - Math.Abs((h / 60 % 2) - 1));
+        var m = v - chroma;
+        var (r, g, b) = h switch
+        {
+            < 60 => (chroma, x, 0d),
+            < 120 => (x, chroma, 0d),
+            < 180 => (0d, chroma, x),
+            < 240 => (0d, x, chroma),
+            < 300 => (x, 0d, chroma),
+            _ => (chroma, 0d, x),
+        };
+        return ToHex([.. new[] { r, g, b }.Select(c => (int)Math.Round((c + m) * 255, MidpointRounding.AwayFromZero))]);
+    }
+
+    /// <summary>
     /// Prüft das Format <c>#RRGGBB</c>.
     /// </summary>
     /// <param name="text">Der Text.</param>
@@ -109,27 +171,70 @@ public static partial class AccentPalette
     public static bool IsValidHex(string? text) => text is not null && HexPattern().IsMatch(text.Trim());
 
     /// <summary>
-    /// Vereinheitlicht einen gültigen Hex-Code auf Großbuchstaben.
+    /// Vereinheitlicht einen gültigen Hex-Code auf Großbuchstaben ohne Leerraum.
     /// </summary>
     /// <param name="hex">Der Hex-Code.</param>
     /// <returns>Der vereinheitlichte Hex-Code.</returns>
     public static string Normalize(string hex) => hex.Trim().ToUpperInvariant();
 
     /// <summary>
-    /// Wählt dunkle oder helle Schrift, damit Text auf der Akzentfarbe lesbar bleibt (E80).
+    /// Wählt dunkle oder helle Schrift, je nachdem, welche auf der Farbe den höheren Kontrast hat. Eine feste
+    /// Helligkeitsschwelle ließ auf mittelhellen Farben wie „Salbei“ weiße, kaum lesbare Schrift stehen.
     /// </summary>
-    /// <param name="hex">Die Akzentfarbe.</param>
+    /// <param name="hex">Die Hintergrundfarbe der Schrift.</param>
     /// <returns>Die Schriftfarbe.</returns>
-    public static string ForegroundFor(string hex) => RelativeLuminance(hex) > 0.45 ? DarkText : LightText;
+    public static string ForegroundFor(string hex) => ContrastRatio(hex, DarkText) >= ContrastRatio(hex, LightText) ? DarkText : LightText;
 
     /// <summary>
-    /// Prüft, ob sich die Akzentfarbe zu wenig vom Hintergrund abhebt und einen Rahmen braucht (E85).
+    /// Prüft, ob sich eine Farbe zu wenig vom Hintergrund abhebt und einen Rahmen braucht.
     /// </summary>
-    /// <param name="accentHex">Die Akzentfarbe.</param>
-    /// <param name="backgroundHex">Die Hintergrundfarbe.</param>
+    /// <param name="accentHex">Die Farbe.</param>
+    /// <param name="backgroundHex">Der Hintergrund.</param>
     /// <returns><c>true</c> bei zu geringem Kontrast.</returns>
     public static bool NeedsOutline(string accentHex, string backgroundHex) =>
         ContrastRatio(accentHex, backgroundHex) < MinContrastRatio;
+
+    /// <summary>
+    /// Sattere Variante einer Farbe für Rahmen (z. B. Goldgelb zu Gelb): schrittweise zu Schwarz (helles Theme)
+    /// bzw. Weiß (Dark Theme) gemischt, bis der Kontrast zum Hintergrund mindestens 2 erreicht.
+    /// </summary>
+    /// <param name="accentHex">Die Farbe.</param>
+    /// <param name="backgroundHex">Der Hintergrund.</param>
+    /// <param name="isDarkTheme">Ob das Dark Theme aktiv ist.</param>
+    /// <returns>Die Rahmenfarbe, oder <c>null</c> für neutrale Farben (dann gilt die Textfarbe).</returns>
+    public static string? OutlineColor(string accentHex, string backgroundHex, bool isDarkTheme)
+    {
+        if (HsvSaturation(accentHex) < NeutralSaturation)
+        {
+            return null;
+        }
+
+        var target = isDarkTheme ? "#FFFFFF" : "#000000";
+        for (var step = 1; step * MixStep <= 1 + 1e-9; step++)
+        {
+            var candidate = Mix(accentHex, target, step * MixStep);
+            if (ContrastRatio(candidate, backgroundHex) >= OutlineContrastRatio)
+            {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Mischt zwei Farben.
+    /// </summary>
+    /// <param name="fromHex">Ausgangsfarbe.</param>
+    /// <param name="toHex">Zielfarbe.</param>
+    /// <param name="amount">Anteil der Zielfarbe (0–1).</param>
+    /// <returns>Die Mischfarbe.</returns>
+    public static string Mix(string fromHex, string toHex, double amount)
+    {
+        var from = ToRgb(fromHex);
+        var to = ToRgb(toHex);
+        return ToHex(from.Select((channel, i) => (int)Math.Round(channel + (to[i] - channel) * amount, MidpointRounding.AwayFromZero)).ToArray());
+    }
 
     /// <summary>
     /// Kontrastverhältnis zweier Farben nach WCAG (1 bis 21).
@@ -146,7 +251,7 @@ public static partial class AccentPalette
 
     /// <summary>
     /// Nimmt eine eigene Farbe in die benutzerdefinierte Liste auf: keine Farben aus den festen Reihen,
-    /// keine Duplikate, höchstens 10 – bei mehr fällt die älteste weg (E87).
+    /// keine Duplikate, höchstens 10 – bei mehr fällt die älteste weg.
     /// </summary>
     /// <param name="customColors">Bisherige Liste.</param>
     /// <param name="hex">Neue Farbe.</param>
@@ -169,7 +274,7 @@ public static partial class AccentPalette
     /// </summary>
     /// <param name="hex">Die Farbe.</param>
     /// <returns>Leuchtdichte zwischen 0 und 1.</returns>
-    private static double RelativeLuminance(string hex)
+    public static double RelativeLuminance(string hex)
     {
         var channels = ToRgb(hex).Select(value => value / 255.0)
             .Select(c => c <= 0.03928 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4)).ToArray();

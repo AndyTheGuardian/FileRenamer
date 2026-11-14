@@ -120,6 +120,9 @@
           <Separator />
           <MenuItem Header="{loc:T Menu.ClearList}" Command="{Binding ClearFilesCommand}" />
           <Separator />
+          <!-- Einstellungen (E155, E156); FileRenamer hat kein Menü „Bearbeiten“ (F77) -->
+          <MenuItem Header="{loc:T Menu.Settings}" Command="{Binding OpenSettingsCommand}" />
+          <Separator />
           <MenuItem Header="{loc:T Menu.Exit}" Click="OnExitClick" />
         </MenuItem>
         <MenuItem Header="{loc:T Menu.Profiles}">
@@ -152,7 +155,7 @@
                     CommandParameter="{x:Static profiles:ThemePreference.Dark}"
                     IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Dark}}" />
           <Separator />
-          <MenuItem Header="{loc:T Menu.Accent}" Click="OnAccentMenuClick" />
+          <MenuItem Header="{loc:T Menu.Accent}" Command="{Binding OpenSettingsCommand}" />
           <Separator />
           <!-- Sprache (E92): wirkt sofort, das Fenster wird neu aufgebaut -->
           <MenuItem Header="{loc:T Menu.Language}">
@@ -215,16 +218,11 @@
                 <PathIcon Data="{StaticResource IconDark}" Width="16" Height="16" />
               </RadioButton>
             </StackPanel>
-            <!-- Akzentfarbe: farbiger Kreis öffnet die Farbwahl (E79) -->
-            <Button x:Name="AccentButton" Margin="10,0,0,0" Width="28" Height="28" Padding="0" CornerRadius="14"
-                    Background="Transparent" BorderThickness="0" ToolTip.Tip="{loc:T Toolbar.Accent}" VerticalAlignment="Center">
-              <Ellipse Width="24" Height="24" Fill="{Binding Accent.CurrentHex, Converter={StaticResource HexToBrush}}"
-                       Stroke="{DynamicResource AppBorderBrush}" StrokeThickness="1" />
-              <Button.Flyout>
-                <Flyout Placement="BottomEdgeAlignedRight">
-                  <views1:AccentPickerView DataContext="{Binding Accent}" />
-                </Flyout>
-              </Button.Flyout>
+            <!-- Zahnrad: Einstellungen mit Design, Sprache, Farben und Farbprofilen (E155, E156) -->
+            <Button x:Name="SettingsButton" Margin="10,0,0,0" Width="{StaticResource ControlHeight}" Height="{StaticResource ControlHeight}" Padding="0" VerticalAlignment="Center"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    ToolTip.Tip="{loc:T Toolbar.Settings}" Command="{Binding OpenSettingsCommand}">
+              <PathIcon Data="{StaticResource IconSettings}" Width="18" Height="18" />
             </Button>
           </StackPanel>
         </Grid>

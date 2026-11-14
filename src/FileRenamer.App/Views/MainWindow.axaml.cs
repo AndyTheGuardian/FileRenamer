@@ -79,13 +79,6 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Öffnet die Farbwahl am farbigen Kreis (Menü „Ansicht → Akzentfarbe…“).
-    /// </summary>
-    /// <param name="sender">Quelle.</param>
-    /// <param name="e">Ereignisdaten.</param>
-    private void OnAccentMenuClick(object? sender, RoutedEventArgs e) => AccentButton.Flyout?.ShowAt(AccentButton);
-
-    /// <summary>
     /// Beendet die Anwendung.
     /// </summary>
     /// <param name="sender">Quelle.</param>

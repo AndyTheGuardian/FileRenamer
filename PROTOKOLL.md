@@ -1,6 +1,6 @@
 # FileRenamer – Protokoll
 
-Stand: 2026-11-10
+Stand: 2026-11-13
 
 Diese Datei hält Ergebnisse, gestellte Fragen mit ihren Antworten und den Fortschritt des Projekts fest.
 `SPECS.md` bleibt unverändert; Abweichungen und Präzisierungen der Spezifikation werden hier dokumentiert.
@@ -87,8 +87,14 @@ Diese Datei hält Ergebnisse, gestellte Fragen mit ihren Antworten und den Forts
 | 2026-11-09 | V22 umgesetzt (E149): Dialogfarben je Theme, Kopf/Fuß, Rahmen, Abdunkelung des Hauptfensters (auch bei Datei-/Ordnerauswahl, verschachtelte Dialoge gezählt). Headless mit dem echten `DialogService` hell und dunkel: Dialog offen, Fläche ≠ Fenster, Titel im Kopf, Abdunkelung an und nach Bestätigen wieder aus; Screenshots angesehen. Build ohne Warnungen, 253/253 Tests; 84 Headless-Prüfungen bestanden. Hinweis: Der Titel steht weiterhin auch in der Titelleiste des Systems |
 | 2026-11-09 | Kopfbereich und Fußleiste der Dialoge auf Wunsch wieder entfernt (E149 angepasst); Dialogfläche, Rahmen und Abdunkelung bleiben. Build ohne Warnungen, 253/253 Tests; 84 Headless-Prüfungen bestanden, Screenshots hell/dunkel angesehen |
 | 2026-11-10 | Beide Dateilisten vereinheitlicht (F69–F72 → E150–E153): Checkboxen auch in der Tag-Vorschau (Auswahl für die Tag-Funktionen; Zeilenmarkierung nur noch zum Kopieren), Kopf-Checkbox statt „Alle Audiodateien markieren“; Checkboxen 14 px, Zeilen 23 statt 38 px; horizontales Scrollen mit mitlaufenden Spaltenköpfen; Ablagefläche entfernt, Hinweis in der leeren Liste, „Liste leeren“ in der Titelzeile. Ursache „horizontales Scrollen geht nicht“: die Listen hatten den horizontalen Bildlauf abgeschaltet, und die Spalten wurden immer in die sichtbare Breite gezwängt. Build ohne Warnungen, **255/255 Tests** (2 neue für `ColumnLayout`); Headless: 105 Prüfungen bestanden (neu u. a. Kästchen 14 px, Zeilenhöhe beider Listen, Checkbox-Klick vs. Zeilen-Klick mit echter Maus, Kopieren der markierten Zeilen, Kopf-Checkbox, horizontales Scrollen mit bündigem Kopf in beiden Listen, gescrollte Köpfe treffbar, Hinweis in leerer Liste). Neue Annahmen A33–A35 |
+| 2026-11-13 | E154: alle Audiodateien ausgewählt (gemerkt werden abgewählte). Einstellungsdialog aus PDF Utopia übernommen (E155–E158): Core `ThemePalette`, `ThemeColorSettings`, `ColorProfile`, `ColorProfileFile`, erweiterte `AccentPalette` (jetzt mit Indigo, Gelb, Pastellgelb, Flieder), `AppSettings` mit Farben je Design und eigenen Profilen (Übernahme der bisherigen Akzentfarbe); `ThemeService` setzt Flächen mit Farbstich und Helligkeit; `SettingsWindow` und `SettingsViewModel` (drei Teile); Zahnrad statt Farbkreis, „Datei → Einstellungen…“, „Ansicht → Akzentfarbe…“; „Verkleinern“ aus dem Cover-Editor nach „Allgemein“; `IDialogService` um Auswahlfrage, Speichern-Dialog und Einstellungen erweitert. Neues Testprojekt `FileRenamer.App.Tests` (35 portierte Tests, u. a. Cover-Einstellung). Build ohne Warnungen, **355/355 Tests**. Neue Headless-Prüfung (14 Prüfungen bestanden): E154, Zahnrad/Menü, Cover-Editor ohne Verkleinern, Dialog mit Abdunkelung, sieben Profile, Vorschau färbt das Hauptfenster, Abbrechen stellt zurück, Übernehmen speichert Dunkel/Mitternacht/600 px, Ring der gewählten Farbe; Screenshots hell und dunkel angesehen. Die bisherige Headless-Prüfung (105 Prüfungen) lag im alten Scratchpad und ist nicht mehr vorhanden (B17) |
+| 2026-11-13 | B17 behoben: Headless-Prüfung des Bereichs „Tags“ aus dem Gesprächsverlauf wiederhergestellt (ursprüngliche Fassung plus alle späteren Änderungen, in einer Kopie nachgespielt, ohne das Projekt zu berühren). Angepasst an die neuen Schnittstellen (`IDialogService`, `ThemeService.Apply`); zwei beim Nachspielen doppelt eingefügte Zeilen entfernt. **102 Prüfungen bestanden**, Screenshots hell/dunkel angesehen. Liegt weiterhin im temporären Arbeitsordner (F78) |
+| 2026-11-13 | E159: Beide Headless-Prüfungen als `tests/FileRenamer.HeadlessChecks` ins Projekt übernommen und neu gegliedert (`CheckRunner`, `TestFiles`, `Fakes`, `TagAreaChecks` in fünf Teilen, `SettingsChecks`); Screenshots mit nicht veraltetem `Save`-Aufruf. Beim Aufteilen fiel eine Prüfung weg und wurde per Vergleich der Prüflisten wiederhergestellt. Build ohne Warnungen, 355/355 Tests, **116/116 Headless-Prüfungen** |
+| 2026-11-13 | Befehle der Headless-Prüfungen in der Entwicklerdokumentation beschrieben (eigener Abschnitt: Aufruf aus dem Projektordner und mit absolutem Pfad, `--no-build`, nur Fehler anzeigen, Screenshots, Ausgabe, Exit-Code, Testdaten). Anlass: Aufruf aus `/home/andy/Claude` fand den relativen Pfad nicht. Lauf mit absolutem Pfad: 116/116 bestanden, 28 Screenshots |
+| 2026-11-13 | Fehler behoben (Rückmeldung): In den Einstellungen war bei den Umschaltern Design und Sprache das gewählte Feld am linken bzw. rechten Rand eckig in der runden Fläche – erstes und letztes Feld haben jetzt außen 3 px Rundung (Fläche 4 px minus 1 px Rand). Die Umschalter der Werkzeugleiste und „Akzentfarbe/Hintergrund“ waren nicht betroffen. Neue Headless-Prüfung der Rundung (schlägt mit dem alten Stand fehl, Rundung war 0); Build ohne Warnungen, **117/117 Headless-Prüfungen**, Screenshot hell und dunkel angesehen |
+| 2026-11-13 | E160 (Rückmeldung: Theme-Umschalter niedriger als die übrigen, gewählter Umschalter teils halbfett): gemessen in allen Bereichen, allen Verfahren, allen Tag-Funktionen und den Einstellungen – vorher 28 px (Umschalter nur mit Symbol, „Liste leeren“), 30 px (Zahnrad, Design/Sprache), 32 px (Auswahlfelder, Umschalter mit Text, Textfeld mit Monospace-Schrift), 33 px (Schaltflächen, Textfelder). Jetzt alles 33 px über `ControlHeight`; Halbfett der Einstellungen entfernt; Platzhalter-Chips in „Tags aus Dateinamen“ tragen die Klasse `chip`. Neue Headless-Prüfungen je Ansicht (Höhe und Schrift, 34 Prüfungen); Build ohne Warnungen, 355/355 Tests, **151/151 Headless-Prüfungen**, Screenshots angesehen |
 
-Nächster Schritt: Anwendertest des Bereichs „Tags“ in der laufenden App.
+Nächster Schritt: Anwendertest der Einstellungen und des Bereichs „Tags“ in der laufenden App.
 
 ---
 
@@ -238,6 +244,13 @@ Nächster Schritt: Anwendertest des Bereichs „Tags“ in der laufenden App.
 | E150 | Tag-Vorschau | Wie die Rename-Liste (F69): Die Checkbox einer Zeile wählt die Dateien, für die die Tag-Funktionen gelten („Ausgewählte Dateien“); ein Klick auf die Zeile markiert sie nur zum Kopieren. Die Checkbox im Spaltenkopf (alle/keine/teilweise) ersetzt „Alle Audiodateien markieren“. Nicht-Audiodateien haben eine gesperrte Checkbox. Ein Klick auf eine vorgemerkte Änderung setzt die Checkboxen ihrer Dateien. Löst E136 und E137 ab. | 2026-11-10 |
 | E151 | Horizontales Scrollen | Beide Vorschaulisten scrollen horizontal, wenn die Spalten breiter sind als die Liste (F71): flexible Spalten werden nicht schmaler als ihre Mindestbreite, die Spaltenköpfe laufen mit und bleiben bedienbar. | 2026-11-10 |
 | E152 | Liste leeren / Ablage | Die Ablagefläche unter beiden Listen entfällt; ist die Liste leer, steht „Dateien oder Ordner hierher ziehen“ mittig in der Liste. „Liste leeren“ sitzt rechts in der Titelzeile der Liste (F72). Löst die Lage aus E50 ab. | 2026-11-10 |
+| E154 | Tag-Auswahl | Statt A33: Wie beim Umbenennen sind alle Audiodateien ausgewählt; gemerkt werden die abgewählten, neu hinzugefügte Dateien sind ausgewählt. A34 (Strg+A markiert Zeilen) und A35 (Begriff „ausgewählt“) bestätigt. | 2026-11-13 |
+| E155 | Einstellungen | Einstellungsdialog wie in PDF Utopia, vollständig (F73): Design und Sprache als Umschalter, Farben je Design (Akzent, Pastell-Sättigung, Farbstich und Helligkeit des Hintergrunds), Farbprofile (mitgeliefert und eigene, umbenennen, löschen, Import/Export im gemeinsamen Format mit PDF Utopia und AI Asset Manager), Paletten, Regler mit Zahlenfeld, Hex-Feld. | 2026-11-13 |
+| E156 | Einstellungen öffnen | Wie PDF Utopia (F74): Zahnrad oben rechts, „Datei → Einstellungen…“ (FileRenamer hat kein Menü „Bearbeiten“, F77) und „Ansicht → Akzentfarbe…“. Der Farbkreis mit dem Akzent-Flyout entfällt; die Design-Schaltflächen der Werkzeugleiste bleiben. | 2026-11-13 |
+| E157 | Einstellungen „Allgemein“ | Enthält „Cover verkleinern“ und die maximale Pixelgröße (bisher im Cover-Editor) (F75). | 2026-11-13 |
+| E158 | Code der Einstellungen | Von PDF Utopia übernommen und angepasst (Palette, Farbprofile, Profildatei, Einstellungs-ViewModel und -Fenster); beide Projekte bleiben unabhängig (F76). | 2026-11-13 |
+| E159 | Oberflächenprüfungen | Die Headless-Prüfungen gehören zum Projekt: `tests/FileRenamer.HeadlessChecks` (Konsolenprogramm, in der Solution, wird mitgebaut; kein Testframework, daher nicht Teil von `dotnet test`). Aufgeteilt in dokumentierte Klassen mit kurzen Methoden je Bereich (F78). | 2026-11-13 |
+| E160 | Einheitliche Höhe | Alle kastenförmigen Bedienelemente sind 33 px hoch (Ressource `ControlHeight`, F80): Schaltflächen, Text-, Zahlen- und Auswahlfelder, alle Umschalter (mit und ohne Beschriftung), Zahnrad, „Liste leeren“, Design/Sprache in den Einstellungen. Kleine Elemente im Text behalten ihre Größe (Platzhalter-Chips, ✕/↺, Farbflächen, Checkboxen der Listen). Gewählte Umschalter haben überall normale Schrift, nur die Akzentfläche (F79). | 2026-11-13 |
 | E153 | Datei-Checkboxen | In beiden Dateilisten 14-px-Kästchen; Zeilenhöhe 23 px (vorher 38). Übrige Checkboxen der App bleiben unverändert (F70). | 2026-11-10 |
 | E149 | Dialoge | Eigene Dialoge heben sich ab (V22): Fläche hell etwas dunkler bzw. dunkel etwas heller als das Hauptfenster, 1-px-Rahmen; das Hauptfenster wird abgedunkelt, solange ein Dialog oder eine Datei-/Ordnerauswahl offen ist. Kopfbereich und Fußleiste waren zu viel und sind wieder entfernt (Rückmeldung 2026-11-09); der Titel steht nur in der Titelleiste. | 2026-11-09 |
 | E98 | Sprache | A8–A10 bestätigt. Statt A11: Beispielnamen werden ebenfalls übersetzt, auch in der ComboBox „Schreibweise“ („mein Urlaub-Foto_2026“ → „my holiday-photo_2026“, „Urlaub 2026“ → „Holiday 2026“, „Reisen“ → „Travel“, „Musik“ → „Music“, „Foto“ → „Photo“, „Max Muster“ → „John Doe“). | 2026-10-30 |
@@ -265,9 +278,7 @@ Nächster Schritt: Anwendertest des Bereichs „Tags“ in der laufenden App.
 
 | ID | Thema | Annahme |
 |----|-------|---------|
-| A33 | Tag-Auswahl beim Laden | Wie bisher ist beim Öffnen des Bereichs „Tags“ die erste Audiodatei ausgewählt, falls keine ausgewählt ist – nicht alle Dateien wie beim Umbenennen. |
-| A34 | Strg+A in der Tag-Vorschau | Strg+A markiert wie in der Rename-Liste alle Zeilen (zum Kopieren) und wählt keine Dateien mehr aus; dafür gibt es die Kopf-Checkbox. |
-| A35 | Begriffe | Für die Checkbox-Auswahl heißt es in der Oberfläche jetzt „ausgewählt“ statt „markiert“ (z. B. „Ausgewählte Dateien“ unter „Gilt für“, „3 Dateien ausgewählt“, Statuszeile); „markiert“ bleibt für die Zeilenmarkierung zum Kopieren. |
+| – | – | Keine offenen Annahmen. |
 
 ---
 
@@ -288,6 +299,7 @@ Nächster Schritt: Anwendertest des Bereichs „Tags“ in der laufenden App.
 | B13 | Tags werden beim Öffnen des Bereichs „Tags“ und nach Änderungen der Dateiliste im Vordergrund gelesen; bei sehr vielen Dateien kann die Oberfläche kurz stocken. |
 | B14 | Automatisch getestet sind Lesen und Schreiben mit MP3 und FLAC; die übrigen Formate (M4A, OGG, Opus, WMA, WAV, AIFF …) schreibt TagLib#, sie sind nicht eigens geprüft. |
 | B15 | Widerrufen stellt Tags, Cover und Lyrics inhaltlich wieder her, nicht byte-genau; seltene Bildtypen (z. B. „Illustration“) werden beim Ändern der Cover einer Datei als „Sonstiges“ geschrieben. |
+| B16 | Sprachwechsel im Einstellungsdialog (Dialog schließt sich und öffnet sich über dem neu aufgebauten Hauptfenster wieder) ist nur gebaut und nicht in der laufenden App geprüft; headless fehlt der Fensterneuaufbau. Ebenso nicht geprüft: Export/Import über die echte Dateiauswahl (die Logik ist mit Test-Dialogen getestet). |
 | B11 | Beim Sprachwechsel wird das Hauptfenster neu aufgebaut: Größe, Lage, Kette, Dateien, Auswahl und Editor-Einstellungen bleiben erhalten; die Position des Trennbalkens und Bildlaufpositionen werden zurückgesetzt. |
 
 ---
@@ -296,6 +308,16 @@ Nächster Schritt: Anwendertest des Bereichs „Tags“ in der laufenden App.
 
 | ID | Frage / Vorschlag | Ergebnis | Datum |
 |----|-------------------|----------|-------|
+| A33–A35 | Tag-Auswahl beim Laden, Strg+A, Begriffe | A33 geändert: alle Audiodateien ausgewählt → E154; A34, A35 bestätigt | 2026-11-13 |
+| F79 | Schrift gewählter Umschalter (in den Einstellungen halbfett, sonst normal) | überall normal → E160 | 2026-11-13 |
+| F80 | Einheitliche Höhe der Bedienelemente | 33 px, kleine Elemente bleiben → E160 | 2026-11-13 |
+| F78 | Headless-Prüfungen ins Projekt aufnehmen? | ja → E159 | 2026-11-13 |
+| B17 | Headless-Prüfung des Bereichs „Tags“ verloren | aus dem Gesprächsverlauf wiederhergestellt, 102 Prüfungen bestanden | 2026-11-13 |
+| F77 | Menüeintrag „Einstellungen…“ ohne Menü „Bearbeiten“ | im Menü „Datei“ über „Beenden“ → E156 | 2026-11-13 |
+| F73 | Umfang der Einstellungen | alles wie PDF Utopia → E155 | 2026-11-13 |
+| F74 | Einstieg und Werkzeugleiste | wie PDF Utopia, Farbkreis entfällt → E156 | 2026-11-13 |
+| F75 | Inhalt „Allgemein“ | Cover verkleinern → E157 | 2026-11-13 |
+| F76 | Code übernehmen oder teilen | kopieren und anpassen → E158 | 2026-11-13 |
 | F69 | Tag-Vorschau mit Checkboxen: Bedeutung von Checkbox und Zeilenklick? | wie Umbenennen: Checkbox = Auswahl, Klick = Markierung zum Kopieren, Kopf-Checkbox statt Schaltfläche → E150 | 2026-11-10 |
 | F70 | Größe und Geltungsbereich der kleinen Checkboxen | 14 px, nur die beiden Dateilisten → E153 | 2026-11-10 |
 | F71 | Erwartetes horizontales Scrollen | scrollen, wenn die Spalten breiter als die Liste sind; Kopf läuft mit → E151 | 2026-11-10 |

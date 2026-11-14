@@ -95,14 +95,12 @@ public sealed partial class CoverEditorViewModel : TagEditorViewModel
     private static readonly string[] FolderImageNames = ["cover", "folder", "front"];
 
     /// <summary>
-    /// Erzeugt den Editor mit den gespeicherten Einstellungen zum Verkleinern.
+    /// Erzeugt den Editor. Das Verkleinern beim Einfügen stellen die Einstellungen ein (E157).
     /// </summary>
     /// <param name="context">Der Bereich „Tags“.</param>
     public CoverEditorViewModel(ITagEditorContext context)
         : base(TagFunction.Cover, context)
     {
-        Shrink = context.Library.ShrinkCovers;
-        MaxPixels = context.Library.CoverMaxPixels;
         Refresh();
     }
 
@@ -146,18 +144,6 @@ public sealed partial class CoverEditorViewModel : TagEditorViewModel
     /// </summary>
     [ObservableProperty]
     public partial bool ReplaceSameType { get; set; } = true;
-
-    /// <summary>
-    /// Ob beim Einfügen verkleinert wird.
-    /// </summary>
-    [ObservableProperty]
-    public partial bool Shrink { get; set; }
-
-    /// <summary>
-    /// Höchstmaß der längsten Seite.
-    /// </summary>
-    [ObservableProperty]
-    public partial decimal? MaxPixels { get; set; }
 
     /// <summary>
     /// Ob beim Extrahieren alle Bildtypen gespeichert werden (sonst nur der gewählte).
@@ -211,7 +197,6 @@ public sealed partial class CoverEditorViewModel : TagEditorViewModel
         }
 
         SelectTile(Tiles.FirstOrDefault(tile => tile.Cover.Type == selectedType) ?? Tiles.FirstOrDefault());
-        ValidationMessage = Shrink && MaxPixels is null or < 16 ? Loc.T("Cover.MaxPixelsInvalid") : null;
         UpdateExtractExample();
         InsertCommand.NotifyCanExecuteChanged();
         ExtractCommand.NotifyCanExecuteChanged();
@@ -320,14 +305,6 @@ public sealed partial class CoverEditorViewModel : TagEditorViewModel
     /// <returns><c>null</c>.</returns>
     protected override TagChange? CreateChange(IReadOnlyList<string> files) => null;
 
-    /// <summary>Verkleinern geändert.</summary>
-    /// <param name="value">Der Wert.</param>
-    partial void OnShrinkChanged(bool value) => SaveShrinking();
-
-    /// <summary>Höchstmaß geändert.</summary>
-    /// <param name="value">Der Wert.</param>
-    partial void OnMaxPixelsChanged(decimal? value) => SaveShrinking();
-
     /// <summary>Dateiname geändert.</summary>
     /// <param name="value">Der Wert.</param>
     partial void OnExtractFileNameChanged(string value) => UpdateExtractExample();
@@ -353,7 +330,7 @@ public sealed partial class CoverEditorViewModel : TagEditorViewModel
         try
         {
             var image = new CoverImage(InsertType, ImageFormats.MimeTypeFor(path), File.ReadAllBytes(path));
-            return Shrink && MaxPixels is { } max ? Context.Images.Shrink(image, (int)max) : image;
+            return Context.Library.ShrinkCovers ? Context.Images.Shrink(image, Context.Library.CoverMaxPixels) : image;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -375,18 +352,6 @@ public sealed partial class CoverEditorViewModel : TagEditorViewModel
         return candidate is null ? null : LoadImage(candidate);
     }
 
-    /// <summary>
-    /// Speichert die Einstellungen zum Verkleinern programmweit und prüft sie.
-    /// </summary>
-    private void SaveShrinking()
-    {
-        if (MaxPixels is { } max and >= 16)
-        {
-            Context.Library.SetCoverShrinking(Shrink, (int)max);
-        }
-
-        Refresh();
-    }
 
     /// <summary>
     /// Bildet das Beispiel für den Zielpfad.

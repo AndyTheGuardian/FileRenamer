@@ -38,14 +38,38 @@ public enum LanguagePreference
 public sealed record AppSettings(ThemePreference Theme = ThemePreference.System, string? LastProfileName = null)
 {
     /// <summary>
-    /// Gewählte Akzentfarbe (<c>#RRGGBB</c>) oder <c>null</c> für den Standard (E79).
+    /// Frühere gemeinsame Akzentfarbe (E79); wird nur noch gelesen und einmalig in beide Designs übernommen (E155).
     /// </summary>
     public string? AccentColor { get; init; }
 
     /// <summary>
-    /// Sättigung der Pastellfarben in Prozent (E83, E86, E89).
+    /// Frühere gemeinsame Pastell-Sättigung (E83); wird nur noch gelesen und einmalig übernommen (E155).
     /// </summary>
     public int PastelSaturation { get; init; } = Theming.AccentPalette.DefaultSaturation;
+
+    /// <summary>
+    /// Farben des hellen Designs (E155); <c>null</c> = aus den früheren Werten bzw. Standard.
+    /// </summary>
+    public Theming.ThemeColorSettings? LightColors { get; init; }
+
+    /// <summary>
+    /// Farben des dunklen Designs (E155); <c>null</c> = aus den früheren Werten bzw. Standard.
+    /// </summary>
+    public Theming.ThemeColorSettings? DarkColors { get; init; }
+
+    /// <summary>
+    /// Eigene Farbprofile beider Designs (E155); mitgelieferte werden nicht gespeichert.
+    /// </summary>
+    public IReadOnlyList<Theming.ColorProfile> ColorProfiles { get; init; } = [];
+
+    /// <summary>
+    /// Die gültigen Farben eines Designs; fehlen sie, gelten die früheren gemeinsamen Werte (Übernahme, E155).
+    /// </summary>
+    /// <param name="dark">Ob das dunkle Design gemeint ist.</param>
+    /// <returns>Die bereinigten Farben.</returns>
+    public Theming.ThemeColorSettings ColorsFor(bool dark) =>
+        ((dark ? DarkColors : LightColors) ?? new Theming.ThemeColorSettings { AccentColor = AccentColor, PastelSaturation = PastelSaturation })
+        .Normalized();
 
     /// <summary>
     /// Benutzerdefinierte Farben (E84, E87).
@@ -99,13 +123,14 @@ public sealed record AppSettings(ThemePreference Theme = ThemePreference.System,
         new Dictionary<string, IReadOnlyList<Preview.SavedColumn>>();
 
     /// <summary>
-    /// Vergleicht auch die Listen (Farben, Vorlagen) inhaltlich.
+    /// Vergleicht auch die Listen (Farben, Farbprofile, Vorlagen) inhaltlich.
     /// </summary>
     /// <param name="other">Die anderen Einstellungen.</param>
     /// <returns><c>true</c> bei gleichem Inhalt.</returns>
     public bool Equals(AppSettings? other) =>
         other is not null && Theme == other.Theme && LastProfileName == other.LastProfileName && AccentColor == other.AccentColor
         && PastelSaturation == other.PastelSaturation && CustomColors.SequenceEqual(other.CustomColors) && Language == other.Language
+        && LightColors == other.LightColors && DarkColors == other.DarkColors && ColorProfiles.SequenceEqual(other.ColorProfiles)
         && CustomPhotoTemplates.SequenceEqual(other.CustomPhotoTemplates) && CustomAudioTemplates.SequenceEqual(other.CustomAudioTemplates)
         && CustomGenres.SequenceEqual(other.CustomGenres) && ExtraTagFields.SequenceEqual(other.ExtraTagFields)
         && ShrinkCovers == other.ShrinkCovers && CoverMaxPixels == other.CoverMaxPixels

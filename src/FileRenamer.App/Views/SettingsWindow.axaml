@@ -1,0 +1,266 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:FileRenamer.App.ViewModels.Settings"
+        xmlns:loc="using:FileRenamer.App.Localization"
+        xmlns:profiles="using:FileRenamer.Core.Profiles"
+        x:Class="FileRenamer.App.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="{loc:T Settings.Title}"
+        Width="600" MinWidth="380" MinHeight="380" SizeToContent="Height" CanResize="True" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource DialogBackgroundBrush}">
+
+  <!-- Einstellungen (E155): übernommen aus PDF Utopia (E158), Farben und Segmente wie im übrigen FileRenamer -->
+  <Window.Styles>
+    <!-- Design und Sprache als Umschalter in voller Breite, alle Felder gleich breit -->
+    <Style Selector="ListBox.segments">
+      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="ClipToBounds" Value="True" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+      <Setter Property="ItemsPanel">
+        <ItemsPanelTemplate>
+          <UniformGrid Rows="1" />
+        </ItemsPanelTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="ListBox.segments ListBoxItem">
+      <Setter Property="Padding" Value="12,0" />
+      <!-- Höhe der übrigen Bedienelemente; ListBox-Rand (2 px) abgezogen, damit die ganze Fläche 33 px hoch ist (E160) -->
+      <Setter Property="Height" Value="31" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <!-- Außenkanten des ersten und letzten Felds rund (Rahmen 4 px minus 1 px Rand), damit ein gewähltes Feld am
+         Rand nicht eckig in der runden Fläche steht -->
+    <Style Selector="ListBox.segments ListBoxItem:nth-child(1)">
+      <Setter Property="CornerRadius" Value="3,0,0,3" />
+    </Style>
+    <Style Selector="ListBox.segments ListBoxItem:nth-last-child(1)">
+      <Setter Property="CornerRadius" Value="0,3,3,0" />
+    </Style>
+    <Style Selector="ListBox.segments ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+    </Style>
+    <Style Selector="ListBox.segments ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.segments ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
+    </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="0.6" />
+    </Style>
+    <Style Selector="TextBlock.groupTitle">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+      <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+    <Style Selector="Button.swatch">
+      <Setter Property="Width" Value="30" />
+      <Setter Property="Height" Value="30" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="15" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DialogBackgroundBrush}" />
+      <Setter Property="Margin" Value="0,0,8,8" />
+    </Style>
+    <Style Selector="Button.swatch.selected">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+    </Style>
+  </Window.Styles>
+
+  <Window.DataTemplates>
+    <!-- Farbprofil: Fläche mit Hintergrund und Akzentpunkt, Name, Kennzeichen „mitgeliefert“ -->
+    <DataTemplate x:DataType="vm:ColorProfileViewModel">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Border Width="30" Height="16" CornerRadius="4" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1"
+                Background="{Binding BackgroundHex, Converter={StaticResource HexToBrush}}" VerticalAlignment="Center">
+          <Border Width="10" Height="10" CornerRadius="5" Background="{Binding AccentHex, Converter={StaticResource HexToBrush}}" />
+        </Border>
+        <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
+        <TextBlock Classes="hint" Text="{loc:T Settings.ProfileBuiltInMark}" IsVisible="{Binding IsBuiltIn}" VerticalAlignment="Center" />
+      </StackPanel>
+    </DataTemplate>
+    <DataTemplate x:DataType="vm:AccentSwatchViewModel">
+      <Panel>
+        <Button Classes="swatch" Classes.selected="{Binding IsSelected}" ToolTip.Tip="{Binding ToolTip}"
+                Background="{Binding Hex, Converter={StaticResource HexToBrush}}"
+                Command="{Binding $parent[Window].((vm:SettingsViewModel)DataContext).ChooseSwatchCommand}" CommandParameter="{Binding}" />
+        <Button Content="✕" IsVisible="{Binding IsCustom}" ToolTip.Tip="{loc:T Settings.AccentRemove}" FontSize="9" Padding="0"
+                Width="16" Height="16" CornerRadius="8" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-6,2,0"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                Command="{Binding $parent[Window].((vm:SettingsViewModel)DataContext).RemoveCustomCommand}" CommandParameter="{Binding}" />
+      </Panel>
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <Border BorderBrush="{DynamicResource DialogBorderBrush}" BorderThickness="1">
+    <DockPanel>
+      <!-- Knöpfe bleiben unten; der Inhalt scrollt, wenn das Fenster kleiner gezogen wird -->
+      <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="22,12,22,20">
+        <Button Content="{loc:T Dialog.Cancel}" MinWidth="90" HorizontalContentAlignment="Center" Click="OnCancel" IsCancel="True" />
+        <Button Classes="accent" Content="{loc:T Settings.Save}" MinWidth="90" HorizontalContentAlignment="Center" Click="OnSave" IsDefault="True" />
+      </StackPanel>
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="22,20,22,0" Spacing="6">
+          <TextBlock Classes="section" Margin="0,0,0,2" Text="{loc:T Settings.Appearance}" />
+          <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+            <TextBlock Text="{loc:T Settings.Theme}" VerticalAlignment="Center" />
+            <ListBox Grid.Column="1" Classes="segments" ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ThemeOption">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Panel VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource IconSystem}" Width="14" Height="14"
+                                IsVisible="{Binding Theme, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.System}}" />
+                      <PathIcon Data="{StaticResource IconLight}" Width="14" Height="14"
+                                IsVisible="{Binding Theme, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Light}}" />
+                      <PathIcon Data="{StaticResource IconDark}" Width="14" Height="14"
+                                IsVisible="{Binding Theme, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static profiles:ThemePreference.Dark}}" />
+                    </Panel>
+                    <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock Grid.Row="1" Text="{loc:T Settings.Language}" VerticalAlignment="Center" />
+            <ListBox Grid.Row="1" Grid.Column="1" Classes="segments" ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:LanguageOption">
+                  <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <!-- Farbprofile des bearbeiteten Designs -->
+            <TextBlock Grid.Row="2" Text="{loc:T Settings.Profile}" VerticalAlignment="Center" />
+            <ComboBox x:Name="ProfileBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
+                      PlaceholderText="{loc:T Settings.ProfileNone}" HorizontalAlignment="Stretch" MaxDropDownHeight="420" />
+            <WrapPanel Grid.Row="3" Grid.Column="1" ItemSpacing="8" LineSpacing="6">
+              <Button Content="{loc:T Settings.ProfileSaveAs}" ToolTip.Tip="{loc:T Settings.ProfileSaveAsTip}" Command="{Binding SaveProfileAsCommand}" />
+              <Button Content="{loc:T Settings.ProfileRename}" Command="{Binding RenameProfileCommand}" />
+              <Button Content="⋯" Width="34" HorizontalContentAlignment="Center" ToolTip.Tip="{loc:T Settings.ProfileMore}">
+                <Button.Flyout>
+                  <MenuFlyout Placement="BottomEdgeAlignedRight">
+                    <MenuItem Header="{loc:T Settings.ProfileDelete}" Command="{Binding DeleteProfileCommand}" />
+                    <Separator />
+                    <MenuItem Header="{loc:T Settings.ProfileExport}" Command="{Binding ExportProfileCommand}" />
+                    <MenuItem Header="{loc:T Settings.ProfileExportAll}" Command="{Binding ExportAllProfilesCommand}" />
+                    <MenuItem Header="{loc:T Settings.ProfileExportEvery}" Command="{Binding ExportEveryProfileCommand}" />
+                    <MenuItem Header="{loc:T Settings.ProfileImport}" Command="{Binding ImportProfilesCommand}" />
+                  </MenuFlyout>
+                </Button.Flyout>
+              </Button>
+            </WrapPanel>
+          </Grid>
+          <TextBlock Classes="hint" Text="{Binding ProfileMessage}" IsVisible="{Binding HasProfileMessage}" />
+          <TextBlock Classes="hint" Text="{Binding EditedThemeHint}" />
+
+          <!-- Akzentfarbe: Farbreihen paarweise nebeneinander; bei wenig Platz brechen sie in der Spalte um -->
+          <TextBlock Text="{loc:T Settings.Accent}" FontWeight="SemiBold" Margin="0,8,0,0" />
+          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="4">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="groupTitle" Text="{loc:T Settings.AccentPastel}" />
+              <ItemsControl ItemsSource="{Binding Pastel}">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              </ItemsControl>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Classes="groupTitle" Text="{loc:T Settings.AccentStrong}" />
+              <ItemsControl ItemsSource="{Binding Strong}">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              </ItemsControl>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Spacing="4">
+              <TextBlock Classes="groupTitle" Text="{loc:T Settings.AccentNeutral}" />
+              <ItemsControl ItemsSource="{Binding Neutral}">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              </ItemsControl>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+              <TextBlock Classes="groupTitle" Text="{loc:T Settings.AccentCustom}" />
+              <ItemsControl ItemsSource="{Binding Custom}" IsVisible="{Binding HasCustomColors}">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              </ItemsControl>
+              <TextBlock Classes="hint" Text="{loc:T Settings.AccentNoCustom}" IsVisible="{Binding !HasCustomColors}" />
+            </StackPanel>
+          </Grid>
+
+          <!-- Gemeinsame Regler für Akzentfarbe und Farbstich des Hintergrunds; bricht bei schmalem Fenster um -->
+          <WrapPanel Margin="0,12,0,0" ItemSpacing="10" LineSpacing="6">
+            <TextBlock Text="{loc:T Settings.Adjust}" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="target" Content="{loc:T Settings.TargetAccent}" IsChecked="{Binding IsAccentTarget}" />
+              <RadioButton Classes="segment" GroupName="target" Content="{loc:T Settings.TargetBackground}" IsChecked="{Binding IsBackgroundTarget}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Border Width="22" Height="22" CornerRadius="11" VerticalAlignment="Center"
+                      BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1"
+                      Background="{Binding PreviewHex, Converter={StaticResource HexToBrush}}" />
+              <Button Content="{Binding ResetLabel}" Command="{Binding ResetCurrentCommand}" ToolTip.Tip="{Binding ResetToolTip}" />
+            </StackPanel>
+          </WrapPanel>
+          <!-- Regler mit Zahlenfeld: zeigt den Wert und erlaubt die direkte Eingabe -->
+          <Grid x:Name="SliderGrid" ColumnDefinitions="Auto,*,72" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="2">
+            <Grid.Styles>
+              <Style Selector="Slider">
+                <Setter Property="Margin" Value="0,-6" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+              </Style>
+              <Style Selector="NumericUpDown">
+                <Setter Property="ShowButtonSpinner" Value="False" />
+                <Setter Property="Increment" Value="1" />
+                <Setter Property="FormatString" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Right" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+              </Style>
+              <Style Selector="NumericUpDown /template/ TextBox">
+                <Setter Property="MinWidth" Value="0" />
+              </Style>
+            </Grid.Styles>
+            <TextBlock Grid.Row="0" Text="{loc:T Settings.TintHue}" VerticalAlignment="Center" />
+            <Slider Grid.Row="0" Grid.Column="1" Minimum="0" Maximum="359" Value="{Binding SliderHue}" />
+            <NumericUpDown Grid.Row="0" Grid.Column="2" Minimum="0" Maximum="359" Value="{Binding HueInput}" />
+            <TextBlock Grid.Row="1" Text="{Binding SaturationLabel}" VerticalAlignment="Center" />
+            <Slider Grid.Row="1" Grid.Column="1" Minimum="{Binding SaturationMinimum}" Maximum="{Binding SaturationMaximum}" Value="{Binding SliderSaturation}" />
+            <NumericUpDown Grid.Row="1" Grid.Column="2" Minimum="{Binding SaturationMinimum}" Maximum="{Binding SaturationMaximum}" Value="{Binding SaturationInput}" />
+            <TextBlock Grid.Row="2" Text="{loc:T Settings.Brightness}" VerticalAlignment="Center" />
+            <Slider Grid.Row="2" Grid.Column="1" Minimum="{Binding BrightnessMinimum}" Maximum="{Binding BrightnessMaximum}" Value="{Binding SliderBrightness}" />
+            <NumericUpDown Grid.Row="2" Grid.Column="2" Minimum="{Binding BrightnessMinimum}" Maximum="{Binding BrightnessMaximum}" Value="{Binding BrightnessInput}" />
+          </Grid>
+          <WrapPanel ItemSpacing="8" LineSpacing="6">
+            <TextBox Width="140" Text="{Binding HexInput}" MaxLength="7" PlaceholderText="#RRGGBB" FontFamily="Cascadia Mono, Consolas, DejaVu Sans Mono, monospace">
+              <TextBox.KeyBindings><KeyBinding Gesture="Enter" Command="{Binding ApplyHexCommand}" /></TextBox.KeyBindings>
+            </TextBox>
+            <Button Content="{loc:T Settings.AccentApply}" Command="{Binding ApplyHexCommand}" />
+            <TextBlock Classes="hint" Text="{Binding HexHint}" VerticalAlignment="Center" />
+          </WrapPanel>
+          <TextBlock Classes="error" Text="{Binding HexError}" IsVisible="{Binding HasHexError}" />
+
+          <!-- Allgemein: Cover verkleinern (bisher im Cover-Editor, E157) -->
+          <TextBlock Classes="section" Margin="0,12,0,2" Text="{loc:T Settings.General}" />
+          <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto" RowSpacing="4">
+            <TextBlock Text="{loc:T Settings.Covers}" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+              <CheckBox x:Name="ShrinkCheck" Content="{loc:T Settings.CoverShrinkTo}" IsChecked="{Binding ShrinkCovers}" />
+              <NumericUpDown Width="120" Minimum="{Binding CoverMinimum}" Maximum="{Binding CoverMaximum}" Increment="50" FormatString="0"
+                             Value="{Binding CoverMaxPixels}" IsEnabled="{Binding ShrinkCovers}" VerticalAlignment="Center" />
+              <TextBlock Text="{loc:T Settings.CoverPixels}" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Grid.Row="1" Grid.Column="1" Classes="hint" Text="{loc:T Settings.CoverShrinkHint}" />
+          </Grid>
+        </StackPanel>
+      </ScrollViewer>
+    </DockPanel>
+  </Border>
+</Window>

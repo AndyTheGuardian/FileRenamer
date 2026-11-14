@@ -23,7 +23,7 @@ public sealed partial class TagAreaViewModel : ObservableObject, ITagEditorConte
     private readonly Dictionary<string, (DateTime Stamp, AudioTags? Tags, string? Error)> _disk = new(StringComparer.Ordinal);
     private readonly IClipboardService _clipboard;
     private readonly Dictionary<string, TagFilePreview> _previews = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _selectedPaths = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _deselectedPaths = new(StringComparer.Ordinal);
     private readonly HashSet<string> _markedPaths = new(StringComparer.Ordinal);
     private readonly Dictionary<TagFunction, TagEditorViewModel> _editors = [];
     private IReadOnlyList<string> _audioFiles = [];
@@ -47,7 +47,7 @@ public sealed partial class TagAreaViewModel : ObservableObject, ITagEditorConte
         Images = images;
         Library = library;
         _writer = new TagWriter(store);
-        _rowCallbacks = new TagRowCallbacks(_selectedPaths.Contains, _markedPaths.Contains, SetSelected, SetMarked);
+        _rowCallbacks = new TagRowCallbacks(path => !_deselectedPaths.Contains(path), _markedPaths.Contains, SetSelected, SetMarked);
         FunctionEntries = TagFunctionItem.CreateEntries();
         SelectedFunction = FunctionEntries.OfType<TagFunctionItem>().First();
     }
@@ -70,7 +70,7 @@ public sealed partial class TagAreaViewModel : ObservableObject, ITagEditorConte
     public IReadOnlyList<string> AudioFiles => _audioFiles;
 
     /// <inheritdoc />
-    public IReadOnlyList<string> SelectedFiles => _audioFiles.Where(_selectedPaths.Contains).ToList();
+    public IReadOnlyList<string> SelectedFiles => _audioFiles.Where(path => !_deselectedPaths.Contains(path)).ToList();
 
     /// <summary>
     /// Funktionsliste mit Gruppenüberschriften.
@@ -247,8 +247,8 @@ public sealed partial class TagAreaViewModel : ObservableObject, ITagEditorConte
     [RelayCommand]
     private void ActivatePending(PendingChangeViewModel item)
     {
-        _selectedPaths.Clear();
-        _selectedPaths.UnionWith(item.Change.Files);
+        _deselectedPaths.Clear();
+        _deselectedPaths.UnionWith(_audioFiles.Except(item.Change.Files));
         SelectedFunction = FunctionEntries.OfType<TagFunctionItem>().First(entry => entry.Function == item.Function);
         RefreshPreview();
     }
@@ -288,12 +288,8 @@ public sealed partial class TagAreaViewModel : ObservableObject, ITagEditorConte
         }
 
         _audioFiles = files.Select(file => file.FullPath).Where(path => _disk.TryGetValue(path, out var entry) && entry.Tags is not null).ToList();
-        _selectedPaths.IntersectWith(_audioFiles);
+        _deselectedPaths.IntersectWith(_audioFiles);
         _markedPaths.IntersectWith(_audioFiles);
-        if (_selectedPaths.Count == 0 && _audioFiles.Count > 0)
-        {
-            _selectedPaths.Add(_audioFiles[0]);
-        }
 
         RefreshPreview();
     }
@@ -376,7 +372,7 @@ public sealed partial class TagAreaViewModel : ObservableObject, ITagEditorConte
     {
         var changed = _previews.Values.Count(preview => preview.IsChanged);
         var hints = _previews.Values.Count(preview => preview.Hints.Count > 0);
-        var text = Loc.F("Tags.Status", _files().Count, _audioFiles.Count, changed, _selectedPaths.Count);
+        var text = Loc.F("Tags.Status", _files().Count, _audioFiles.Count, changed, SelectedFiles.Count);
         StatusText = hints > 0 ? text + " · " + Loc.F("Tags.StatusHints", hints) : text;
         var selected = SelectedFiles;
         SelectedSummary = selected.Count switch

@@ -30,9 +30,36 @@ public interface IDialogService
     /// <param name="title">Fenstertitel.</param>
     /// <param name="label">Beschriftung des Eingabefelds.</param>
     /// <param name="initialValue">Vorbelegung.</param>
-    /// <param name="hint">Erläuterung unter dem Feld.</param>
+    /// <param name="hint">Erläuterung unter dem Feld; leer = keine.</param>
+    /// <param name="confirmText">Beschriftung der Bestätigung; <c>null</c> = „Speichern“.</param>
     /// <returns>Der eingegebene Text oder <c>null</c> bei Abbruch.</returns>
-    Task<string?> PromptAsync(string title, string label, string initialValue, string hint);
+    Task<string?> PromptAsync(string title, string label, string initialValue, string hint, string? confirmText = null);
+
+    /// <summary>
+    /// Bietet mehrere Möglichkeiten zur Wahl (z. B. „Überschreiben“ oder „Beide behalten“) und „Abbrechen“.
+    /// </summary>
+    /// <param name="title">Fenstertitel.</param>
+    /// <param name="message">Die Frage.</param>
+    /// <param name="choices">Die Möglichkeiten; die erste ist hervorgehoben.</param>
+    /// <returns>Position der gewählten Möglichkeit oder <c>null</c> bei Abbruch.</returns>
+    Task<int?> ChooseAsync(string title, string message, IReadOnlyList<string> choices);
+
+    /// <summary>
+    /// Öffnet die Auswahl zum Speichern einer Datei.
+    /// </summary>
+    /// <param name="title">Fenstertitel.</param>
+    /// <param name="suggestedName">Vorgeschlagener Dateiname.</param>
+    /// <param name="filterName">Name des Dateityps.</param>
+    /// <param name="extension">Endung des Dateityps, z. B. <c>.colorprofiles.json</c>.</param>
+    /// <returns>Der lokale Pfad oder <c>null</c>.</returns>
+    Task<string?> PickSaveFileAsync(string title, string suggestedName, string filterName, string extension);
+
+    /// <summary>
+    /// Zeigt die Einstellungen (E155) modal; nach einem Sprachwechsel öffnen sie sich in der neuen Sprache wieder.
+    /// </summary>
+    /// <param name="viewModel">Das ViewModel der Einstellungen.</param>
+    /// <returns><c>true</c> bei „Übernehmen“.</returns>
+    Task<bool> ShowSettingsAsync(ViewModels.Settings.SettingsViewModel viewModel);
 
     /// <summary>
     /// Öffnet die Auswahl für eine oder mehrere Dateien.
@@ -62,14 +89,13 @@ public interface IDialogService
 public interface IThemeService
 {
     /// <summary>
-    /// Wendet die gewünschte Theme-Variante an.
+    /// Ob gerade das dunkle Design angezeigt wird (bei „System“ das des Betriebssystems).
     /// </summary>
-    /// <param name="theme">Die Auswahl.</param>
-    void Apply(ThemePreference theme);
+    bool IsDark { get; }
 
     /// <summary>
-    /// Wendet eine Akzentfarbe an.
+    /// Wendet Design und die Farben beider Designs an (E155); bei einem Wechsel des Designs gelten dessen Farben.
     /// </summary>
-    /// <param name="hex">Die Farbe (<c>#RRGGBB</c>) oder <c>null</c> für den Standard.</param>
-    void ApplyAccent(string? hex);
+    /// <param name="settings">Die Einstellungen.</param>
+    void Apply(AppSettings settings);
 }

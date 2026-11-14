@@ -7,100 +7,146 @@ using FileRenamer.Core.Theming;
 namespace FileRenamer.App.Services;
 
 /// <summary>
-/// Setzt Erscheinungsbild (System, Hell, Dunkel) und Akzentfarbe der Anwendung. Die Akzentfarbe wird in die
-/// Fluent-Ressourcen geschrieben (Schaltflächen, Checkboxen, Auswahl) und bei jedem Theme-Wechsel neu
-/// berechnet, weil Auswahlhintergrund und Rahmen bei geringem Kontrast vom Hintergrund abhängen (E79–E85).
+/// Setzt Erscheinungsbild (System, Hell, Dunkel) und die Farben des geltenden Designs (E155): Flächen, Rahmen und
+/// Nebentext aus <see cref="ThemePalette"/> mit Farbstich und Helligkeit, dazu die Akzentfarbe in den
+/// Fluent-Ressourcen (Schaltflächen, Checkboxen, Auswahl). Hell und Dunkel haben je eigene Farben; bei jedem Wechsel
+/// des Designs (auch durch das Betriebssystem) wird neu berechnet.
 /// </summary>
 public sealed class ThemeService : IThemeService
 {
-    private const string LightWindow = "#F3F4F6";
-    private const string DarkWindow = "#1B1F27";
-    private const string LightText = "#1D2330";
-    private const string DarkText = "#E4E8EF";
+    private const double SelectionAmount = 0.24;
+    private const double TextContrastRatio = 4.5;
 
     private readonly Application _application;
-    private string _accentHex = AccentPalette.DefaultAccent;
+    private ThemeColorSettings _light = new();
+    private ThemeColorSettings _dark = new();
 
     /// <summary>
-    /// Erzeugt den Dienst und reagiert auf Theme-Wechsel (auch durch das Betriebssystem).
+    /// Verbindet den Dienst mit der Anwendung und setzt die Standardfarben.
     /// </summary>
     /// <param name="application">Die Anwendung.</param>
     public ThemeService(Application application)
     {
         _application = application;
-        _application.ActualThemeVariantChanged += (_, _) => UpdateAccentResources();
+        _application.ActualThemeVariantChanged += (_, _) => UpdateResources();
+        UpdateResources();
     }
 
-    /// <summary>
-    /// Wendet die gewünschte Theme-Variante an.
-    /// </summary>
-    /// <param name="theme">Die Auswahl.</param>
-    public void Apply(ThemePreference theme)
+    /// <inheritdoc />
+    public bool IsDark => _application.ActualThemeVariant == ThemeVariant.Dark;
+
+    /// <inheritdoc />
+    public void Apply(AppSettings settings)
     {
-        _application.RequestedThemeVariant = theme switch
+        ArgumentNullException.ThrowIfNull(settings);
+        _light = settings.ColorsFor(dark: false);
+        _dark = settings.ColorsFor(dark: true);
+        var variant = settings.Theme switch
         {
             ThemePreference.Light => ThemeVariant.Light,
             ThemePreference.Dark => ThemeVariant.Dark,
             _ => ThemeVariant.Default,
         };
-        UpdateAccentResources();
+        if (_application.RequestedThemeVariant != variant)
+        {
+            _application.RequestedThemeVariant = variant;
+        }
+
+        UpdateResources();
     }
 
     /// <summary>
-    /// Wendet eine Akzentfarbe an.
+    /// Schreibt die Farben des angezeigten Designs in die Ressourcen der Anwendung.
     /// </summary>
-    /// <param name="hex">Die Farbe oder <c>null</c> für den Standard.</param>
-    public void ApplyAccent(string? hex)
+    private void UpdateResources()
     {
-        _accentHex = hex ?? AccentPalette.DefaultAccent;
-        UpdateAccentResources();
+        var dark = IsDark;
+        var settings = dark ? _dark : _light;
+        var colors = ThemePalette.For(dark, settings.Tint);
+        SetSurfaces(colors);
+        SetAccent(settings.AccentColor ?? (dark ? AccentPalette.DefaultAccentDark : AccentPalette.DefaultAccent), colors);
     }
 
     /// <summary>
-    /// Schreibt alle von der Akzentfarbe abhängigen Ressourcen.
+    /// Flächen, Rahmen und Nebentext, auch für Eingabefelder, Auswahllisten und Menüs der Fluent-Steuerelemente.
     /// </summary>
-    private void UpdateAccentResources()
+    /// <param name="colors">Die Farben des Designs.</param>
+    private void SetSurfaces(ThemeColors colors)
     {
-        var isDark = _application.ActualThemeVariant == ThemeVariant.Dark;
-        var window = isDark ? DarkWindow : LightWindow;
-        var accent = Color.Parse(_accentHex);
-        var foreground = new SolidColorBrush(Color.Parse(AccentPalette.ForegroundFor(_accentHex)));
-        var needsOutline = AccentPalette.NeedsOutline(_accentHex, window);
-        var textColor = Color.Parse(isDark ? DarkText : LightText);
-        var outline = new SolidColorBrush(needsOutline ? textColor : Colors.Transparent);
+        Set("AppBackgroundBrush", colors.AppBackground);
+        Set("PanelBackgroundBrush", colors.Panel);
+        Set("InputBackgroundBrush", colors.Input);
+        Set("AppBorderBrush", colors.Border);
+        Set("MutedTextBrush", colors.MutedText);
+        Set("DropHintBrush", colors.DropHint);
+        Set("DialogBackgroundBrush", colors.DialogBackground);
+        Set("DialogBorderBrush", colors.DialogBorder);
+        Set("TextControlBackground", colors.Input);
+        Set("TextControlBackgroundPointerOver", colors.Hover);
+        Set("TextControlBackgroundFocused", colors.Input);
+        Set("ComboBoxBackground", colors.Input);
+        Set("ComboBoxBackgroundPointerOver", colors.Hover);
+        Set("ComboBoxDropDownBackground", colors.AppBackground);
+        Set("MenuFlyoutPresenterBackground", colors.AppBackground);
+        Set("FlyoutPresenterBackground", colors.AppBackground);
+        // Einheitliche 1-px-Rahmen (E142)
+        foreach (var key in new[] { "TextControlBorderBrush", "ComboBoxBorderBrush", "ButtonBorderBrush" })
+        {
+            foreach (var state in new[] { string.Empty, "PointerOver", "Pressed", "Disabled" })
+            {
+                Set(key + state, colors.Border);
+            }
+        }
+    }
 
+    /// <summary>
+    /// Akzentfarbe mit lesbarer Schrift, Auswahlhintergrund und – bei zu geringem Kontrast – einem satteren Rahmen
+    /// (E79–E85, E144).
+    /// </summary>
+    /// <param name="accentHex">Die Akzentfarbe.</param>
+    /// <param name="colors">Die Farben des Designs.</param>
+    private void SetAccent(string accentHex, ThemeColors colors)
+    {
+        var needsOutline = AccentPalette.NeedsOutline(accentHex, colors.AppBackground);
+        var outlineHex = needsOutline ? AccentPalette.OutlineColor(accentHex, colors.AppBackground, IsDark) ?? colors.Text : null;
+        var foreground = AccentPalette.ForegroundFor(accentHex);
         var resources = _application.Resources;
+        var accent = Color.Parse(accentHex);
         resources["SystemAccentColor"] = accent;
         for (var step = 1; step <= 3; step++)
         {
-            resources[$"SystemAccentColorLight{step}"] = Mix(accent, Colors.White, step * 0.15);
-            resources[$"SystemAccentColorDark{step}"] = Mix(accent, Colors.Black, step * 0.15);
+            resources[$"SystemAccentColorLight{step}"] = Color.Parse(AccentPalette.Mix(accentHex, "#FFFFFF", step * 0.15));
+            resources[$"SystemAccentColorDark{step}"] = Color.Parse(AccentPalette.Mix(accentHex, "#000000", step * 0.15));
         }
 
-        resources["SelectionBrush"] = new SolidColorBrush(Mix(Color.Parse(window), accent, 0.24));
-        resources["AccentForegroundBrush"] = foreground;
+        Set("SelectionBrush", AccentPalette.Mix(colors.AppBackground, accentHex, SelectionAmount));
+        Set("AccentForegroundBrush", foreground);
+        // Schrift in Akzentfarbe (Abschnittstitel der Einstellungen) nur, wenn sie lesbar ist (4,5 : 1)
+        Set("AccentTextBrush", AccentPalette.ContrastRatio(accentHex, colors.AppBackground) >= TextContrastRatio ? accentHex : colors.Text);
         // Markierter Text: Hintergrund in Akzentfarbe, Schrift je nach Helligkeit hell oder dunkel (E144)
-        resources["TextControlSelectionHighlightColor"] = new SolidColorBrush(accent);
-        resources["TextSelectionForegroundBrush"] = foreground;
-        resources["AccentOutlineBrush"] = outline;
-        resources["AccentSegmentBorderBrush"] = new SolidColorBrush(needsOutline ? textColor : accent);
+        Set("TextControlSelectionHighlightColor", accentHex);
+        Set("TextSelectionForegroundBrush", foreground);
+        resources["AccentOutlineBrush"] = outlineHex is null ? Brushes.Transparent : Brush(outlineHex);
+        Set("AccentSegmentBorderBrush", outlineHex ?? accentHex);
         foreach (var state in new[] { string.Empty, "PointerOver", "Pressed" })
         {
-            resources["AccentButtonForeground" + state] = foreground;
-            resources["AccentButtonBorderBrush" + state] = outline;
-            resources["CheckBoxCheckGlyphForegroundChecked" + state] = foreground;
+            Set("AccentButtonForeground" + state, foreground);
+            resources["AccentButtonBorderBrush" + state] = outlineHex is null ? Brushes.Transparent : Brush(outlineHex);
+            Set("CheckBoxCheckGlyphForegroundChecked" + state, foreground);
         }
     }
 
     /// <summary>
-    /// Mischt zwei Farben.
+    /// Setzt eine Farbressource.
     /// </summary>
-    /// <param name="from">Ausgangsfarbe.</param>
-    /// <param name="to">Zielfarbe.</param>
-    /// <param name="amount">Anteil der Zielfarbe (0–1).</param>
-    /// <returns>Die Mischfarbe.</returns>
-    private static Color Mix(Color from, Color to, double amount) => Color.FromRgb(
-        (byte)Math.Round(from.R + (to.R - from.R) * amount),
-        (byte)Math.Round(from.G + (to.G - from.G) * amount),
-        (byte)Math.Round(from.B + (to.B - from.B) * amount));
+    /// <param name="key">Schlüssel.</param>
+    /// <param name="hex">Farbe als <c>#RRGGBB</c>.</param>
+    private void Set(string key, string hex) => _application.Resources[key] = Brush(hex);
+
+    /// <summary>
+    /// Erzeugt einen einfarbigen Pinsel.
+    /// </summary>
+    /// <param name="hex">Farbe als <c>#RRGGBB</c>.</param>
+    /// <returns>Der Pinsel.</returns>
+    private static SolidColorBrush Brush(string hex) => new(Color.Parse(hex));
 }

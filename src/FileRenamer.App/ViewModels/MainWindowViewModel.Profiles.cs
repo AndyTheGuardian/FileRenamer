@@ -52,12 +52,6 @@ public sealed partial class MainWindowViewModel
     public partial LanguagePreference Language { get; set; }
 
     /// <summary>
-    /// Akzentfarbwahl (E79); wird beim Start aus den Einstellungen erzeugt.
-    /// </summary>
-    [ObservableProperty]
-    public partial AccentColorViewModel Accent { get; private set; } = new(null, Core.Theming.AccentPalette.DefaultSaturation, []);
-
-    /// <summary>
     /// Eigene Vorlagen für „Name aus Vorlage“ (E106); wird beim Start aus den Einstellungen erzeugt.
     /// </summary>
     public TemplateLibrary Templates { get; private set; } = new([], []);
@@ -175,7 +169,7 @@ public sealed partial class MainWindowViewModel
     /// <param name="value">Das Theme.</param>
     partial void OnThemeChanged(ThemePreference value)
     {
-        _themeService.Apply(value);
+        _themeService.Apply(CurrentSettings());
         SaveSettings();
     }
 
@@ -193,16 +187,12 @@ public sealed partial class MainWindowViewModel
     }
 
     /// <summary>
-    /// Erzeugt die Objekte mit sprachabhängigen Texten neu: Editor (mit seinen Einstellungen),
-    /// Farbwahl (mit ihrem Zustand) und Vorschau. Die Verfahrensliste liest das neu aufgebaute Fenster selbst;
+    /// Erzeugt die Objekte mit sprachabhängigen Texten neu: Editor (mit seinen Einstellungen) und Vorschau. Die Verfahrensliste liest das neu aufgebaute Fenster selbst;
     /// eine Änderungsmeldung an das alte Fenster würde dort die Auswahl zurücksetzen.
     /// </summary>
     private void RefreshTexts()
     {
         Tags?.OnLanguageChanged();
-        Accent.Changed -= OnAccentChanged;
-        Accent = new AccentColorViewModel(Accent.AccentHex, Accent.Saturation, Accent.Custom.Select(swatch => swatch.Hex).ToList());
-        Accent.Changed += OnAccentChanged;
 
         if (Editor is { } editor)
         {
@@ -213,18 +203,7 @@ public sealed partial class MainWindowViewModel
     }
 
     /// <summary>
-    /// Wendet eine geänderte Akzentfarbe an und merkt sie sich (E79, E83, E84).
-    /// </summary>
-    /// <param name="sender">Die Farbwahl.</param>
-    /// <param name="e">Leer.</param>
-    private void OnAccentChanged(object? sender, EventArgs e)
-    {
-        _themeService.ApplyAccent(Accent.AccentHex);
-        SaveSettings();
-    }
-
-    /// <summary>
-    /// Stellt Akzentfarbe, Theme und zuletzt verwendetes Profil wieder her.
+    /// Stellt Farben, Theme, Sprache und zuletzt verwendetes Profil wieder her.
     /// </summary>
     private void RestoreSettings()
     {
@@ -240,13 +219,11 @@ public sealed partial class MainWindowViewModel
         }
 
         ConnectColumns(RenameColumnsKey, RenameColumns);
-        Accent = new AccentColorViewModel(settings.AccentColor, settings.PastelSaturation, settings.CustomColors);
-        Accent.Changed += OnAccentChanged;
-        _themeService.ApplyAccent(Accent.AccentHex);
+        RestoreColors(settings);
         Language = settings.Language;
         Loc.Language = CoreText.Resolve(settings.Language, CultureInfo.CurrentUICulture);
         Theme = settings.Theme;
-        _themeService.Apply(settings.Theme);
+        _themeService.Apply(CurrentSettings());
         SyncProfileNames();
         if (settings.LastProfileName is { } last && _profileStore.Load(last) is { } profile)
         {
@@ -320,22 +297,29 @@ public sealed partial class MainWindowViewModel
     }
 
     /// <summary>
-    /// Speichert Theme und Profil für den nächsten Start; Schreibfehler werden ignoriert.
+    /// Die aktuellen Einstellungen: Design, Profil, Farben (E155), Sprache, Vorlagen, Tag-Bibliothek und Spalten.
+    /// </summary>
+    /// <returns>Die Einstellungen.</returns>
+    private AppSettings CurrentSettings() => TagLibrary.ApplyTo(new AppSettings(Theme, CurrentProfileName)
+    {
+        LightColors = _lightColors,
+        DarkColors = _darkColors,
+        ColorProfiles = _colorProfiles,
+        CustomColors = _customColors,
+        Language = Language,
+        CustomPhotoTemplates = Templates.Photo,
+        CustomAudioTemplates = Templates.Audio,
+        ColumnLayouts = new Dictionary<string, IReadOnlyList<SavedColumn>>(_savedColumns),
+    });
+
+    /// <summary>
+    /// Speichert die Einstellungen für den nächsten Start; Schreibfehler werden ignoriert.
     /// </summary>
     private void SaveSettings()
     {
         try
         {
-            _settingsStore.Save(TagLibrary.ApplyTo(new AppSettings(Theme, CurrentProfileName)
-            {
-                AccentColor = Accent.AccentHex,
-                PastelSaturation = Accent.Saturation,
-                CustomColors = Accent.Custom.Select(swatch => swatch.Hex).ToList(),
-                Language = Language,
-                CustomPhotoTemplates = Templates.Photo,
-                CustomAudioTemplates = Templates.Audio,
-                ColumnLayouts = new Dictionary<string, IReadOnlyList<SavedColumn>>(_savedColumns),
-            }));
+            _settingsStore.Save(CurrentSettings());
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

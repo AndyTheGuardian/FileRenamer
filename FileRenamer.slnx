@@ -4,6 +4,8 @@
     <Project Path="src/FileRenamer.Core/FileRenamer.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/FileRenamer.App.Tests/FileRenamer.App.Tests.csproj" />
     <Project Path="tests/FileRenamer.Core.Tests/FileRenamer.Core.Tests.csproj" />
+    <Project Path="tests/FileRenamer.HeadlessChecks/FileRenamer.HeadlessChecks.csproj" />
   </Folder>
 </Solution>

@@ -72,7 +72,7 @@
       <Border Classes="box">
         <StackPanel Spacing="10">
           <TextBlock Text="{loc:T Cover.InsertTitle}" FontWeight="SemiBold" />
-          <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="9">
+          <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="9">
             <TextBlock Classes="fieldLabel" Text="{loc:T Cover.Source}" />
             <StackPanel Grid.Column="1" Orientation="Horizontal">
               <RadioButton Classes="segment" GroupName="coverSource" Content="{loc:T Cover.SourceFile}"
@@ -91,19 +91,9 @@
             <TextBlock Grid.Row="2" Classes="fieldLabel" Text="{loc:T Cover.Existing}" />
             <CheckBox Grid.Row="2" Grid.Column="1" Content="{loc:T Cover.ReplaceSameType}" IsChecked="{Binding ReplaceSameType}" />
 
-            <TextBlock Grid.Row="3" Classes="fieldLabel" Text="{loc:T Cover.Shrink}" />
-            <StackPanel Grid.Row="3" Grid.Column="1" Spacing="2">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <CheckBox Content="{loc:T Cover.ShrinkTo}" IsChecked="{Binding Shrink}" VerticalAlignment="Top" />
-                <NumericUpDown Value="{Binding MaxPixels}" Minimum="16" Maximum="10000" Increment="50" FormatString="0" Width="130"
-                               IsEnabled="{Binding Shrink}" />
-                <TextBlock Classes="fieldLabel" Text="px" />
-              </StackPanel>
-              <TextBlock Classes="hint" Text="{loc:T Cover.ShrinkHint}" TextWrapping="Wrap" />
-            </StackPanel>
-
-            <TextBlock Grid.Row="4" Classes="fieldLabel" Text="{loc:T TagEditor.Scope}" />
-            <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal">
+            <!-- „Verkleinern“ steht in den Einstellungen unter „Allgemein“ (E157) -->
+            <TextBlock Grid.Row="3" Classes="fieldLabel" Text="{loc:T TagEditor.Scope}" />
+            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
               <RadioButton Classes="segment" GroupName="coverScope" Content="{loc:T TagEditor.ScopeSelected}"
                            IsChecked="{Binding Scope, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static tags:TagScope.Selected}}" />
               <RadioButton Classes="segment" GroupName="coverScope" Content="{loc:T TagEditor.ScopeAll}"

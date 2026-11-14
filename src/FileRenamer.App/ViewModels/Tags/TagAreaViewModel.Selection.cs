@@ -2,7 +2,7 @@ namespace FileRenamer.App.ViewModels.Tags;
 
 /// <summary>
 /// Teil des Bereichs „Tags“: Auswahl der Dateien per Checkbox und Markierung von Zeilen zum Kopieren (E150), wie in
-/// der Vorschau des Umbenennens.
+/// der Vorschau des Umbenennens. Gemerkt werden die abgewählten Dateien; neue Audiodateien sind daher ausgewählt (A33).
 /// </summary>
 public sealed partial class TagAreaViewModel
 {
@@ -23,10 +23,10 @@ public sealed partial class TagAreaViewModel
                 return;
             }
 
-            _selectedPaths.Clear();
-            if (selectAll)
+            _deselectedPaths.Clear();
+            if (!selectAll)
             {
-                _selectedPaths.UnionWith(_audioFiles);
+                _deselectedPaths.UnionWith(_audioFiles);
             }
 
             foreach (var row in Rows)
@@ -45,7 +45,7 @@ public sealed partial class TagAreaViewModel
     /// <param name="isSelected">Neuer Zustand.</param>
     private void SetSelected(string path, bool isSelected)
     {
-        var changed = isSelected ? _selectedPaths.Add(path) : _selectedPaths.Remove(path);
+        var changed = isSelected ? _deselectedPaths.Remove(path) : _deselectedPaths.Add(path);
         if (changed)
         {
             OnSelectionChanged();
