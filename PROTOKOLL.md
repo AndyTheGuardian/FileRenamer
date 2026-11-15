@@ -1,6 +1,6 @@
 # FileRenamer – Protokoll
 
-Stand: 2026-11-13
+Stand: 2026-11-16
 
 Diese Datei hält Ergebnisse, gestellte Fragen mit ihren Antworten und den Fortschritt des Projekts fest.
 `SPECS.md` bleibt unverändert; Abweichungen und Präzisierungen der Spezifikation werden hier dokumentiert.
@@ -93,6 +93,7 @@ Diese Datei hält Ergebnisse, gestellte Fragen mit ihren Antworten und den Forts
 | 2026-11-13 | Befehle der Headless-Prüfungen in der Entwicklerdokumentation beschrieben (eigener Abschnitt: Aufruf aus dem Projektordner und mit absolutem Pfad, `--no-build`, nur Fehler anzeigen, Screenshots, Ausgabe, Exit-Code, Testdaten). Anlass: Aufruf aus `/home/andy/Claude` fand den relativen Pfad nicht. Lauf mit absolutem Pfad: 116/116 bestanden, 28 Screenshots |
 | 2026-11-13 | Fehler behoben (Rückmeldung): In den Einstellungen war bei den Umschaltern Design und Sprache das gewählte Feld am linken bzw. rechten Rand eckig in der runden Fläche – erstes und letztes Feld haben jetzt außen 3 px Rundung (Fläche 4 px minus 1 px Rand). Die Umschalter der Werkzeugleiste und „Akzentfarbe/Hintergrund“ waren nicht betroffen. Neue Headless-Prüfung der Rundung (schlägt mit dem alten Stand fehl, Rundung war 0); Build ohne Warnungen, **117/117 Headless-Prüfungen**, Screenshot hell und dunkel angesehen |
 | 2026-11-13 | E160 (Rückmeldung: Theme-Umschalter niedriger als die übrigen, gewählter Umschalter teils halbfett): gemessen in allen Bereichen, allen Verfahren, allen Tag-Funktionen und den Einstellungen – vorher 28 px (Umschalter nur mit Symbol, „Liste leeren“), 30 px (Zahnrad, Design/Sprache), 32 px (Auswahlfelder, Umschalter mit Text, Textfeld mit Monospace-Schrift), 33 px (Schaltflächen, Textfelder). Jetzt alles 33 px über `ControlHeight`; Halbfett der Einstellungen entfernt; Platzhalter-Chips in „Tags aus Dateinamen“ tragen die Klasse `chip`. Neue Headless-Prüfungen je Ansicht (Höhe und Schrift, 34 Prüfungen); Build ohne Warnungen, 355/355 Tests, **151/151 Headless-Prüfungen**, Screenshots angesehen |
+| 2026-11-16 | `UEBERGABE.md` angelegt: Überblick, Ablage der Dokumente, Technik, Befehle mit erwartetem Stand, Aufbau, vereinbarte Arbeitsweise, aktueller Stand, offene und bekannte Punkte, Einstieg in einer neuen Sitzung – damit auch mit einem anderen Konto weitergearbeitet werden kann. Commit `406385f` ist auf `master` und gepusht |
 
 Nächster Schritt: Anwendertest der Einstellungen und des Bereichs „Tags“ in der laufenden App.
 
